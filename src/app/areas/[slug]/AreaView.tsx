@@ -1,32 +1,34 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+"use client";
+
+import Link from "next/link";
 import { ArrowUpRight, ArrowRight, ArrowLeft } from "lucide-react";
-import { Navbar } from "../components/Navbar";
-import { Footer } from "../components/Footer";
-import { Reveal, SplitReveal } from "../components/Reveal";
-import { Magnetic } from "../components/Magnetic";
-import { useWhatsApp } from "../components/WhatsApp";
-import { AREAS, getArea } from "../content/areas";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Reveal, SplitReveal } from "@/components/Reveal";
+import { Magnetic } from "@/components/Magnetic";
+import { useWhatsApp } from "@/components/WhatsApp";
+import { areaIcon } from "@/lib/areaIcons";
 
-const PROCESS = [
-  { step: "01", title: "Exposure", body: "Identificamos dónde la organización pierde control, capacidad o margen." },
-  { step: "02", title: "Diagnosis", body: "Reconstruimos el proceso, cuantificamos su impacto y localizamos dependencias críticas." },
-  { step: "03", title: "Intervention", body: "Rediseñamos el sistema e implantamos los cambios organizativos y tecnológicos." },
-  { step: "04", title: "Operation", body: "Supervisamos, medimos y optimizamos el sistema hasta estabilizarlo." },
-];
-
-export function AreaPage() {
-  const { slug } = useParams();
-  const area = getArea(slug);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export function AreaView({
+  area,
+  settings,
+  others,
+}: {
+  area: any;
+  settings: any;
+  others: any[];
+}) {
   const { open: openWhatsApp } = useWhatsApp();
 
-  if (!area) return <Navigate to="/" replace />;
+  if (!area) return null;
 
-  const others = AREAS.filter((a) => a.slug !== area.slug);
-  const { Icon } = area;
+  const Icon = areaIcon(area.icon);
+  const process: any[] = settings?.areaMandateSteps ?? [];
 
   return (
     <>
-      <Navbar />
+      <Navbar settings={settings} />
       <main className="bg-white text-brand-black">
         {/* Area hero */}
         <section className="relative min-h-[88svh] flex flex-col justify-end overflow-hidden bg-brand-black text-white px-6 pb-16 pt-40">
@@ -47,8 +49,8 @@ export function AreaPage() {
               as="div"
               className="flex items-center gap-3 mb-8 font-mono text-xs tracking-[0.35em] uppercase text-white/45"
             >
-              <Link to="/" className="hover:text-white transition-colors">
-                Valme
+              <Link href="/" className="hover:text-white transition-colors">
+                {settings?.brandName ?? "Valme"}
               </Link>
               <span>/</span>
               <span>Intervención</span>
@@ -85,15 +87,15 @@ export function AreaPage() {
         <section className="border-b border-gray-200 px-6 py-16 md:py-20">
           <div className="max-w-7xl mx-auto mb-10">
             <span className="block font-mono text-xs tracking-[0.35em] uppercase text-gray-400">
-              / The Valme Mandate
+              {settings?.areaMandateEyebrow ?? "/ The Valme Mandate"}
             </span>
           </div>
           <Reveal
             stagger={0.1}
             className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200 border-y border-gray-200"
           >
-            {PROCESS.map((p) => (
-              <div key={p.step} className="bg-white p-8">
+            {process.map((p) => (
+              <div key={p._key ?? p.step} className="bg-white p-8">
                 <span className="block font-mono text-xs text-brand-accent mb-4">
                   /{p.step}
                 </span>
@@ -117,7 +119,7 @@ export function AreaPage() {
               as="h2"
               className="max-w-4xl text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight leading-[1.1] text-balance"
             >
-              Cómo se manifiesta la <span className="text-gray-400">exposición</span> en {area.name.toLowerCase()}.
+              Cómo se manifiesta la <span className="text-gray-400">exposición</span> en {String(area.name).toLowerCase()}.
             </SplitReveal>
 
             <Reveal
@@ -125,8 +127,7 @@ export function AreaPage() {
               delay={0.1}
               className="mt-8 max-w-2xl text-sm text-gray-500 leading-relaxed"
             >
-              Escenarios operativos. No son casos reales publicados: son
-              situaciones reconocibles en las que intervenir.
+              {settings?.areaScenariosNote}
             </Reveal>
 
             <Reveal
@@ -134,9 +135,9 @@ export function AreaPage() {
               y={50}
               className="mt-16 md:mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-gray-200 border border-gray-200"
             >
-              {area.cases.map((c, i) => (
+              {(area.cases ?? []).map((c: any, i: number) => (
                 <div
-                  key={c.title}
+                  key={c._key ?? c.title}
                   data-cursor="hover"
                   className="group relative bg-white p-8 md:p-10 transition-colors duration-500 hover:bg-brand-gray-50"
                 >
@@ -174,8 +175,8 @@ export function AreaPage() {
               stagger={0.12}
               className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12 border-t border-white/15 pt-12"
             >
-              {area.benefits.map((b, i) => (
-                <div key={b.label}>
+              {(area.benefits ?? []).map((b: any, i: number) => (
+                <div key={b._key ?? b.label}>
                   <span className="block font-mono text-xs text-white/30 mb-4">
                     /0.{i + 1}
                   </span>
@@ -196,7 +197,7 @@ export function AreaPage() {
               as="h2"
               className="text-4xl md:text-6xl lg:text-7xl font-display font-medium tracking-tighter mb-10 text-balance"
             >
-              ¿Intervenir en {area.name.toLowerCase()}?
+              ¿Intervenir en {String(area.name).toLowerCase()}?
             </SplitReveal>
             <Reveal as="div">
               <Magnetic strength={0.5}>
@@ -221,7 +222,7 @@ export function AreaPage() {
                 / Otras áreas de intervención
               </span>
               <Link
-                to="/"
+                href="/"
                 className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" /> Volver al inicio
@@ -229,10 +230,10 @@ export function AreaPage() {
             </div>
 
             <div className="flex flex-col border-t border-gray-200">
-              {others.map((o) => (
+              {(others ?? []).map((o: any) => (
                 <Link
-                  key={o.slug}
-                  to={`/areas/${o.slug}`}
+                  key={o._id}
+                  href={`/areas/${o.slug}`}
                   data-cursor="hover"
                   className="group flex items-center justify-between gap-4 border-b border-gray-200 py-6 md:py-8"
                 >
@@ -252,7 +253,7 @@ export function AreaPage() {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </>
   );
 }

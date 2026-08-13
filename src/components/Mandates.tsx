@@ -1,45 +1,27 @@
+"use client";
 import { ArrowRight, Check, X } from "lucide-react";
 import { SplitReveal, Reveal } from "./Reveal";
 import { useWhatsApp } from "./WhatsApp";
 
-const REVIEW = {
-  name: "Operational Review",
-  index: "M/01",
-  pitch:
-    "Un mandato de diagnóstico. Identificamos dónde la organización pierde control, cuantificamos su impacto y entregamos un plan de intervención.",
-  includes: [
-    "Mapeo de procesos críticos",
-    "Cuantificación de exposición operativa",
-    "Localización de dependencias críticas",
-    "Plan de intervención priorizado",
-  ],
-  cta: "Solicitar una revisión privada",
+type Plan = {
+  _key?: string;
+  index?: string;
+  name?: string;
+  pitch?: string;
+  includes?: string[];
+  ctaLabel?: string;
+  variant?: "light" | "dark";
+};
+type MandatesData = {
+  eyebrow?: string;
+  heading?: { lead?: string; dim?: string };
+  lead?: string;
+  footnote?: string;
+  plans?: Plan[];
 };
 
-const TRANSFORMATION = {
-  name: "Transformation Mandate",
-  index: "M/02",
-  pitch:
-    "Un mandato completo. Asumimos el rediseño del sistema y la operación hasta estabilizarlo. La tecnología queda subordinada al resultado.",
-  includes: [
-    "Todo lo incluido en Operational Review",
-    "Rediseño organizativo y tecnológico",
-    "Implantación y control del cambio",
-    "Supervisión hasta estabilizar la operación",
-  ],
-  cta: "Plantear un mandato completo",
-};
-
-function MandateCard({
-  data,
-  variant,
-  onCta,
-}: {
-  data: typeof REVIEW;
-  variant: "light" | "dark";
-  onCta: () => void;
-}) {
-  const dark = variant === "dark";
+function MandateCard({ data, onCta }: { data: Plan; onCta: () => void }) {
+  const dark = data.variant === "dark";
   return (
     <div
       data-cursor="hover"
@@ -78,7 +60,7 @@ function MandateCard({
       </p>
 
       <ul className="relative z-10 mt-auto space-y-3 mb-10">
-        {data.includes.map((item) => (
+        {(data.includes ?? []).map((item) => (
           <li key={item} className="flex items-start gap-3 text-sm">
             <span
               className={`mt-1.5 block w-1 h-1 rounded-full shrink-0 ${
@@ -97,15 +79,16 @@ function MandateCard({
         onClick={onCta}
         className="relative z-10 group/btn inline-flex items-center gap-2 text-sm font-medium w-fit"
       >
-        {data.cta}
+        {data.ctaLabel}
         <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
       </button>
     </div>
   );
 }
 
-export function Mandates() {
+export function Mandates({ data }: { data: MandatesData }) {
   const { open: openWhatsApp } = useWhatsApp();
+  const plans = data?.plans ?? [];
 
   return (
     <section id="mandatos" className="bg-brand-gray-100 px-6 py-24 md:py-32">
@@ -114,20 +97,19 @@ export function Mandates() {
           as="span"
           className="block font-mono text-xs tracking-[0.35em] uppercase text-gray-400 mb-8"
         >
-          / Mandatos
+          {data?.eyebrow}
         </Reveal>
         <SplitReveal
           as="h2"
           className="max-w-4xl text-4xl md:text-6xl lg:text-7xl font-normal text-brand-black tracking-tight leading-[1.1] text-balance"
         >
-          Dos formas de trabajar con <span className="text-gray-400">Valme Solutions.</span>
+          {data?.heading?.lead} <span className="text-gray-400">{data?.heading?.dim}</span>
         </SplitReveal>
         <Reveal
           as="p"
           className="mt-6 max-w-xl text-base md:text-lg text-gray-500 leading-relaxed"
         >
-          No es lo mismo saber dónde se pierde control que asumir el mandato de
-          corregirlo. Ambos comienzan con una revisión privada.
+          {data?.lead}
         </Reveal>
 
         <Reveal
@@ -135,8 +117,9 @@ export function Mandates() {
           y={50}
           className="mt-16 md:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
-          <MandateCard data={REVIEW} variant="light" onCta={openWhatsApp} />
-          <MandateCard data={TRANSFORMATION} variant="dark" onCta={openWhatsApp} />
+          {plans.map((plan) => (
+            <MandateCard key={plan._key ?? plan.index} data={plan} onCta={openWhatsApp} />
+          ))}
         </Reveal>
 
         <Reveal
@@ -145,7 +128,7 @@ export function Mandates() {
           className="mt-8 flex items-center gap-2 text-sm text-gray-400"
         >
           <X className="w-4 h-4" strokeWidth={1.5} />
-          Valme Solutions trabaja con un número limitado de mandatos simultáneos.
+          {data?.footnote}
         </Reveal>
       </div>
     </section>

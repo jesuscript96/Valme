@@ -1,3 +1,4 @@
+"use client";
 import { useEffect, useRef, useState } from "react";
 import { gsap, EASE_INOUT } from "../lib/gsap";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";

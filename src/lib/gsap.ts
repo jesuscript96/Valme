@@ -1,3 +1,4 @@
+"use client";
 /**
  * Centralized GSAP setup. Registers plugins once and re-exports the
  * configured instances so every component shares the same singleton.

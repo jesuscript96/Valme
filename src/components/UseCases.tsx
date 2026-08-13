@@ -1,3 +1,4 @@
+"use client";
 const cases = [
   {
     id: "01",

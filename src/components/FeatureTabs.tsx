@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowRight } from "lucide-react";
@@ -6,52 +7,15 @@ import { useWhatsApp } from "./WhatsApp";
 
 const AUTOPLAY_INTERVAL = 7000;
 
-const SYMPTOMS = [
-  {
-    label: "Reuniones",
-    statement:
-      "La dirección necesita varias reuniones para entender qué está ocurriendo.",
-    detail:
-      "La información no está disponible: se solicita. Comprender el estado real del negocio exige convocar, preguntar y reconstruir.",
-  },
-  {
-    label: "Dependencia",
-    statement:
-      "Una operación crítica depende de una única persona.",
-    detail:
-      "Si esa persona falla, se ausenta o se marcha, la operación se detiene. El conocimiento que sostiene el negocio no está documentado.",
-  },
-  {
-    label: "Duplicación",
-    statement:
-      "La misma información se introduce en tres herramientas diferentes.",
-    detail:
-      "La versión correcta no es evidente. El error no es excepción: es consecuencia del método.",
-  },
-  {
-    label: "Invisibilidad",
-    statement:
-      "Los equipos trabajan, pero nadie dispone de una visión completa.",
-    detail:
-      "Cada área mantiene su versión de la realidad. La dirección integra manualmente lo que el sistema debería integrar.",
-  },
-  {
-    label: "Estructura",
-    statement:
-      "Cada nuevo cliente exige aumentar estructura casi al mismo ritmo.",
-    detail:
-      "La operación no escala porque no está sistematizada. El crecimiento se traduce directamente en coste y en fricción.",
-  },
-  {
-    label: "Software sin sistema",
-    statement:
-      "La compañía tiene software, pero sigue funcionando mediante correos, Excel y recordatorios.",
-    detail:
-      "No hay falta de tecnología. Hay un sistema que no existe. Eso es deuda operativa.",
-  },
-];
+type Symptom = { _key?: string; label?: string; statement?: string; detail?: string };
+type SymptomsData = {
+  eyebrow?: string;
+  heading?: { lead?: string; dim?: string };
+  items?: Symptom[];
+};
 
-export function FeatureTabs() {
+export function FeatureTabs({ data }: { data: SymptomsData }) {
+  const SYMPTOMS = data?.items ?? [];
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const { open: openWhatsApp } = useWhatsApp();
@@ -60,6 +24,7 @@ export function FeatureTabs() {
   const animationFrameRef = useRef<number>(0);
 
   useEffect(() => {
+    if (!SYMPTOMS.length) return;
     startTimeRef.current = Date.now();
     setProgress(0);
 
@@ -80,7 +45,7 @@ export function FeatureTabs() {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [activeIndex]);
+  }, [activeIndex, SYMPTOMS.length]);
 
   const symptom = SYMPTOMS[activeIndex];
 
@@ -93,13 +58,13 @@ export function FeatureTabs() {
             as="span"
             className="block font-mono text-xs tracking-[0.35em] uppercase text-gray-400 mb-8"
           >
-            / Síntomas
+            {data?.eyebrow}
           </Reveal>
           <SplitReveal
             as="h2"
             className="text-4xl md:text-6xl lg:text-7xl font-normal text-brand-black tracking-tight leading-[1.1] text-balance"
           >
-            Si esto le resulta familiar, existe <span className="text-gray-400">exposición operativa.</span>
+            {data?.heading?.lead} <span className="text-gray-400">{data?.heading?.dim}</span>
           </SplitReveal>
         </div>
 
@@ -109,7 +74,7 @@ export function FeatureTabs() {
             const isActive = index === activeIndex;
             return (
               <button
-                key={s.label}
+                key={s._key ?? s.label}
                 onClick={() => setActiveIndex(index)}
                 className={`flex-none px-5 py-2.5 rounded-sm text-sm font-medium transition-all relative overflow-hidden uppercase tracking-wider ${
                   isActive
@@ -146,13 +111,13 @@ export function FeatureTabs() {
               className="relative z-20 max-w-3xl"
             >
               <span className="text-gray-400 font-mono text-xs tracking-widest uppercase mb-6 block">
-                {symptom.label}
+                {symptom?.label}
               </span>
               <h3 className="text-3xl md:text-5xl lg:text-6xl font-display font-medium text-white tracking-tight leading-[1.05] mb-8 text-balance">
-                {symptom.statement}
+                {symptom?.statement}
               </h3>
               <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-xl">
-                {symptom.detail}
+                {symptom?.detail}
               </p>
             </motion.div>
           </AnimatePresence>

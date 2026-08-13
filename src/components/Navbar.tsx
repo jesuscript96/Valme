@@ -1,3 +1,4 @@
+"use client";
 import {
   useEffect,
   useLayoutEffect,
@@ -5,31 +6,39 @@ import {
   useState,
   type MouseEvent,
 } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import logo from "../../assets/tomato_slice_logo.png";
 import { gsap, EASE } from "../lib/gsap";
 import { Magnetic } from "./Magnetic";
 import { useSmoothScroll } from "./SmoothScroll";
 import { useWhatsApp } from "./WhatsApp";
+import { imageUrl } from "@/sanity/image";
 
-// [label, section id on the home page]
-const LINKS: [string, string][] = [
-  ["Tesis", "tesis"],
-  ["Intervención", "intervencion"],
-  ["Mandato", "mandato"],
-  ["Admisión", "admision"],
-  ["Contacto", "contacto"],
-];
+type NavLink = { _key?: string; label?: string; sectionId?: string };
+export type NavSettings = {
+  brandName?: string;
+  descriptor?: string;
+  logo?: unknown;
+  navLinks?: NavLink[];
+  navCtaLabel?: string;
+};
 
-export function Navbar() {
+export function Navbar({ settings }: { settings: NavSettings }) {
+  const LINKS: [string, string][] = (settings?.navLinks ?? []).map((l) => [
+    l.label ?? "",
+    l.sectionId ?? "",
+  ]);
+  const brand = settings?.brandName ?? "Valme";
+  const logoSrc = imageUrl(settings?.logo as never) ?? "/assets/tomato_slice_logo.png";
+
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { scrollTo, stop, start } = useSmoothScroll();
   const { open: openWhatsApp } = useWhatsApp();
   const menuRef = useRef<HTMLDivElement>(null);
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const isHome = pathname === "/";
 
   useEffect(() => {
@@ -45,13 +54,11 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [menuOpen]);
 
-  // Links start hidden so each open re-runs the stagger.
   useLayoutEffect(() => {
     const el = menuRef.current;
     if (el) gsap.set(el.querySelectorAll(".m-link"), { yPercent: 120, opacity: 0 });
   }, []);
 
-  // Open/close: lock background scroll and stagger the links in.
   useEffect(() => {
     const el = menuRef.current;
     if (!el) return;
@@ -80,9 +87,6 @@ export function Navbar() {
     document.body.style.overflow = "";
   };
 
-  // Section link: smooth-scroll on home, otherwise let the Link navigate
-  // to /#id and ScrollManager handles the scroll after Home mounts.
-  // "Contacto" is special: it opens the WhatsApp confirmation instead.
   const onSection = (e: MouseEvent, id: string) => {
     if (id === "contacto") {
       e.preventDefault();
@@ -106,7 +110,6 @@ export function Navbar() {
     }
   };
 
-  // Over the dark hero (or with the menu open) use the white-on-dark treatment.
   const onDark = menuOpen || !scrolled;
 
   return (
@@ -123,11 +126,11 @@ export function Navbar() {
               : "bg-white/5 backdrop-blur-md border-white/10"
           }`}
         >
-          <Link to="/" onClick={onLogo} className="flex items-center gap-2.5">
+          <Link href="/" onClick={onLogo} className="flex items-center gap-2.5">
             <span className="grid place-items-center w-7 h-7 rounded-md bg-white shrink-0">
               <img
-                src={logo}
-                alt="Valme"
+                src={logoSrc}
+                alt={brand}
                 className="w-5 h-5 object-contain mix-blend-multiply"
               />
             </span>
@@ -136,7 +139,7 @@ export function Navbar() {
                 onDark ? "text-white" : "text-black"
               }`}
             >
-              Valme
+              {brand}
             </span>
           </Link>
 
@@ -144,7 +147,7 @@ export function Navbar() {
             {LINKS.slice(0, 4).map(([label, id]) => (
               <Link
                 key={id}
-                to={`/#${id}`}
+                href={`/#${id}`}
                 onClick={(e) => onSection(e, id)}
                 className={`text-sm tracking-tight transition-colors ${
                   onDark
@@ -160,7 +163,7 @@ export function Navbar() {
           <div className="flex items-center gap-3">
             <Magnetic strength={0.4}>
               <Link
-                to="/#contacto"
+                href="/#contacto"
                 onClick={(e) => onSection(e, "contacto")}
                 className={`hidden md:inline-flex px-6 py-2 text-sm font-medium rounded-full transition-colors ${
                   onDark
@@ -168,7 +171,7 @@ export function Navbar() {
                     : "bg-black text-white hover:bg-gray-800"
                 }`}
               >
-                Revisión privada
+                {settings?.navCtaLabel ?? "Revisión privada"}
               </Link>
             </Magnetic>
             <button
@@ -202,7 +205,7 @@ export function Navbar() {
           {LINKS.map(([label, id]) => (
             <div key={id} className="overflow-hidden">
               <Link
-                to={`/#${id}`}
+                href={`/#${id}`}
                 onClick={(e) => onSection(e, id)}
                 className="m-link block font-display text-white text-5xl sm:text-6xl font-medium tracking-tighter py-1.5"
               >
@@ -213,7 +216,7 @@ export function Navbar() {
         </nav>
         <div className="mt-16 overflow-hidden">
           <p className="m-link font-mono text-xs tracking-[0.3em] uppercase text-white/40">
-            Valme Solutions — Private Operations Firm
+            {brand} Solutions — {settings?.descriptor ?? "Private Operations Firm"}
           </p>
         </div>
       </div>

@@ -1,48 +1,23 @@
+"use client";
 import { Fragment, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { ScanSearch, Stethoscope, Wrench, Activity, ArrowUpRight } from "lucide-react";
+import { ScanSearch, Stethoscope, Wrench, Activity, ArrowUpRight, type LucideIcon } from "lucide-react";
 import { SplitReveal, Reveal } from "./Reveal";
+import { imageUrl } from "@/sanity/image";
 
-const MANDATE = [
-  {
-    id: "01",
-    name: "Exposure",
-    description:
-      "Identificamos dónde la organización pierde control, capacidad o margen. Antes de proponer nada, cuantificamos la exposición operativa real.",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2940&auto=format&fit=crop",
-    Icon: ScanSearch,
-  },
-  {
-    id: "02",
-    name: "Diagnosis",
-    description:
-      "Reconstruimos el proceso, cuantificamos su impacto y localizamos las dependencias críticas. El diagnóstico precede a cualquier intervención.",
-    image:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2970&auto=format&fit=crop",
-    Icon: Stethoscope,
-  },
-  {
-    id: "03",
-    name: "Intervention",
-    description:
-      "Rediseñamos el sistema e implantamos los cambios organizativos y tecnológicos necesarios. La herramienta queda subordinada al resultado.",
-    image:
-      "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=2970&auto=format&fit=crop",
-    Icon: Wrench,
-  },
-  {
-    id: "04",
-    name: "Operation",
-    description:
-      "Supervisamos, medimos y optimizamos el sistema hasta estabilizarlo. Un mandato no termina con la entrega: termina cuando la operación gobierna.",
-    image:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2970&auto=format&fit=crop",
-    Icon: Activity,
-  },
-];
+const STEP_ICONS: LucideIcon[] = [ScanSearch, Stethoscope, Wrench, Activity];
 
-export function Services() {
+type Step = { _key?: string; id?: string; name?: string; description?: string; image?: unknown };
+type MethodData = {
+  eyebrow?: string;
+  heading?: { lead?: string; dim?: string };
+  lead?: string;
+  leadMono?: string;
+  steps?: Step[];
+};
+
+export function Services({ data }: { data: MethodData }) {
+  const MANDATE = data?.steps ?? [];
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
@@ -52,29 +27,31 @@ export function Services() {
           as="span"
           className="block font-mono text-xs tracking-[0.35em] uppercase text-gray-400 mb-8"
         >
-          / Metodología
+          {data?.eyebrow}
         </Reveal>
         <SplitReveal
           as="h2"
           className="text-4xl md:text-6xl lg:text-7xl font-normal text-brand-black tracking-tight leading-[1.1] text-balance"
         >
-          No vendemos proyectos. Asumimos <span className="text-gray-400">mandatos.</span>
+          {data?.heading?.lead} <span className="text-gray-400">{data?.heading?.dim}</span>
         </SplitReveal>
         <Reveal
           as="p"
           delay={0.1}
           className="mt-8 max-w-2xl text-base md:text-lg text-gray-500 leading-relaxed"
         >
-          Una intervención formal, no un encargo genérico. Esto es{" "}
-          <span className="font-mono text-brand-black">The Valme Mandate</span>.
+          {data?.lead}{" "}
+          <span className="font-mono text-brand-black">{data?.leadMono}</span>.
         </Reveal>
       </div>
 
       <div className="flex flex-col border-t border-gray-200">
         {MANDATE.map((step, index) => {
           const isHovered = hoveredIndex === index;
+          const Icon = STEP_ICONS[index] ?? Activity;
+          const img = imageUrl(step.image as never);
           return (
-            <Fragment key={step.id}>
+            <Fragment key={step._key ?? step.id}>
             <Reveal
               as="div"
               y={30}
@@ -107,27 +84,27 @@ export function Services() {
                   {/* Middle: Icon → Image (clip-path wipe) */}
                   <div className="w-full lg:w-[320px] aspect-video relative flex items-center justify-center overflow-hidden shrink-0 rounded-sm">
                     <AnimatePresence mode="popLayout" initial={false}>
-                      {isHovered ? (
+                      {isHovered && img ? (
                         <motion.img
-                          key={`img-${step.id}`}
+                          key={`img-${step._key ?? step.id}`}
                           initial={{ clipPath: "inset(0 100% 0 0)", scale: 1.15 }}
                           animate={{ clipPath: "inset(0 0% 0 0)", scale: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                          src={step.image}
+                          src={img}
                           alt={step.name}
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       ) : (
                         <motion.div
-                          key={`icon-${step.id}`}
+                          key={`icon-${step._key ?? step.id}`}
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
                           transition={{ duration: 0.3 }}
                           className="absolute inset-0 flex items-center justify-center"
                         >
-                          <step.Icon
+                          <Icon
                             className="w-20 h-20 text-brand-gray-200"
                             strokeWidth={1}
                           />

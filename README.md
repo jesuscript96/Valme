@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Valme Solutions
 
-# Run and deploy your AI Studio app
+Web (**Next.js**) + CMS (**Sanity**). Todo el contenido, las imágenes, los CTAs y el
+SEO se gestionan desde Sanity — la web no tiene nada hardcodeado.
 
-This contains everything you need to run your app locally.
+## Estructura
 
-View your app in AI Studio: https://ai.studio/apps/3efe7142-d4b4-47fc-b999-f3cba9067f3c
+- **Raíz** — app Next.js 16 (App Router, React 19, Tailwind v4). Es lo que despliega Vercel.
+- **`studio-valme/`** — Sanity Studio (proyecto `zsu74u9b`, dataset `production`).
+  Ya desplegado en **https://valme-solutions.sanity.studio**
 
-## Run Locally
+## Desarrollo local
 
-**Prerequisites:**  Node.js
+```bash
+# Web
+npm install
+npm run dev                 # http://localhost:3000
 
+# Studio (en otra terminal)
+cd studio-valme
+npm install
+npm run dev                 # http://localhost:3333
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Despliegue en Vercel
+
+1. **Root Directory**: la raíz del repo (la app Next está en la raíz). Vercel detecta Next.js automáticamente.
+2. **Variables de entorno** (Project → Settings → Environment Variables):
+   - `NEXT_PUBLIC_SANITY_PROJECT_ID=zsu74u9b`
+   - `NEXT_PUBLIC_SANITY_DATASET=production`
+   - `SANITY_REVALIDATE_SECRET=` (una cadena aleatoria; debe coincidir con el webhook de Sanity)
+
+   > El build **falla** si faltan las dos primeras variables.
+3. **Webhook** (Sanity → Manage → API → Webhooks): URL `https://<dominio>/api/revalidate`,
+   dataset `production`, trigger create/update/delete, proyección `{ "_type": _type }`, secreto = `SANITY_REVALIDATE_SECRET`.
+4. **CORS** (Sanity → Manage → API → CORS origins): añade el dominio de producción.
+
+## Actualizar contenido
+
+Edita en el Studio → **Publicar**. El webhook revalida la web al instante; además hay
+ISR de 60 s como red de seguridad. Ver `.env.example`.

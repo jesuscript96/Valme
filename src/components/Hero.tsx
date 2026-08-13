@@ -1,18 +1,30 @@
+"use client";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { gsap, SplitText, EASE } from "../lib/gsap";
 import { Magnetic } from "./Magnetic";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
-import { useWhatsApp } from "./WhatsApp";
-import { useSmoothScroll } from "./SmoothScroll";
-import agencyVideo from "../../assets/ValmeSolutionsVideo.webm";
+import { useCta, type CtaData } from "./useCta";
 
-export function Hero({ ready }: { ready: boolean }) {
+type HeroData = {
+  eyebrow?: string;
+  titleLine1?: string;
+  titleLine2?: string;
+  subtitle?: string;
+  paragraph?: string;
+  primaryCta?: CtaData;
+  secondaryCta?: CtaData;
+  mediaUrl?: string;
+};
+
+export function Hero({ ready, data }: { ready: boolean; data: HeroData }) {
   const root = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const reduced = usePrefersReducedMotion();
-  const { open: openWhatsApp } = useWhatsApp();
-  const { scrollTo } = useSmoothScroll();
+  const cta = useCta();
+  const onPrimary = cta(data?.primaryCta);
+  const onSecondary = cta(data?.secondaryCta);
+  const mediaUrl = data?.mediaUrl || "/assets/ValmeSolutionsVideo.webm";
 
   // Ensure the background video plays (some browsers ignore the attribute).
   useEffect(() => {
@@ -85,11 +97,6 @@ export function Hero({ ready }: { ready: boolean }) {
     };
   }, [ready, reduced]);
 
-  const onSecondary = () => {
-    const node = document.getElementById("mandato");
-    if (node) scrollTo(node, -20);
-  };
-
   return (
     <section
       ref={root}
@@ -104,7 +111,7 @@ export function Hero({ ready }: { ready: boolean }) {
         playsInline
         className="absolute inset-0 z-0 h-full w-full object-cover scale-105 opacity-80"
       >
-        <source src={agencyVideo} type="video/webm" />
+        <source src={mediaUrl} type="video/webm" />
       </video>
 
       {/* Vignette + bottom fade into the next section. */}
@@ -121,36 +128,34 @@ export function Hero({ ready }: { ready: boolean }) {
       <div className="hero-inner relative z-10 px-6 w-full max-w-6xl mx-auto flex flex-col items-center text-center">
         <div className="overflow-hidden mb-7">
           <p className="hero-line font-mono text-[11px] md:text-xs tracking-[0.45em] uppercase text-white/45">
-            Valme Solutions — Private Operations Firm
+            {data?.eyebrow}
           </p>
         </div>
 
         <h1 className="hero-title font-display font-medium text-white tracking-tighter leading-[0.92] text-[10vw] sm:text-[8vw] md:text-[5.5rem] lg:text-[7rem]">
-          Growth creates
+          {data?.titleLine1}
           <br />
-          operational debt.
+          {data?.titleLine2}
         </h1>
 
         <div className="overflow-hidden mt-3 mb-8">
           <p className="hero-line font-display text-white/90 text-[6vw] sm:text-2xl md:text-3xl lg:text-4xl tracking-tight font-light">
-            We remove it.
+            {data?.subtitle}
           </p>
         </div>
 
         <p className="hero-fade max-w-xl text-base md:text-lg text-white/70 leading-relaxed font-light">
-          Valme Solutions identifica, rediseña y opera los sistemas críticos
-          sobre los que funcionan las compañías. Intervenimos allí donde una
-          organización pierde tiempo, margen, velocidad o control.
+          {data?.paragraph}
         </p>
 
         <div className="hero-fade mt-10 flex flex-col sm:flex-row items-center gap-4">
           <Magnetic strength={0.5}>
             <button
               type="button"
-              onClick={openWhatsApp}
+              onClick={onPrimary}
               className="group relative inline-flex items-center gap-2 px-7 py-3.5 bg-white text-brand-black text-sm font-medium tracking-wide rounded-full overflow-hidden"
             >
-              <span className="relative z-10">Solicitar una revisión privada</span>
+              <span className="relative z-10">{data?.primaryCta?.label}</span>
               <ArrowDown className="relative z-10 w-4 h-4 -rotate-90 group-hover:translate-x-0.5 transition-transform" />
             </button>
           </Magnetic>
@@ -159,7 +164,7 @@ export function Hero({ ready }: { ready: boolean }) {
             onClick={onSecondary}
             className="group inline-flex items-center gap-2 text-sm font-medium text-white/70 hover:text-white transition-colors tracking-wide"
           >
-            Conocer cómo intervenimos
+            {data?.secondaryCta?.label}
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>

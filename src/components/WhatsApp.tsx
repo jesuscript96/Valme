@@ -1,35 +1,47 @@
+"use client";
 import {
   createContext,
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from "react";
 import { MessageCircle, ArrowUpRight } from "lucide-react";
 
-const WA_NUMBER = "34600412492";
-const WA_MESSAGE =
+const DEFAULT_NUMBER = "34600412492";
+const DEFAULT_MESSAGE =
   "Hola, me gustaría solicitar una revisión privada con Valme Solutions.";
-export const WA_LINK = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
-  WA_MESSAGE
-)}`;
 
 const WhatsAppContext = createContext<{ open: () => void }>({ open: () => {} });
 
 export const useWhatsApp = () => useContext(WhatsAppContext);
 
-export function WhatsAppProvider({ children }: { children: ReactNode }) {
+export function WhatsAppProvider({
+  children,
+  number,
+  message,
+}: {
+  children: ReactNode;
+  number?: string;
+  message?: string;
+}) {
   const [open, setOpen] = useState(false);
+
+  const waLink = useMemo(() => {
+    const n = number || DEFAULT_NUMBER;
+    const m = message || DEFAULT_MESSAGE;
+    return `https://wa.me/${n}?text=${encodeURIComponent(m)}`;
+  }, [number, message]);
 
   const show = useCallback(() => setOpen(true), []);
   const close = useCallback(() => setOpen(false), []);
   const confirm = useCallback(() => {
-    window.open(WA_LINK, "_blank", "noopener,noreferrer");
+    window.open(waLink, "_blank", "noopener,noreferrer");
     setOpen(false);
-  }, []);
+  }, [waLink]);
 
-  // Lock background scroll + allow Escape to dismiss while open.
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -46,7 +58,6 @@ export function WhatsAppProvider({ children }: { children: ReactNode }) {
     <WhatsAppContext.Provider value={{ open: show }}>
       {children}
 
-      {/* Confirmation modal — sits below the custom cursor (z-90). */}
       <div
         role="dialog"
         aria-modal="true"
