@@ -1,3 +1,4 @@
+"use client";
 /**
  * Subtle film-grain texture layered over the whole page for a tactile,
  * print-like finish. Pure SVG turbulence, no runtime cost.

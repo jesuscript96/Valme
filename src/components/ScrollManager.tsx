@@ -1,5 +1,7 @@
+"use client";
+
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { usePathname } from "next/navigation";
 import { ScrollTrigger } from "../lib/gsap";
 import { useSmoothScroll } from "./SmoothScroll";
 
@@ -9,12 +11,13 @@ import { useSmoothScroll } from "./SmoothScroll";
  * deep-links arriving from another route.
  */
 export function ScrollManager() {
-  const { pathname, hash } = useLocation();
+  const pathname = usePathname();
   const { lenis, scrollTo } = useSmoothScroll();
 
   useEffect(() => {
     let raf = 0;
     let tries = 0;
+    const hash = typeof window !== "undefined" ? window.location.hash : "";
 
     if (hash) {
       // Wait for the target section to mount, then scroll to it.
@@ -36,7 +39,7 @@ export function ScrollManager() {
     else window.scrollTo(0, 0);
     raf = requestAnimationFrame(() => ScrollTrigger.refresh());
     return () => cancelAnimationFrame(raf);
-  }, [pathname, hash, lenis, scrollTo]);
+  }, [pathname, lenis, scrollTo]);
 
   return null;
 }
