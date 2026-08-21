@@ -3,9 +3,15 @@ import type { Metadata } from "next";
 import { sanityFetch } from "@/sanity/fetch";
 import { HOME_QUERY, HOME_SEO_QUERY } from "@/sanity/queries";
 import { imageUrl } from "@/sanity/image";
+import { useSanity } from "@/sanity/env";
+import { homeSeed, settingsSeed, areasSeed, caseCards } from "@/content/seed";
 import { HomeView } from "./HomeView";
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (!useSanity) {
+    const seo = homeSeed.seo ?? {};
+    return { title: seo.title, description: seo.description };
+  }
   const data = (await sanityFetch<any>({
     query: HOME_SEO_QUERY,
     tags: ["homePage", "siteSettings"],
@@ -23,6 +29,17 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page() {
+  if (!useSanity) {
+    return (
+      <HomeView
+        home={homeSeed}
+        settings={settingsSeed}
+        areas={areasSeed}
+        cases={caseCards}
+      />
+    );
+  }
+
   const data = (await sanityFetch<any>({
     query: HOME_QUERY,
     tags: ["homePage", "siteSettings", "area"],
@@ -30,5 +47,12 @@ export default async function Page() {
 
   if (!data?.home) notFound();
 
-  return <HomeView home={data.home} settings={data.settings} areas={data.areas ?? []} />;
+  return (
+    <HomeView
+      home={data.home}
+      settings={data.settings}
+      areas={data.areas ?? []}
+      cases={data.cases ?? []}
+    />
+  );
 }

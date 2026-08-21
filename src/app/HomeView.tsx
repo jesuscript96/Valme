@@ -5,12 +5,12 @@ import { Preloader } from "@/components/Preloader";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Mission } from "@/components/Mission";
+import { Cases } from "@/components/Cases";
 import { FeatureTabs } from "@/components/FeatureTabs";
 import { Areas } from "@/components/Areas";
 import { Services } from "@/components/Services";
 import { Mandates } from "@/components/Mandates";
 import { CareersCallout } from "@/components/CareersCallout";
-import { Firm } from "@/components/Firm";
 import { CTABlocks } from "@/components/CTABlocks";
 import { Footer } from "@/components/Footer";
 
@@ -19,10 +19,12 @@ export function HomeView({
   home,
   settings,
   areas,
+  cases,
 }: {
   home: any;
   settings: any;
   areas: any[];
+  cases: any[];
 }) {
   const [ready, setReady] = useState(false);
 
@@ -34,12 +36,12 @@ export function HomeView({
         <main>
           <Hero ready={ready} data={home?.hero} />
           <Mission data={home?.mission} />
+          <Cases data={home?.casesSection} cases={cases} />
           <FeatureTabs data={home?.symptoms} />
           <Areas data={home?.areasSection} areas={areas} />
           <Services data={home?.methodology} />
           <Mandates data={home?.mandates} />
           <CareersCallout data={home?.admission} />
-          <Firm data={home?.firm} />
           <CTABlocks data={home?.contact} />
         </main>
         <Footer settings={settings} />

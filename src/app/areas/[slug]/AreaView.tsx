@@ -206,7 +206,7 @@ export function AreaView({
                   onClick={openWhatsApp}
                   className="group inline-flex items-center gap-2 px-8 py-4 bg-brand-black text-white text-sm font-medium tracking-wide rounded-full"
                 >
-                  Solicitar una revisión privada
+                  Solicitar diagnóstico
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </Magnetic>

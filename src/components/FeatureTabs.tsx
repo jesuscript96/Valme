@@ -128,7 +128,7 @@ export function FeatureTabs({ data }: { data: SymptomsData }) {
               onClick={openWhatsApp}
               className="group inline-flex items-center gap-2 text-white font-medium hover:text-white/80 transition-colors text-sm"
             >
-              Solicitar una revisión privada
+              Solicitar diagnóstico
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
