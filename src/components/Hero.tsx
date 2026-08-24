@@ -144,10 +144,6 @@ export function Hero({ ready, data }: { ready: boolean; data: HeroData }) {
           </p>
         </div>
 
-        <p className="hero-fade max-w-xl text-base md:text-lg text-white/70 leading-relaxed font-light">
-          {data?.paragraph}
-        </p>
-
         <div className="hero-fade mt-10 flex flex-col sm:flex-row items-center gap-4">
           <Magnetic strength={0.5}>
             <button

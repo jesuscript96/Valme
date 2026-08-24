@@ -25,7 +25,7 @@ function MandateCard({ data, onCta }: { data: Plan; onCta: () => void }) {
   return (
     <div
       data-cursor="hover"
-      className={`group relative flex flex-col p-8 md:p-12 min-h-[440px] transition-colors duration-500 ${
+      className={`group relative flex flex-col overflow-hidden p-8 md:p-12 min-h-[440px] transition-colors duration-500 ${
         dark
           ? "bg-brand-black text-white"
           : "bg-white text-brand-black border border-gray-200"
