@@ -3,27 +3,26 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { getSettings } from "@/sanity/data";
 import { imageUrl } from "@/sanity/image";
+import { SITE_URL } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = (await getSettings()) as Record<string, any> | null;
   const seo = s?.defaultSeo ?? {};
-  const url: string = s?.siteUrl ?? "https://valmesolutions.com";
   const brand: string = s?.brandName ?? "Valme";
   const title: string = seo.title ?? `${brand} Solutions | Private Operations Firm`;
   const og = imageUrl(seo.ogImage) ?? "/assets/airplane_pov_realistic_sunset.png";
   const icon = imageUrl(s?.logo) ?? "/favicon.svg";
 
   return {
-    metadataBase: new URL(url),
+    metadataBase: new URL(SITE_URL),
     title: { default: title, template: `%s` },
     description: seo.description,
     authors: [{ name: `${brand} Solutions` }],
     robots: { index: !seo.noIndex, follow: !seo.noIndex },
     icons: { icon },
-    alternates: { canonical: url },
     openGraph: {
       type: "website",
-      url,
+      url: SITE_URL,
       title,
       description: seo.description,
       images: [og],

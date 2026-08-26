@@ -6,11 +6,22 @@ import { imageUrl } from "@/sanity/image";
 import { useSanity } from "@/sanity/env";
 import { homeSeed, settingsSeed, areasSeed, caseCards } from "@/content/seed";
 import { HomeView } from "./HomeView";
+import { absoluteUrl } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   if (!useSanity) {
     const seo = homeSeed.seo ?? {};
-    return { title: seo.title, description: seo.description };
+    return {
+      title: seo.title,
+      description: seo.description,
+      alternates: { canonical: absoluteUrl() },
+      openGraph: {
+        type: "website",
+        url: absoluteUrl(),
+        title: seo.title,
+        description: seo.description,
+      },
+    };
   }
   const data = (await sanityFetch<any>({
     query: HOME_SEO_QUERY,
@@ -22,8 +33,18 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = seo.description ?? fallback.description;
   const og = imageUrl(seo.ogImage ?? fallback.ogImage);
 
-  const meta: Metadata = { title, description };
-  if (og) meta.openGraph = { images: [og] };
+  const meta: Metadata = {
+    title,
+    description,
+    alternates: { canonical: absoluteUrl() },
+    openGraph: {
+      type: "website",
+      url: absoluteUrl(),
+      title,
+      description,
+      ...(og ? { images: [og] } : {}),
+    },
+  };
   if (seo.noIndex) meta.robots = { index: false, follow: false };
   return meta;
 }

@@ -26,7 +26,7 @@ export const siteSettings = defineType({
     defineField({name: 'whatsappMessage', title: 'Mensaje WhatsApp por defecto', type: 'text', rows: 2, group: 'contact'}),
     defineField({name: 'email', title: 'Email', type: 'string', group: 'contact'}),
     defineField({name: 'linkedinUrl', title: 'LinkedIn', type: 'url', group: 'contact'}),
-    defineField({name: 'siteUrl', title: 'URL del sitio', type: 'url', group: 'contact', initialValue: 'https://valmesolutions.com'}),
+    defineField({name: 'siteUrl', title: 'URL del sitio', type: 'url', group: 'contact', initialValue: 'https://www.valmesolutions.com'}),
 
     // Navegación
     defineField({

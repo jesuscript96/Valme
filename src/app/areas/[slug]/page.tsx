@@ -6,6 +6,7 @@ import { imageUrl } from "@/sanity/image";
 import { useSanity } from "@/sanity/env";
 import { getAreaDoc, otherAreas, areaDocs, settingsSeed } from "@/content/seed";
 import { AreaView } from "./AreaView";
+import { absoluteUrl } from "@/lib/site";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -27,7 +28,18 @@ export async function generateMetadata({
   if (!useSanity) {
     const area = getAreaDoc(slug);
     if (!area) return {};
-    return { title: `${area.name} | Valme Solutions`, description: area.tagline };
+    const url = absoluteUrl(`/areas/${slug}`);
+    return {
+      title: `${area.name} | Valme Solutions`,
+      description: area.tagline,
+      alternates: { canonical: url },
+      openGraph: {
+        type: "website",
+        url,
+        title: `${area.name} | Valme Solutions`,
+        description: area.tagline,
+      },
+    };
   }
   const data = (await sanityFetch<any>({
     query: AREA_SEO_QUERY,
@@ -38,17 +50,23 @@ export async function generateMetadata({
   if (!area) return {};
   const fallback = data?.settings?.defaultSeo ?? {};
   const seo = area.seo ?? {};
-  const siteUrl = data?.settings?.siteUrl ?? "https://valmesolutions.com";
   const title = seo.title ?? `${area.name} | Valme Solutions`;
   const description = seo.description ?? area.tagline ?? fallback.description;
   const og = imageUrl(seo.ogImage ?? fallback.ogImage);
+  const url = absoluteUrl(`/areas/${slug}`);
 
   const meta: Metadata = {
     title,
     description,
-    alternates: { canonical: `${siteUrl}/areas/${slug}` },
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      title,
+      description,
+      ...(og ? { images: [og] } : {}),
+    },
   };
-  if (og) meta.openGraph = { images: [og], title, description };
   if (seo.noIndex) meta.robots = { index: false, follow: false };
   return meta;
 }
