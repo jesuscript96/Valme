@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getSettings } from "@/sanity/data";
 import { caseDocs, getCaseDoc, otherCases } from "@/content/seed";
 import { CaseView } from "./CaseView";
+import { absoluteUrl } from "@/lib/site";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,9 +22,17 @@ export async function generateMetadata({
   const { slug } = await params;
   const item = getCaseDoc(slug);
   if (!item) return {};
+  const url = absoluteUrl(`/casos/${slug}`);
   return {
     title: `${item.title} | Casos de éxito · Valme Solutions`,
     description: item.summary,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      url,
+      title: `${item.title} | Casos de éxito · Valme Solutions`,
+      description: item.summary,
+    },
   };
 }
 

@@ -1,13 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getSettings } from "@/sanity/data";
+import { SITE_URL } from "@/lib/site";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  const s = (await getSettings()) as any;
-  const base = (s?.siteUrl ?? "https://valmesolutions.com").replace(/\/$/, "");
+export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: `${base}/sitemap.xml`,
-    host: base,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }
