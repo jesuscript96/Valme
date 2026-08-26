@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { Reveal } from "./Reveal";
 import { useWhatsApp } from "./WhatsApp";
-import { imageUrl } from "@/sanity/image";
+import { ValmeSeal, ValmeWordmark } from "./BrandLogo";
 
 type FooterLink = { _key?: string; label?: string; href?: string };
 type FooterColumn = { _key?: string; title?: string; links?: FooterLink[] };
@@ -17,7 +17,6 @@ export type FooterSettings = {
 export function Footer({ settings }: { settings: FooterSettings }) {
   const { open: openWhatsApp } = useWhatsApp();
   const brand = settings?.brandName ?? "Valme";
-  const logoSrc = imageUrl(settings?.logo as never) ?? "/assets/tomato_slice_logo.png";
   const columns = settings?.footerColumns ?? [];
 
   return (
@@ -25,11 +24,10 @@ export function Footer({ settings }: { settings: FooterSettings }) {
       <div className="max-w-7xl mx-auto px-6 pt-20 md:pt-28">
         <div className="flex flex-col md:flex-row justify-between gap-12 pb-16">
           <div className="flex flex-col max-w-sm">
-            <div className="flex items-center gap-2.5 mb-6">
-              <span className="grid place-items-center w-7 h-7 rounded-md bg-white shrink-0">
-                <img src={logoSrc} alt={brand} className="w-5 h-5 object-contain mix-blend-multiply" />
-              </span>
-              <span className="text-xl font-semibold tracking-tight font-display">{brand}</span>
+            <div className="flex items-center gap-3.5 mb-6 text-white">
+              <ValmeSeal className="h-8 w-auto" />
+              <span className="h-6 w-px bg-white/20" />
+              <ValmeWordmark className="h-5 w-auto" />
             </div>
             <p className="text-sm text-white/45 mb-8 leading-relaxed whitespace-pre-line">
               {settings?.footerLegal}
@@ -76,10 +74,8 @@ export function Footer({ settings }: { settings: FooterSettings }) {
 
       {/* Giant wordmark */}
       <Reveal as="div" y={60} className="border-t border-white/10 overflow-hidden">
-        <div className="max-w-[1600px] mx-auto px-6 pt-10 pb-2 flex items-end justify-center">
-          <span className="select-none font-display font-medium tracking-tighter leading-[0.8] text-white text-[24vw] md:text-[22vw]">
-            {brand}
-          </span>
+        <div className="max-w-[1600px] mx-auto px-6 pt-14 pb-10 md:pb-14">
+          <ValmeWordmark className="w-full h-auto text-white" />
         </div>
       </Reveal>
     </footer>

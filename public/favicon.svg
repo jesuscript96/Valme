@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 -26 144 152" role="img" aria-label="Valme">
+  <rect x="-30" y="-26" width="144" height="152" fill="#0A0A0A"/>
+  <g fill="#FFFFFF">
+    <path d="M0,0 H16 L31.4,44 H15.4 Z"/>
+    <path d="M68,0 H84 L68.6,44 H52.6 Z"/>
+    <path d="M18.9,54 H34.9 L42,74.3 L49.1,54 H65.1 L49,100 H35 Z"/>
+  </g>
+</svg>

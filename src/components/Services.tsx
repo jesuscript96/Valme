@@ -45,6 +45,19 @@ export function Services({ data }: { data: MethodData }) {
         </Reveal>
       </div>
 
+      <div className="max-w-7xl mx-auto px-6 pb-16 md:pb-20">
+        <Reveal as="div" y={40}>
+          <div className="relative h-[320px] md:h-[500px] overflow-hidden rounded-lg ring-1 ring-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/corp/staircase.jpeg"
+              alt="Escalera de caracol de hormigón, paso a paso"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+        </Reveal>
+      </div>
+
       <div className="flex flex-col border-t border-gray-200">
         {MANDATE.map((step, index) => {
           const isHovered = hoveredIndex === index;

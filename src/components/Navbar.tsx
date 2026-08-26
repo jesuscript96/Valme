@@ -13,7 +13,7 @@ import { gsap, EASE } from "../lib/gsap";
 import { Magnetic } from "./Magnetic";
 import { useSmoothScroll } from "./SmoothScroll";
 import { useWhatsApp } from "./WhatsApp";
-import { imageUrl } from "@/sanity/image";
+import { ValmeSeal, ValmeWordmark } from "./BrandLogo";
 
 type NavLink = { _key?: string; label?: string; sectionId?: string };
 export type NavSettings = {
@@ -30,7 +30,6 @@ export function Navbar({ settings }: { settings: NavSettings }) {
     l.sectionId ?? "",
   ]);
   const brand = settings?.brandName ?? "Valme";
-  const logoSrc = imageUrl(settings?.logo as never) ?? "/assets/tomato_slice_logo.png";
 
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -126,21 +125,16 @@ export function Navbar({ settings }: { settings: NavSettings }) {
               : "bg-white/5 backdrop-blur-md border-white/10"
           }`}
         >
-          <Link href="/" onClick={onLogo} className="flex items-center gap-2.5">
-            <span className="grid place-items-center w-7 h-7 rounded-md bg-white shrink-0">
-              <img
-                src={logoSrc}
-                alt={brand}
-                className="w-5 h-5 object-contain mix-blend-multiply"
-              />
-            </span>
-            <span
-              className={`text-lg font-semibold tracking-tight font-display transition-colors duration-500 ${
-                onDark ? "text-white" : "text-black"
-              }`}
-            >
-              {brand}
-            </span>
+          <Link
+            href="/"
+            onClick={onLogo}
+            aria-label={brand}
+            className={`flex items-center transition-colors duration-500 ${
+              onDark ? "text-white" : "text-[#0A0A0A]"
+            }`}
+          >
+            <ValmeSeal className="h-6 w-auto sm:hidden" />
+            <ValmeWordmark className="hidden sm:block h-[26px] w-auto" />
           </Link>
 
           <nav className="hidden lg:flex items-center gap-8">

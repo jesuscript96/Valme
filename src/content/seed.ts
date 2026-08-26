@@ -37,9 +37,9 @@ export const homeSeed: any = {
 
   hero: {
     eyebrow: 'Transformación operativa con IA · Pymes B2B',
-    titleLine1: 'Pon tu operación',
-    titleLine2: 'a la altura de hoy.',
-    subtitle: 'Menos desorden. Más automatización. Mejores decisiones.',
+    titleLine1: 'Analizamos tu problema.',
+    titleLine2: 'Implementamos soluciones.',
+    subtitle: 'Optimizamos procesos y acompañamos a tu equipo de principio a fin.',
     paragraph:
       'Has crecido a base de esfuerzo, y por el camino se han acumulado procesos manuales, desordenados y poco eficientes. No por falta de capacidad, sino de tiempo y de foco. Te acompañamos a transformar tu operativa en una más actual, automatizada y preparada para la IA, para que compitas de verdad.',
     primaryCta: {label: 'Solicitar diagnóstico', kind: 'whatsapp'},
@@ -103,31 +103,41 @@ export const homeSeed: any = {
         label: 'El comercial imprescindible',
         statement: 'Si tu mejor comercial se va, se va también su cartera.',
         detail:
-          'El pipeline vive en su cabeza y en su móvil. Nadie más sabe en qué punto está cada oportunidad. La empresa depende de una persona, no de un sistema.',
+          'El pipeline vive en su cabeza y en su móvil. Nadie más sabe en qué punto está cada oportunidad y la empresa depende de una persona, no de un sistema.',
+        solution:
+          'Pasamos ese conocimiento a un CRM que el equipo usa de verdad: cada oportunidad queda registrada, visible y con seguimiento. El criterio deja de irse por la puerta.',
       },
       {
         label: 'Ventas a ciegas',
         statement: 'No sabes qué vas a facturar este mes hasta que ya ha pasado.',
         detail:
-          'Las previsiones se basan en intuición. Los datos llegan tarde y repartidos en varios Excels. Decides mirando por el retrovisor.',
+          'Las previsiones se basan en intuición. Los datos llegan tarde y repartidos en varios Excels, y decides mirando por el retrovisor.',
+        solution:
+          'Unificamos la información en un panel único y en tiempo real. Ves el mes según avanza, con alertas antes de que un desvío te cueste dinero.',
       },
       {
         label: 'Todo a mano',
         statement: 'Tu equipo dedica el día a tareas que un sistema haría solo.',
         detail:
-          'Copiar datos de una herramienta a otra, perseguir aprobaciones por correo, rehacer el mismo informe cada semana. Trabajo que la automatización y la IA ya resuelven, pero que nadie ha tenido tiempo de arreglar.',
+          'Copiar datos de una herramienta a otra, perseguir aprobaciones por correo, rehacer el mismo informe cada semana. Horas que se van en trabajo que no aporta.',
+        solution:
+          'Automatizamos ese trasiego con integraciones e IA con criterio. Tu equipo suelta la tarea mecánica y recupera el tiempo para lo que sí importa.',
       },
       {
         label: 'El CEO sin visibilidad',
         statement: 'Para saber cómo va tu empresa tienes que convocar tres reuniones.',
         detail:
-          'La información está fragmentada por departamento y por persona. No existe una única versión de la realidad. Has perdido el control de tu propia operación.',
+          'La información está fragmentada por departamento y por persona. No existe una única versión de la realidad y has perdido el control de tu propia operación.',
+        solution:
+          'Montamos un cuadro de mando para dirección con una sola fuente de datos. Abres el panel y sabes cómo va el negocio, sin convocar a nadie.',
       },
       {
         label: 'El miedo a contratar',
         statement: 'Creces, pero contratar estructura fija para apagar fuegos te aterra.',
         detail:
-          'Cada nuevo cliente exige más gente para sostener el desorden. Sabes que sumar personas no arregla un problema de sistema: solo lo hace más caro.',
+          'Cada nuevo cliente exige más gente para sostener el desorden. Sumar personas no arregla un problema de sistema: solo lo hace más caro.',
+        solution:
+          'Ordenamos y automatizamos la operativa para que absorba el crecimiento sin inflar la plantilla. Creces por sistema, no a base de contratar.',
       },
     ],
   },
@@ -261,9 +271,50 @@ export const homeSeed: any = {
 // ---------------------------------------------------------------------------
 export const caseDocs: any[] = [
   {
+    _id: 'club-tenis-alto-rendimiento',
+    slug: 'club-tenis-alto-rendimiento',
+    index: '01',
+    image: '/assets/stock/case-tenis.jpg',
+    galleryEyebrow: '/ El producto',
+    galleryHeading: 'La herramienta que usan cada día.',
+    galleryFit: 'contain',
+    gallery: [
+      '/assets/cases/tenis-movil.png',
+      '/assets/cases/tenis-1.png',
+      '/assets/cases/tenis-2.png',
+    ],
+    title: 'El fin del caos en un centro de tenis que no paraba de crecer',
+    sector: 'Club de tenis · Alto rendimiento · Cientos de alumnos',
+    summary:
+      'El director deportivo dirigía el club desde una hoja de Excel. Construimos las aplicaciones, móvil y de escritorio, que ordenan pistas y evaluaciones, y le devolvieron su papel de director.',
+    challenge:
+      'Un club de tenis de alto rendimiento en pleno crecimiento: cientos de niños, jóvenes y adultos entrenando cada semana y un centro de tecnificación con decenas de jugadores, cada uno con su casuística. Encajarlos a todos en las pistas era un rompecabezas diario —horarios, entrenador asignado, preferencias, salidas a torneos, una lesión que arrastrar, un jugador invitado— que el director deportivo resolvía a mano, en un Excel, entre dos y tres horas cada mañana. Y cuando por fin cerraba las pistas, empezaba a perseguir a los entrenadores para reunir las evaluaciones de cada jugador y presentárselas a las familias como podía: tarde y sin una imagen a la altura del club.',
+    intervention: [
+      'Escuchamos al director deportivo y a los entrenadores, pista a pista',
+      'Localizamos el origen real del caos: un crecimiento que la gestión manual ya no aguantaba',
+      'Diseñamos y construimos un producto a medida, con app móvil y de escritorio',
+      'Un rol para cada figura del club: dirección deportiva, entrenador y jugador',
+      'Un motor de cuadrantes que respeta horarios, entrenadores, lesiones, torneos e invitados',
+      'Evaluaciones en un par de toques, con aviso automático a las familias',
+      'Acompañamos al club hasta que las aplicaciones fueron su forma natural de trabajar',
+    ],
+    result: [
+      'Cuadrar todas las pistas pasó de dos o tres horas a cinco o diez minutos al día',
+      'Cada evaluación se actualiza y se notifica en apenas dos minutos por jugador',
+      'Las familias siguen la evolución de sus hijos al instante y con la imagen que el club merece',
+      'El director deportivo vuelve a dirigir: su tiempo va a lo deportivo y lo estratégico',
+      'El club sigue creciendo sin que la operativa se vuelva a desbordar',
+    ],
+  },
+  {
     _id: 'publicidad-exterior',
     slug: 'publicidad-exterior',
-    index: '01',
+    index: '02',
+    image: '/assets/stock/case-publicidad.jpg',
+    galleryEyebrow: '/ El producto',
+    galleryHeading: 'La aplicación interna, por dentro.',
+    galleryFit: 'contain',
+    gallery: ['/assets/cases/publi-1.png', '/assets/cases/publi-2.png'],
     title: 'El fin del caos en un departamento de ventas que no paraba de crecer',
     sector: 'Publicidad exterior · Empresa familiar · +40 años',
     summary:
@@ -288,54 +339,35 @@ export const caseDocs: any[] = [
     ],
   },
   {
-    _id: 'el-comercial-imprescindible',
-    slug: 'el-comercial-imprescindible',
-    index: '02',
-    title: 'El día que dejaron de depender de un solo comercial',
-    sector: 'Servicios B2B · 18 personas · ticket alto',
-    summary:
-      'Toda la cartera vivía en el móvil del mejor vendedor. Migramos el pipeline a un CRM que el equipo usa de verdad.',
-    challenge:
-      'Su comercial estrella era también su mayor riesgo: si se iba, se iba su cartera. El pipeline estaba en su cabeza, en notas sueltas y en su móvil. Dirección no sabía qué se iba a cerrar hasta que se cerraba, o se perdía.',
-    intervention: [
-      'Diseñamos un proceso comercial claro, por fases',
-      'Implantamos un CRM adaptado a cómo venden de verdad',
-      'Automatizamos seguimiento, recordatorios y propuestas',
-      'Conectamos ventas con la entrega para que nada se caiga',
-      'Acompañamos al equipo hasta que registrar dejó de ser una carga',
-    ],
-    result: [
-      'El conocimiento comercial es de la empresa, no de una persona',
-      'Previsión de ventas fiable para dirección',
-      'Menos oportunidades perdidas por falta de seguimiento',
-      'El comercial dedica su tiempo a vender, no a administrar',
-    ],
-  },
-  {
-    _id: 'club-tenis-alto-rendimiento',
-    slug: 'club-tenis-alto-rendimiento',
+    _id: 'trabajador-clave-ia',
+    slug: 'trabajador-clave-ia',
     index: '03',
-    title: 'El fin del caos en un centro de tenis que no paraba de crecer',
-    sector: 'Club de tenis · Alto rendimiento · Cientos de alumnos',
+    image: '/assets/stock/case-ia.jpg',
+    galleryEyebrow: '/ En contexto',
+    galleryHeading: 'El sistema de trabajo asistido.',
+    galleryFit: 'cover',
+    gallery: ['/assets/stock/soft-code.jpg', '/assets/stock/working.jpg'],
+    title: 'El trabajador clave que la IA no sustituyó, sino que potenció',
+    sector: 'Pyme B2B · Un rol crítico · Conocimiento interno',
     summary:
-      'El director deportivo dirigía el club desde una hoja de Excel. Construimos las aplicaciones, móvil y de escritorio, que ordenan pistas y evaluaciones, y le devolvieron su papel de director.',
+      'Su trabajador de más experiencia se estaba quedando atrás frente a la IA. En vez de prescindir de él, construimos un sistema de trabajo asistido que multiplicó su valor.',
     challenge:
-      'Un club de tenis de alto rendimiento en pleno crecimiento: cientos de niños, jóvenes y adultos entrenando cada semana y un centro de tecnificación con decenas de jugadores, cada uno con su casuística. Encajarlos a todos en las pistas era un rompecabezas diario —horarios, entrenador asignado, preferencias, salidas a torneos, una lesión que arrastrar, un jugador invitado— que el director deportivo resolvía a mano, en un Excel, entre dos y tres horas cada mañana. Y cuando por fin cerraba las pistas, empezaba a perseguir a los entrenadores para reunir las evaluaciones de cada jugador y presentárselas a las familias como podía: tarde y sin una imagen a la altura del club.',
+      'Tenían a un trabajador que conocía la operación como nadie: años de contexto, criterio y decisiones que no estaban escritas en ningún sitio. El problema no era su valía, sino su forma de trabajar. Se movía entre herramientas dispersas, repetía las mismas tareas manuales cada día y usaba la IA con inseguridad, a tientas. La empresa lo veía venir: si esa manera de operar no evolucionaba, la persona más valiosa acababa siendo también un cuello de botella. No querían sustituirlo ni recortar equipo; querían que diera el salto sin perder lo que lo hacía imprescindible.',
     intervention: [
-      'Escuchamos al director deportivo y a los entrenadores, pista a pista',
-      'Localizamos el origen real del caos: un crecimiento que la gestión manual ya no aguantaba',
-      'Diseñamos y construimos un producto a medida, con app móvil y de escritorio',
-      'Un rol para cada figura del club: dirección deportiva, entrenador y jugador',
-      'Un motor de cuadrantes que respeta horarios, entrenadores, lesiones, torneos e invitados',
-      'Evaluaciones en un par de toques, con aviso automático a las familias',
-      'Acompañamos al club hasta que las aplicaciones fueron su forma natural de trabajar',
+      'Analizamos sus tareas reales, una a una, sin partir de la teoría',
+      'Detectamos dónde la IA aporta sin poner en riesgo la calidad',
+      'Construimos un copiloto interno para su día a día',
+      'Preparamos guías y prompts controlados para trabajar con criterio',
+      'Añadimos revisión humana y checklist de calidad en cada entrega',
+      'Montamos un seguimiento para que dirección viera el avance',
+      'Le acompañamos hasta que la IA fue una herramienta suya, no una amenaza',
     ],
     result: [
-      'Cuadrar todas las pistas pasó de dos o tres horas a cinco o diez minutos al día',
-      'Cada evaluación se actualiza y se notifica en apenas dos minutos por jugador',
-      'Las familias siguen la evolución de sus hijos al instante y con la imagen que el club merece',
-      'El director deportivo vuelve a dirigir: su tiempo va a lo deportivo y lo estratégico',
-      'El club sigue creciendo sin que la operativa se vuelva a desbordar',
+      'El trabajador no perdió valor: lo multiplicó',
+      'Menos tareas repetitivas y más foco en lo que de verdad aporta',
+      'Aprendió a usar la IA con criterio y seguridad',
+      'La empresa conserva su conocimiento interno, sin transiciones bruscas',
+      'IA para hacer crecer a las personas, no para prescindir de ellas',
     ],
   },
 ]
@@ -345,6 +377,7 @@ export const caseCards: any[] = caseDocs.map((c) => ({
   _id: c._id,
   slug: c.slug,
   index: c.index,
+  image: c.image,
   title: c.title,
   sector: c.sector,
   summary: c.summary,
@@ -357,7 +390,7 @@ export const getCaseDoc = (slug?: string) => caseDocs.find((c) => c.slug === slu
 export const otherCases = (slug?: string) =>
   caseDocs
     .filter((c) => c.slug !== slug)
-    .map((c) => ({_id: c._id, slug: c.slug, index: c.index, title: c.title, sector: c.sector}))
+    .map((c) => ({_id: c._id, slug: c.slug, index: c.index, image: c.image, title: c.title, sector: c.sector}))
 
 // ---------------------------------------------------------------------------
 // SITE SETTINGS
@@ -386,9 +419,9 @@ export const settingsSeed: any = {
     {
       title: 'Casos de éxito',
       links: [
-        {label: 'Orden en publicidad exterior', href: '/casos/publicidad-exterior'},
-        {label: 'El comercial imprescindible', href: '/casos/el-comercial-imprescindible'},
         {label: 'Orden en un centro de tenis', href: '/casos/club-tenis-alto-rendimiento'},
+        {label: 'Orden en publicidad exterior', href: '/casos/publicidad-exterior'},
+        {label: 'Trabajador clave con IA', href: '/casos/trabajador-clave-ia'},
       ],
     },
     {

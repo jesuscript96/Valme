@@ -48,6 +48,18 @@ export function Areas({ data, areas }: { data: AreasData; areas: AreaCard[] }) {
           {data?.intro}
         </Reveal>
 
+        <Reveal as="div" delay={0.1} y={40} className="mt-14 md:mt-16">
+          <div className="relative h-[300px] md:h-[460px] overflow-hidden rounded-lg ring-1 ring-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/corp/geometric.jpeg"
+              alt="Equilibrio de formas: orden sobre el caos"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          </div>
+        </Reveal>
+
         <Reveal
           stagger={0.08}
           y={40}

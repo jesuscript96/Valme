@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const brand: string = s?.brandName ?? "Valme";
   const title: string = seo.title ?? `${brand} Solutions | Private Operations Firm`;
   const og = imageUrl(seo.ogImage) ?? "/assets/airplane_pov_realistic_sunset.png";
-  const icon = imageUrl(s?.logo) ?? "/assets/tomato_slice_logo.png";
+  const icon = imageUrl(s?.logo) ?? "/favicon.svg";
 
   return {
     metadataBase: new URL(url),

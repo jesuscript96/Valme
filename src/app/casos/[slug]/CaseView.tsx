@@ -9,6 +9,87 @@ import { Magnetic } from "@/components/Magnetic";
 import { useWhatsApp } from "@/components/WhatsApp";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Una imagen del caso intercalada entre bloques de texto (no en galería).
+ * `contain` = mockup de producto sobre tarjeta color shell; si no, foto a sangre.
+ * `featured` la muestra más grande (imagen principal del caso).
+ */
+function CaseImageBand({
+  src,
+  alt,
+  fit,
+  featured,
+  eyebrow,
+  heading,
+}: {
+  src?: string;
+  alt: string;
+  fit?: string;
+  featured?: boolean;
+  eyebrow?: string;
+  heading?: string;
+}) {
+  if (!src) return null;
+  const contain = fit === "contain";
+  const hasIntro = Boolean(eyebrow || heading);
+  return (
+    <section
+      className={`bg-brand-gray-50 px-6 ${
+        hasIntro ? "pt-20 pb-16 md:pt-28 md:pb-24" : "py-14 md:py-20"
+      }`}
+    >
+      <div className="max-w-6xl mx-auto">
+        {hasIntro && (
+          <div className="mb-10 md:mb-14 max-w-3xl">
+            {eyebrow && (
+              <Reveal
+                as="span"
+                className="block font-mono text-xs tracking-[0.35em] uppercase text-gray-400 mb-6"
+              >
+                {eyebrow}
+              </Reveal>
+            )}
+            {heading && (
+              <SplitReveal
+                as="h2"
+                className="text-3xl md:text-5xl font-normal tracking-tight leading-[1.1] text-balance"
+              >
+                {heading}
+              </SplitReveal>
+            )}
+          </div>
+        )}
+        <Reveal as="div" y={40}>
+          {contain ? (
+            <div
+              className={`flex items-center justify-center overflow-hidden rounded-xl bg-[#F4F2EE] ring-1 ring-black/5 p-4 md:p-8 ${
+                featured ? "h-[400px] md:h-[620px]" : "h-[340px] md:h-[540px]"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={alt}
+                className="max-h-full max-w-full w-auto object-contain"
+              />
+            </div>
+          ) : (
+            <div
+              className={`overflow-hidden rounded-xl ring-1 ring-black/5 ${
+                featured ? "h-[360px] md:h-[560px]" : "h-[320px] md:h-[520px]"
+              }`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt={alt} className="h-full w-full object-cover" />
+            </div>
+          )}
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 export function CaseView({
   item,
   settings,
@@ -28,13 +109,22 @@ export function CaseView({
       <main className="bg-white text-brand-black">
         {/* Case hero */}
         <section className="relative min-h-[80svh] flex flex-col justify-end overflow-hidden bg-brand-black text-white px-6 pb-16 pt-40">
+          {item.image && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={item.image}
+              alt=""
+              className="absolute inset-0 z-0 h-full w-full object-cover opacity-45"
+            />
+          )}
           <div
-            className="absolute inset-0 z-0"
+            className="absolute inset-0 z-[1]"
             style={{
               background:
-                "radial-gradient(120% 90% at 50% 25%, #1a1a1f 0%, #0c0c0e 60%, #060607 100%)",
+                "radial-gradient(120% 90% at 50% 25%, rgba(16,16,20,0.55) 0%, rgba(10,10,12,0.86) 60%, #060607 100%)",
             }}
           />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-1/2 bg-gradient-to-t from-brand-black to-transparent" />
           <div className="relative z-10 max-w-7xl mx-auto w-full">
             <Reveal
               as="div"
@@ -94,6 +184,16 @@ export function CaseView({
           </div>
         </section>
 
+        {/* Imagen intercalada 1 — la principal del caso */}
+        <CaseImageBand
+          src={item.gallery?.[0]}
+          alt={`${item.title} — imagen principal`}
+          fit={item.galleryFit}
+          featured
+          eyebrow={item.galleryEyebrow ?? "/ El producto"}
+          heading={item.galleryHeading}
+        />
+
         {/* Qué hicimos */}
         <section className="px-6 py-24 md:py-32">
           <div className="max-w-7xl mx-auto">
@@ -126,6 +226,13 @@ export function CaseView({
           </div>
         </section>
 
+        {/* Imagen intercalada 2 */}
+        <CaseImageBand
+          src={item.gallery?.[1]}
+          alt={`${item.title} — captura 2`}
+          fit={item.galleryFit}
+        />
+
         {/* El resultado */}
         <section className="bg-brand-black text-white px-6 py-24 md:py-32">
           <div className="max-w-7xl mx-auto">
@@ -155,6 +262,13 @@ export function CaseView({
             </Reveal>
           </div>
         </section>
+
+        {/* Imagen intercalada 3 */}
+        <CaseImageBand
+          src={item.gallery?.[2]}
+          alt={`${item.title} — captura 3`}
+          fit={item.galleryFit}
+        />
 
         {/* CTA */}
         <section className="px-6 py-24 md:py-32">

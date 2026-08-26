@@ -35,8 +35,8 @@ export function HomeView({
         <Navbar settings={settings} />
         <main>
           <Hero ready={ready} data={home?.hero} />
-          <Mission data={home?.mission} />
           <Cases data={home?.casesSection} cases={cases} />
+          <Mission data={home?.mission} />
           <FeatureTabs data={home?.symptoms} />
           <Areas data={home?.areasSection} areas={areas} />
           <Services data={home?.methodology} />

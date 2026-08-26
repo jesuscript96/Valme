@@ -7,7 +7,7 @@ import { useWhatsApp } from "./WhatsApp";
 
 const AUTOPLAY_INTERVAL = 7000;
 
-type Symptom = { _key?: string; label?: string; statement?: string; detail?: string };
+type Symptom = { _key?: string; label?: string; statement?: string; detail?: string; solution?: string };
 type SymptomsData = {
   eyebrow?: string;
   heading?: { lead?: string; dim?: string };
@@ -116,9 +116,16 @@ export function FeatureTabs({ data }: { data: SymptomsData }) {
               <h3 className="text-3xl md:text-5xl lg:text-6xl font-display font-medium text-white tracking-tight leading-[1.05] mb-8 text-balance">
                 {symptom?.statement}
               </h3>
-              <p className="text-gray-400 text-base md:text-lg leading-relaxed max-w-xl">
-                {symptom?.detail}
-              </p>
+              <div className="max-w-xl space-y-5">
+                <p className="text-gray-400 text-base md:text-lg leading-relaxed">
+                  {symptom?.detail}
+                </p>
+                {symptom?.solution && (
+                  <p className="relative border-l-2 border-brand-accent pl-5 text-white/90 text-base md:text-lg leading-relaxed">
+                    {symptom.solution}
+                  </p>
+                )}
+              </div>
             </motion.div>
           </AnimatePresence>
 
