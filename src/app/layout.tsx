@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 import { getSettings } from "@/sanity/data";
 import { imageUrl } from "@/sanity/image";
 import { SITE_URL } from "@/lib/site";
+import { OrganizationJsonLd } from "@/components/OrganizationJsonLd";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = (await getSettings()) as Record<string, any> | null;
@@ -45,6 +46,7 @@ export default async function RootLayout({
   return (
     <html lang="es">
       <body>
+        <OrganizationJsonLd />
         <Providers
           whatsappNumber={s?.whatsappNumber}
           whatsappMessage={s?.whatsappMessage}
