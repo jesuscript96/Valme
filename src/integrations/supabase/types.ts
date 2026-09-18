@@ -232,9 +232,12 @@ export type Database = {
           created_by: string | null
           detalle: string | null
           estado: string
+          fase: string
           fecha_limite: string | null
           id: string
+          orden_fase: number
           prioridad: string
+          proyecto: string | null
           responsable: string
           titulo: string
           updated_at: string
@@ -247,9 +250,12 @@ export type Database = {
           created_by?: string | null
           detalle?: string | null
           estado?: string
+          fase?: string
           fecha_limite?: string | null
           id?: string
+          orden_fase?: number
           prioridad?: string
+          proyecto?: string | null
           responsable: string
           titulo: string
           updated_at?: string
@@ -262,9 +268,12 @@ export type Database = {
           created_by?: string | null
           detalle?: string | null
           estado?: string
+          fase?: string
           fecha_limite?: string | null
           id?: string
+          orden_fase?: number
           prioridad?: string
+          proyecto?: string | null
           responsable?: string
           titulo?: string
           updated_at?: string
