@@ -481,7 +481,7 @@ function dgSemilla() {
     reg.data.objetivos = reg.data.objetivos || 'Aumentar la captación orgánica cualificada un 15% en el trimestre.';
     reg.data.base = 'Parcial';
     reg.responsableCalidad = reg.responsableCalidad || 'Control de calidad';
-    if (!reg.equipo.length) reg.equipo = specialties.slice(0, 4);
+    if (reg.equipo.length < 4) reg.equipo = specialties.slice(0, 5);
     reg.historial.push('18 sep 2026 · 09:20 · Onboarding aprobado por el Project Manager (demostración).');
     const enc = dgCrearEncargo(reg, c);
     if (i === 1) {
