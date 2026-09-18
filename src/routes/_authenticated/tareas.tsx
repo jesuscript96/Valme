@@ -374,6 +374,40 @@ function Tareas() {
             </label>
 
             <label className="flex flex-col gap-2">
+              <span className="font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">Proyecto</span>
+              <input
+                required
+                minLength={2}
+                maxLength={120}
+                list="proyectos"
+                value={nueva.proyecto}
+                onChange={(e) => setNueva((prev) => ({ ...prev, proyecto: e.target.value }))}
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring"
+                placeholder="Hotel Marfil · SEO local"
+              />
+              <datalist id="proyectos">
+                {(data.proyectos ?? []).map((p) => (
+                  <option key={p.proyecto} value={p.proyecto} />
+                ))}
+              </datalist>
+            </label>
+
+            <label className="flex flex-col gap-2">
+              <span className="font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">Fase</span>
+              <select
+                value={nueva.fase}
+                onChange={(e) => setNueva((prev) => ({ ...prev, fase: e.target.value }))}
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring"
+              >
+                {FASES_TAREA.map((fase) => (
+                  <option key={fase} value={fase}>
+                    {etiquetaFase[fase]}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-2">
               <span className="font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">Responsable</span>
               <input
                 required
