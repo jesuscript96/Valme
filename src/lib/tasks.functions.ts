@@ -153,11 +153,15 @@ export const actualizarTarea = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => actualizarTareaSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const cambios: Record<string, unknown> = {};
-    if (data.estado) cambios["estado"] = data.estado;
-    if (data.responsable) cambios["responsable"] = data.responsable;
+    const cambios: {
+      estado?: string;
+      responsable?: string;
+      fecha_limite?: string | null;
+    } = {};
+    if (data.estado) cambios.estado = data.estado;
+    if (data.responsable) cambios.responsable = data.responsable;
     if (data.fechaLimite !== undefined) {
-      cambios["fecha_limite"] = data.fechaLimite ? new Date(data.fechaLimite).toISOString() : null;
+      cambios.fecha_limite = data.fechaLimite ? new Date(data.fechaLimite).toISOString() : null;
     }
     if (Object.keys(cambios).length === 0) return { ok: true };
 
