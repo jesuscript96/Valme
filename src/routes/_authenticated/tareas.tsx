@@ -7,7 +7,9 @@ import {
   actualizarTarea,
   crearTarea,
   getTareas,
+  FASES_TAREA,
   type EstadoTarea,
+  type FaseTarea,
   type Tarea,
   type TareasVista,
 } from "@/lib/tasks.functions";
