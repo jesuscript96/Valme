@@ -138,6 +138,8 @@ export const getTareas = createServerFn({ method: "GET" })
       detalle: fila.detalle,
       estado: fila.estado as EstadoTarea,
       prioridad: fila.prioridad as PrioridadTarea,
+      fase: (fila.fase ?? "planificacion") as FaseTarea,
+      proyecto: fila.proyecto ?? "Interno VALME",
       responsable: fila.responsable,
       fecha_limite: fila.fecha_limite,
       completada_en: fila.completada_en,
