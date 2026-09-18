@@ -56,6 +56,7 @@ const html = `<!doctype html>
     </div>
     <script src="/v2/scripts/app.js"></script>
     <script src="/v2/scripts/onboarding.js"></script>
+    <script src="/v2/scripts/diagnostico.js"></script>
   </body>
 </html>
 `;
