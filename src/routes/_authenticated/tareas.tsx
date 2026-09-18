@@ -100,10 +100,13 @@ function Tareas() {
 
   const [filtroEstado, setFiltroEstado] = useState<"todas" | EstadoTarea>("todas");
   const [filtroResponsable, setFiltroResponsable] = useState("todos");
+  const [filtroProyecto, setFiltroProyecto] = useState("todos");
   const [aviso, setAviso] = useState<string | null>(null);
   const [nueva, setNueva] = useState({
     titulo: "",
     responsable: "",
+    proyecto: "",
+    fase: "planificacion",
     fechaLimite: "",
     prioridad: "normal",
     clientId: "",
