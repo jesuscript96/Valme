@@ -1,73 +1,68 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+
+// La app es la interfaz V2 importada desde GitHub (prototipo estático con
+// datos ficticios). Se sirve como HTML completo; sus recursos viven en /v2/*.
+const html = `<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#14161a" />
+    <meta name="description" content="VALME Search OS — centro de mando de demostración para una agencia SEO, AEO y GEO supervisada." />
+    <meta property="og:title" content="VALME Search OS · V2" />
+    <meta property="og:description" content="Centro de mando de demostración para una agencia SEO, AEO y GEO supervisada por un Project Manager." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <title>VALME Search OS · V2</title>
+    <link rel="stylesheet" href="/v2/styles/main.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#v-page">Saltar al contenido principal</a>
+    <div id="valme-v2">
+      <div class="v-shell">
+        <aside class="v-side" aria-label="Navegación de VALME Search OS">
+          <div>
+            <div class="v-logo">
+              <img alt="VALME" src="/v2/assets/valme-wordmark.svg" style="display:block;width:120px;height:auto;filter:invert(1)" />
+              <span style="display:block;margin-top:10px;letter-spacing:.28em;font-family:'IBM Plex Mono',monospace;font-size:11px">SOLUTIONS</span>
+            </div>
+            <p>Search OS <span class="v-mono">/ V2</span></p>
+          </div>
+          <nav aria-label="Secciones principales"></nav>
+          <div class="v-person">
+            <span class="v-demo-label v-mono">DATOS FICTICIOS</span>
+            <strong>Project Manager</strong>
+            Los agentes ejecutan.<br />Tú diriges.
+          </div>
+        </aside>
+        <div class="v-main">
+          <header class="v-top">
+            <span class="v-mobile-brand"><img alt="" src="/v2/assets/valme-monogram.svg" /><span class="v-mono">AGENCIA / OPERACIONES</span></span>
+            <span class="v-cycle">18 SEP 2026 · 09:42 CEST</span>
+            <span class="v-tag dark">● Demostración</span>
+            <div class="v-mobile-nav">
+              <label><span class="v-sr-only">Sección</span><select id="v-mobile-select" aria-label="Cambiar de sección"></select></label>
+              <button data-go="Supervisión" aria-label="Abrir supervisión">Supervisión <span class="v-nav-count v-count">18</span></button>
+            </div>
+          </header>
+          <div class="v-live" role="status" aria-live="polite" aria-atomic="true"></div>
+          <main class="v-content" id="v-page"></main>
+          <footer class="v-bottom"><span>84 clientes · 8 especialidades · 672 agentes asignados</span><span>Sin conexiones reales · entorno de demostración</span></footer>
+        </div>
+      </div>
+    </div>
+    <script src="/v2/scripts/app.js"></script>
+  </body>
+</html>
+`;
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "VALME Search OS · Sistema operativo de agencia SEO, AEO y GEO" },
-      {
-        name: "description",
-        content:
-          "Centro de mando para supervisar una agencia SEO, AEO y GEO operada por agentes: aprobaciones, cartera, carga de agentes y resultados.",
-      },
-      { property: "og:title", content: "VALME Search OS" },
-      {
-        property: "og:description",
-        content:
-          "Los agentes ejecutan, el Project Manager dirige. Aprobaciones, cartera, carga de agentes y resultados en una sola pantalla.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Landing,
+  server: {
+    handlers: {
+      GET: () =>
+        new Response(html, {
+          headers: { "content-type": "text/html; charset=utf-8" },
+        }),
+    },
+  },
 });
-
-function Landing() {
-  return (
-    <main className="min-h-screen bg-background">
-      <div className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-20">
-        <p className="font-mono text-xs uppercase tracking-[0.3em] text-primary">VALME Search OS</p>
-        <h1 className="mt-6 max-w-3xl text-5xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-6xl">
-          Los agentes ejecutan. El Project Manager dirige.
-        </h1>
-        <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
-          Sistema operativo de una agencia SEO, AEO y GEO semiautomatizada. La IA propone y prepara; las
-          decisiones, las aprobaciones y los envíos siguen siendo humanos.
-        </p>
-
-        <div className="mt-10 flex flex-wrap gap-3">
-          <Link
-            to="/centro-de-mando"
-            className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.99]"
-          >
-            Entrar al centro de mando
-          </Link>
-          <Link
-            to="/auth"
-            className="rounded-md border border-border px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Acceso
-          </Link>
-        </div>
-
-        <dl className="mt-16 grid gap-6 border-t border-border pt-10 sm:grid-cols-3">
-          {[
-            ["Cartera supervisada", "84 clientes con 8 especialidades cada uno"],
-            ["Decisión humana", "Aprobar el contenido y autorizar el envío son decisiones separadas"],
-            ["Trazabilidad", "Cliente, agente, evidencia, impacto y fecha en cada acción"],
-          ].map(([titulo, detalle]) => (
-            <div key={titulo}>
-              <dt className="font-mono text-xs uppercase tracking-widest text-muted-foreground">{titulo}</dt>
-              <dd className="mt-2 text-sm text-foreground">{detalle}</dd>
-            </div>
-          ))}
-        </dl>
-
-        <p className="mt-16 max-w-2xl text-xs text-muted-foreground">
-          Esta versión utiliza datos ficticios identificados como demostración. No existen conexiones con
-          herramientas externas ni ejecución real sobre clientes.
-        </p>
-      </div>
-    </main>
-  );
-}
