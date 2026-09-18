@@ -176,6 +176,8 @@ const nuevaTareaSchema = z.object({
   titulo: z.string().trim().min(3).max(160),
   detalle: z.string().trim().max(600).optional(),
   responsable: z.string().trim().min(2).max(80),
+  proyecto: z.string().trim().min(2).max(120),
+  fase: z.enum(FASES_TAREA).default("planificacion"),
   estado: z.enum(ESTADOS_TAREA).default("pendiente"),
   prioridad: z.enum(PRIORIDADES_TAREA).default("normal"),
   fechaLimite: z.string().trim().min(1).optional(),
