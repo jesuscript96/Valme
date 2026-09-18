@@ -172,9 +172,15 @@ function Tareas() {
     return tareas.filter(
       (t) =>
         (filtroEstado === "todas" || t.estado === filtroEstado) &&
-        (filtroResponsable === "todos" || t.responsable === filtroResponsable),
+        (filtroResponsable === "todos" || t.responsable === filtroResponsable) &&
+        (filtroProyecto === "todos" || t.proyecto === filtroProyecto),
     );
-  }, [data?.tareas, filtroEstado, filtroResponsable]);
+  }, [data?.tareas, filtroEstado, filtroResponsable, filtroProyecto]);
+
+  const proyectosVisibles = useMemo(() => {
+    const proyectos = data?.proyectos ?? [];
+    return filtroProyecto === "todos" ? proyectos : proyectos.filter((p) => p.proyecto === filtroProyecto);
+  }, [data?.proyectos, filtroProyecto]);
 
   if (isPending) {
     return <div className="p-10 font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">Cargando tareas…</div>;
