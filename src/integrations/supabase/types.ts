@@ -14,7 +14,215 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity: {
+        Row: {
+          agent_id: string | null
+          client_id: string | null
+          created_at: string
+          descripcion: string
+          id: string
+          resultado: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          descripcion: string
+          id?: string
+          resultado?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          descripcion?: string
+          id?: string
+          resultado?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents: {
+        Row: {
+          calidad: number
+          carga: number
+          created_at: string
+          disponibilidad: string
+          errores: number
+          especialidad: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          calidad?: number
+          carga?: number
+          created_at?: string
+          disponibilidad?: string
+          errores?: number
+          especialidad: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          calidad?: number
+          carga?: number
+          created_at?: string
+          disponibilidad?: string
+          errores?: number
+          especialidad?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      approvals: {
+        Row: {
+          accion: string
+          agent_id: string | null
+          client_id: string | null
+          confianza: number
+          created_at: string
+          estado: string
+          evidencia: string | null
+          id: string
+          impacto: string | null
+          prioridad: string
+          sla_vence: string | null
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          accion: string
+          agent_id?: string | null
+          client_id?: string | null
+          confianza?: number
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          prioridad?: string
+          sla_vence?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          accion?: string
+          agent_id?: string | null
+          client_id?: string | null
+          confianza?: number
+          created_at?: string
+          estado?: string
+          evidencia?: string | null
+          id?: string
+          impacto?: string | null
+          prioridad?: string
+          sla_vence?: string | null
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approvals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          created_at: string
+          especialidades: number
+          estado: string
+          id: string
+          nombre: string
+          objetivo: string | null
+          progreso: number
+          sector: string
+          sla_vence: string | null
+        }
+        Insert: {
+          created_at?: string
+          especialidades?: number
+          estado?: string
+          id?: string
+          nombre: string
+          objetivo?: string | null
+          progreso?: number
+          sector?: string
+          sla_vence?: string | null
+        }
+        Update: {
+          created_at?: string
+          especialidades?: number
+          estado?: string
+          id?: string
+          nombre?: string
+          objetivo?: string | null
+          progreso?: number
+          sector?: string
+          sla_vence?: string | null
+        }
+        Relationships: []
+      }
+      decisions: {
+        Row: {
+          approval_id: string
+          created_at: string
+          decidido_por: string | null
+          decision: string
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          approval_id: string
+          created_at?: string
+          decidido_por?: string | null
+          decision: string
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          approval_id?: string
+          created_at?: string
+          decidido_por?: string | null
+          decision?: string
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decisions_approval_id_fkey"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "approvals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
