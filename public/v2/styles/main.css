@@ -24,3 +24,11 @@ body{min-width:320px;min-height:100vh;margin:0;overflow-x:hidden;background:#f4f
 @media (prefers-contrast:more){#valme-v2{--v-line:#777b72;--v-muted:#383d35}#valme-v2 button,#valme-v2 input,#valme-v2 select,#valme-v2 .v-panel{border-width:2px}}
 @media (prefers-reduced-transparency:reduce){#valme-v2 .v-top{background:#fafaf6}}
 
+#valme-v2 nav button{padding:10px 11px;border-radius:7px}
+#valme-v2 nav .v-nav-icon{width:18px;height:18px;flex:0 0 18px;color:#9aa38f;transition:color .14s ease,transform .14s ease}
+#valme-v2 nav .v-nav-label{min-width:0;overflow-wrap:anywhere}
+#valme-v2 nav button:hover .v-nav-icon{color:var(--v-lime)}
+#valme-v2 nav button[aria-current=page] .v-nav-icon{color:var(--v-ink)}
+#valme-v2 nav button[aria-current=page]{box-shadow:inset 3px 0 0 var(--v-ink)}
+#valme-v2 nav button:focus-visible{outline:2px solid var(--v-lime);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){#valme-v2 nav .v-nav-icon{transition:none}}
