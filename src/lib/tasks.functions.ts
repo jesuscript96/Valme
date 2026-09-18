@@ -209,6 +209,8 @@ export const crearTarea = createServerFn({ method: "POST" })
 const actualizarTareaSchema = z.object({
   taskId: z.string().uuid(),
   estado: z.enum(ESTADOS_TAREA).optional(),
+  fase: z.enum(FASES_TAREA).optional(),
+  proyecto: z.string().trim().min(2).max(120).optional(),
   responsable: z.string().trim().min(2).max(80).optional(),
   fechaLimite: z.string().trim().nullable().optional(),
 });
