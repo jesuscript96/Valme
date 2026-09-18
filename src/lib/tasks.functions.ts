@@ -193,6 +193,8 @@ export const crearTarea = createServerFn({ method: "POST" })
       titulo: data.titulo,
       detalle: data.detalle ?? null,
       responsable: data.responsable,
+      proyecto: data.proyecto,
+      fase: data.fase,
       estado: data.estado,
       prioridad: data.prioridad,
       fecha_limite: data.fechaLimite ? new Date(data.fechaLimite).toISOString() : null,
