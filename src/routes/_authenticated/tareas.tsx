@@ -562,7 +562,7 @@ function Tareas() {
                       <p className="mt-2 text-sm font-medium text-card-foreground">{tarea.titulo}</p>
                       {tarea.detalle ? <p className="mt-1 text-xs text-muted-foreground">{tarea.detalle}</p> : null}
                       <p className="mt-2 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">
-                        {tarea.responsable} · {formatoFecha(tarea.fecha_limite)}
+                        {tarea.proyecto} · {tarea.responsable} · {formatoFecha(tarea.fecha_limite)}
                         {tarea.cliente ? ` · ${tarea.cliente}` : ""}
                         {tarea.agente ? ` · ${tarea.agente}` : ""}
                       </p>
