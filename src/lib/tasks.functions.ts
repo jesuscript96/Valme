@@ -120,7 +120,7 @@ export const getTareas = createServerFn({ method: "GET" })
       supabase
         .from("tasks")
         .select(
-          "id, titulo, detalle, estado, prioridad, responsable, fecha_limite, completada_en, created_at, clients(nombre), agents(nombre)",
+          "id, titulo, detalle, estado, prioridad, fase, proyecto, responsable, fecha_limite, completada_en, created_at, clients(nombre), agents(nombre)",
         )
         .order("fecha_limite", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false }),
