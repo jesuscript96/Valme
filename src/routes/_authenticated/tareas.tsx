@@ -252,6 +252,102 @@ function Tareas() {
           </p>
         </section>
 
+        <section aria-labelledby="flujo">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 id="flujo" className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Flujo de trabajo por proyecto
+            </h2>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground">
+              Proyecto
+              <select
+                value={filtroProyecto}
+                onChange={(e) => setFiltroProyecto(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring"
+              >
+                <option value="todos">Todos</option>
+                {(data.proyectos ?? []).map((p) => (
+                  <option key={p.proyecto} value={p.proyecto}>
+                    {p.proyecto}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <p className="mt-3 text-xs text-muted-foreground">
+            Cada proyecto recorre cuatro fases. La fase indicada es la más temprana con trabajo sin completar: avanzar de
+            fase es una decisión del Project Manager, no un cálculo automático.
+          </p>
+
+          <div className="mt-4 space-y-4">
+            {proyectosVisibles.map((proyecto) => (
+              <article key={proyecto.proyecto} className="rounded-xl border border-border bg-card p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-card-foreground">{proyecto.proyecto}</h3>
+                    <p className="mt-1 font-mono text-[0.7rem] uppercase tracking-wider text-muted-foreground">
+                      Fase actual: {etiquetaFase[proyecto.faseActual]} · {proyecto.completadas}/{proyecto.total}{" "}
+                      completadas
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {proyecto.bloqueadas > 0 ? (
+                      <span className="rounded-full border border-destructive/60 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive">
+                        {proyecto.bloqueadas} bloqueadas
+                      </span>
+                    ) : null}
+                    {proyecto.vencidas > 0 ? (
+                      <span className="rounded-full border border-destructive/60 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive">
+                        {proyecto.vencidas} fuera de plazo
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+
+                <ol className="mt-4 grid gap-3 lg:grid-cols-4">
+                  {FASES_TAREA.map((fase, indice) => {
+                    const tareasFase = proyecto.fases[fase];
+                    const esActual = proyecto.faseActual === fase;
+                    return (
+                      <li
+                        key={fase}
+                        className={`rounded-lg border p-4 ${esActual ? "border-primary/60 bg-primary/5" : "border-border"}`}
+                      >
+                        <p className="font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                          Fase {indice + 1}
+                          {esActual ? " · en foco" : ""}
+                        </p>
+                        <p className="mt-1 text-sm font-medium text-card-foreground">{etiquetaFase[fase]}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{descripcionFase[fase]}</p>
+                        <ul className="mt-3 space-y-2">
+                          {tareasFase.map((tarea) => (
+                            <li key={tarea.id} className="text-xs text-muted-foreground">
+                              <span className={tarea.estado === "completada" ? "line-through decoration-1" : ""}>
+                                {tarea.titulo}
+                              </span>
+                              <span className="block font-mono text-[0.65rem] uppercase tracking-wider">
+                                {etiquetaEstado[tarea.estado]} · {tarea.responsable}
+                              </span>
+                            </li>
+                          ))}
+                          {tareasFase.length === 0 ? (
+                            <li className="text-xs text-muted-foreground">Sin tareas en esta fase.</li>
+                          ) : null}
+                        </ul>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </article>
+            ))}
+            {proyectosVisibles.length === 0 ? (
+              <p className="rounded-xl border border-border bg-card px-4 py-5 text-sm text-muted-foreground">
+                Todavía no hay proyectos con tareas.
+              </p>
+            ) : null}
+          </div>
+        </section>
+
         <section aria-labelledby="nueva-tarea">
           <h2 id="nueva-tarea" className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
             Nueva tarea
