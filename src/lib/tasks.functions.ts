@@ -5,9 +5,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const ESTADOS_TAREA = ["pendiente", "en_curso", "bloqueada", "completada"] as const;
 export const PRIORIDADES_TAREA = ["baja", "normal", "alta", "critica"] as const;
+export const FASES_TAREA = ["planificacion", "desarrollo", "revision", "entrega"] as const;
 
 export type EstadoTarea = (typeof ESTADOS_TAREA)[number];
 export type PrioridadTarea = (typeof PRIORIDADES_TAREA)[number];
+export type FaseTarea = (typeof FASES_TAREA)[number];
 
 export type Tarea = {
   id: string;
@@ -15,12 +17,24 @@ export type Tarea = {
   detalle: string | null;
   estado: EstadoTarea;
   prioridad: PrioridadTarea;
+  fase: FaseTarea;
+  proyecto: string;
   responsable: string;
   fecha_limite: string | null;
   completada_en: string | null;
   created_at: string;
   cliente: string | null;
   agente: string | null;
+};
+
+export type ProyectoFlujo = {
+  proyecto: string;
+  total: number;
+  completadas: number;
+  bloqueadas: number;
+  vencidas: number;
+  faseActual: FaseTarea;
+  fases: Record<FaseTarea, Tarea[]>;
 };
 
 export type TareasResumen = {
