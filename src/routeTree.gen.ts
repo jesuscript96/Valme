@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCentroDeMandoRouteImport } from './routes/_authenticated/centro-de-mando'
+import { Route as AuthenticatedTareasRouteImport } from './routes/_authenticated/tareas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,16 +35,23 @@ const AuthenticatedCentroDeMandoRoute =
     path: '/centro-de-mando',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTareasRoute = AuthenticatedTareasRouteImport.update({
+  id: '/tareas',
+  path: '/tareas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/centro-de-mando': typeof AuthenticatedCentroDeMandoRoute
+  '/tareas': typeof AuthenticatedTareasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/centro-de-mando': typeof AuthenticatedCentroDeMandoRoute
+  '/tareas': typeof AuthenticatedTareasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +59,20 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/centro-de-mando': typeof AuthenticatedCentroDeMandoRoute
+  '/_authenticated/tareas': typeof AuthenticatedTareasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/centro-de-mando'
+  fullPaths: '/' | '/auth' | '/centro-de-mando' | '/tareas'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/centro-de-mando'
+  to: '/' | '/auth' | '/centro-de-mando' | '/tareas'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/centro-de-mando'
+    | '/_authenticated/tareas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -101,15 +111,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCentroDeMandoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/tareas': {
+      id: '/_authenticated/tareas'
+      path: '/tareas'
+      fullPath: '/tareas'
+      preLoaderRoute: typeof AuthenticatedTareasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCentroDeMandoRoute: typeof AuthenticatedCentroDeMandoRoute
+  AuthenticatedTareasRoute: typeof AuthenticatedTareasRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCentroDeMandoRoute: AuthenticatedCentroDeMandoRoute,
+  AuthenticatedTareasRoute: AuthenticatedTareasRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
