@@ -1,6 +1,16 @@
 const root=document.getElementById('valme-v2'),page=root.querySelector('#v-page'),live=root.querySelector('.v-live');
 const sections=['Centro de mando','Clientes','Agentes','Supervisión','Operaciones','Informes','Configuración'];
-root.querySelector('nav').innerHTML=sections.map((s,i)=>`<button type="button" class="cursor-interaction" data-go="${s}"><span class="v-mono" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>${s}${s==='Supervisión'?'<span class="v-nav-count v-count">18</span>':''}</button>`).join('');
+const icon=p=>`<svg class="v-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${p}</svg>`;
+const navIcons={
+ 'Centro de mando':icon('<rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/>'),
+ 'Clientes':icon('<path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/><path d="M14 10h5a1 1 0 0 1 1 1v10"/><path d="M3 21h18"/><path d="M7.5 8h3M7.5 12h3M7.5 16h3M17 14h0M17 17.5h0"/>'),
+ 'Agentes':icon('<circle cx="12" cy="4.5" r="2"/><circle cx="4.5" cy="18" r="2"/><circle cx="19.5" cy="18" r="2"/><path d="M12 6.5v4m0 0-6 5.5m6-5.5 6 5.5"/>'),
+ 'Supervisión':icon('<path d="M12 3l7 3v5.5c0 4.4-2.9 7.6-7 9.5-4.1-1.9-7-5.1-7-9.5V6l7-3z"/><path d="M9 12l2.2 2.2L15.5 10"/>'),
+ 'Operaciones':icon('<circle cx="6" cy="6" r="2"/><circle cx="18" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><path d="M6 8v8"/><path d="M8 6h4a4 4 0 0 1 4 4v.2"/><path d="M8 18h4a4 4 0 0 0 4-4"/>'),
+ 'Informes':icon('<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/><path d="M9.5 17v-3M12 17v-5.5M14.5 17v-2"/>'),
+ 'Configuración':icon('<path d="M4 7h10M18 7h2M4 12h3M11 12h9M4 17h8M16 17h4"/><circle cx="16" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="14" cy="17" r="2"/>')
+};
+root.querySelector('nav').innerHTML=sections.map(s=>`<button type="button" class="cursor-interaction" data-go="${s}">${navIcons[s]}<span class="v-nav-label">${s}</span>${s==='Supervisión'?'<span class="v-nav-count v-count">18</span>':''}</button>`).join('');
 root.querySelector('#v-mobile-select').innerHTML=sections.map(s=>`<option>${s}</option>`).join('');
 const specialties=['Onboarding y accesos','Auditoría SEO','Estrategia y planificación','SEO técnico','Contenidos','AEO/GEO y citabilidad','Analítica e informes','Control de calidad'];
 const names=['Nébula Hogar','Linde Industrial','Arco Viajes','Cobalto Formación','Bruma Textil','Olmo Energía','Norte Jardín','Prisma Software','Vértice Mobiliario','Senda Equipamiento','Duna Óptica','Cauce Logística','Áurea Cerámica','Pórtico Hábitat','Alba Instrumentos','Surco Editorial','Marea Náutica','Nexo Alimentación'];
