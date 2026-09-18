@@ -153,8 +153,13 @@ function Tareas() {
   });
 
   const mutacionActualizar = useMutation({
-    mutationFn: (variables: { taskId: string; estado?: EstadoTarea; responsable?: string; fechaLimite?: string | null }) =>
-      actualizar({ data: variables }),
+    mutationFn: (variables: {
+      taskId: string;
+      estado?: EstadoTarea;
+      fase?: FaseTarea;
+      responsable?: string;
+      fechaLimite?: string | null;
+    }) => actualizar({ data: variables }),
     onSuccess: () => {
       setAviso("Tarea actualizada en la base de datos.");
       void refrescar();
