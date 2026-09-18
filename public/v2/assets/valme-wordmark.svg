@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 462 100" role="img" aria-labelledby="title desc">
+  <title id="title">VALME</title>
+  <desc id="desc">Logotipo maestro VALME, fase 2.</desc>
+  <g fill="#0A0A0A">
+    <path d="M0,0 H16 L42,74.3 L68,0 H84 L49,100 H35 Z"/>
+    <path d="M137,0 H151 L186,100 H170 L144,25.7 L118,100 H102 Z"/>
+    <path d="M113.2,68 L174.8,68 L180.4,84 L107.6,84 Z"/>
+    <path d="M212,0 H227 V84 H268 V100 H212 Z"/>
+    <path d="M290,100 V0 H307 L334,58 L361,0 H378 V100 H363 V32 L339,82 H329 L305,32 V100 Z"/>
+    <path d="M404,0 H462 V16 H419 V42 H452 V57 H419 V84 H464 V100 H404 Z"/>
+  </g>
+</svg>

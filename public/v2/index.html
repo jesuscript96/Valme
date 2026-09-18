@@ -1,18 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-// La app es la interfaz V2 importada desde GitHub (prototipo estático con
-// datos ficticios). Se sirve como HTML completo; sus recursos viven en /v2/*.
-const html = `<!doctype html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#14161a" />
     <meta name="description" content="VALME Search OS — centro de mando de demostración para una agencia SEO, AEO y GEO supervisada." />
-    <meta property="og:title" content="VALME Search OS · V2" />
-    <meta property="og:description" content="Centro de mando de demostración para una agencia SEO, AEO y GEO supervisada por un Project Manager." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
     <title>VALME Search OS · V2</title>
     <link rel="stylesheet" href="/v2/styles/main.css" />
   </head>
@@ -54,15 +46,4 @@ const html = `<!doctype html>
     <script src="/v2/scripts/app.js"></script>
   </body>
 </html>
-`;
 
-export const Route = createFileRoute("/")({
-  server: {
-    handlers: {
-      GET: () =>
-        new Response(html, {
-          headers: { "content-type": "text/html; charset=utf-8" },
-        }),
-    },
-  },
-});
