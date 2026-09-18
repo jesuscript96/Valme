@@ -166,6 +166,7 @@ export const getTareas = createServerFn({ method: "GET" })
         ).length,
       },
       responsables: Array.from(new Set(tareas.map((t) => t.responsable))).sort((a, b) => a.localeCompare(b, "es")),
+      proyectos: agruparProyectos(tareas),
       clientes: clientesRes.data ?? [],
       agentes: agentesRes.data ?? [],
     };
