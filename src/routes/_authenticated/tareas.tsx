@@ -550,6 +550,9 @@ function Tareas() {
                         <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
                           {etiquetaPrioridad[tarea.prioridad] ?? tarea.prioridad}
                         </span>
+                        <span className="rounded-full border border-border px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-muted-foreground">
+                          {etiquetaFase[tarea.fase]}
+                        </span>
                         {vencida ? (
                           <span className="rounded-full border border-destructive/60 px-2 py-0.5 font-mono text-[0.65rem] uppercase tracking-wider text-destructive">
                             Fuera de plazo
