@@ -589,6 +589,26 @@ function Tareas() {
                         ))}
                       </select>
 
+                      <label className="sr-only" htmlFor={`fase-${tarea.id}`}>
+                        Fase de {tarea.titulo}
+                      </label>
+                      <select
+                        id={`fase-${tarea.id}`}
+                        value={tarea.fase}
+                        disabled={mutacionActualizar.isPending}
+                        onChange={(e) => {
+                          setAviso(null);
+                          mutacionActualizar.mutate({ taskId: tarea.id, fase: e.target.value as FaseTarea });
+                        }}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus-visible:border-ring"
+                      >
+                        {FASES_TAREA.map((fase) => (
+                          <option key={fase} value={fase}>
+                            {etiquetaFase[fase]}
+                          </option>
+                        ))}
+                      </select>
+
                       <label className="sr-only" htmlFor={`fecha-${tarea.id}`}>
                         Fecha límite de {tarea.titulo}
                       </label>
