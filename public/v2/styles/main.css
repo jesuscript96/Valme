@@ -65,3 +65,20 @@ html,body{background:#E9E6E0}
 #valme-v2 .v-evidence{background:var(--v-soft);border-radius:0}
 #valme-v2 .v-demo-label,.skip-link{background:var(--v-accent);color:var(--v-white);border-radius:0}
 #valme-v2 button:focus-visible,#valme-v2 input:focus-visible,#valme-v2 select:focus-visible,#valme-v2 summary:focus-visible,#valme-v2 [tabindex="-1"]:focus-visible{outline-color:var(--v-accent)}
+
+#valme-v2 textarea{width:100%;min-height:76px;border:1px solid var(--v-line);border-radius:0;padding:8px;font:16px/1.5 'IBM Plex Sans',sans-serif;background:#fff;color:var(--v-ink);resize:vertical}
+#valme-v2 textarea:focus-visible{outline:3px solid var(--v-accent);outline-offset:3px}
+#valme-v2 .v-field label{display:block}
+#valme-v2 .v-field label>span{display:block;font:11px/1.6 'IBM Plex Mono',monospace;color:var(--v-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+#valme-v2 .v-field input,#valme-v2 .v-field select{width:100%}
+#valme-v2 .v-field-pending label>span:after{content:' · pendiente';color:var(--v-accent)}
+#valme-v2 .v-check{display:flex;align-items:center;gap:9px;font-size:13px}
+#valme-v2 .v-check input{min-height:20px;width:20px;height:20px;flex:0 0 20px}
+#valme-v2 .v-steps{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+#valme-v2 .v-steps button{display:flex;align-items:center;gap:8px;font-size:12px}
+#valme-v2 .v-steps button[aria-current=step]{background:var(--v-ink);border-color:var(--v-ink);color:var(--v-white)}
+#valme-v2 .v-steps button[aria-current=step] .v-mono{color:var(--v-white)}
+#valme-v2 .v-tabs{display:flex;flex-wrap:wrap;gap:6px;border-bottom:1px solid var(--v-line);padding-bottom:10px}
+#valme-v2 .v-tabs button{font-size:12px}
+#valme-v2 .v-tabs button[aria-selected=true]{background:var(--v-ink);border-color:var(--v-ink);color:var(--v-white);box-shadow:inset 0 -3px 0 var(--v-accent)}
+@container (max-width:760px){#valme-v2 .v-steps button,#valme-v2 .v-tabs button{flex:1 1 44%}}
