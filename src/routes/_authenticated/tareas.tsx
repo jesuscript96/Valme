@@ -126,6 +126,8 @@ function Tareas() {
         data: {
           titulo: nueva.titulo.trim(),
           responsable: nueva.responsable.trim(),
+          proyecto: nueva.proyecto.trim(),
+          fase: nueva.fase as FaseTarea,
           detalle: nueva.detalle.trim() || undefined,
           prioridad: nueva.prioridad as "baja" | "normal" | "alta" | "critica",
           estado: "pendiente" as const,
@@ -134,7 +136,16 @@ function Tareas() {
         },
       }),
     onSuccess: () => {
-      setNueva({ titulo: "", responsable: "", fechaLimite: "", prioridad: "normal", clientId: "", detalle: "" });
+      setNueva({
+        titulo: "",
+        responsable: "",
+        proyecto: nueva.proyecto,
+        fase: nueva.fase,
+        fechaLimite: "",
+        prioridad: "normal",
+        clientId: "",
+        detalle: "",
+      });
       setAviso("Tarea creada. Crear una tarea no la ejecuta: sigue esperando trabajo humano o de un agente.");
       void refrescar();
     },
