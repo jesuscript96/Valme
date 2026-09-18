@@ -477,16 +477,20 @@ function dgSemilla() {
   [a, b].forEach((c, i) => {
     const reg = onbDeCliente(c);
     reg.estado = 'Activo';
-    ONB_ACCESOS.forEach((x, j) => { reg.accesos[x.id] = i === 0 ? 'Validado' : (j === 1 ? 'Pendiente' : 'Validado'); });
+    ONB_ACCESOS.forEach(x => { reg.accesos[x.id] = 'Validado'; });
     reg.data.objetivos = reg.data.objetivos || 'Aumentar la captación orgánica cualificada un 15% en el trimestre.';
     reg.data.base = 'Parcial';
     reg.responsableCalidad = reg.responsableCalidad || 'Control de calidad';
     if (!reg.equipo.length) reg.equipo = specialties.slice(0, 4);
     reg.historial.push('18 sep 2026 · 09:20 · Onboarding aprobado por el Project Manager (demostración).');
     const enc = dgCrearEncargo(reg, c);
+    if (i === 1) {
+      const conDep = enc.hallazgos.find(h => h.dep);
+      if (conDep) reg.accesos[conDep.dep] = 'Pendiente';
+    }
     enc.estado = 'En curso';
     enc.historial.push('18 sep 2026 · 09:30 · Diagnóstico iniciado por los agentes asignados.');
-    if (i === 1) enc.historial.push('18 sep 2026 · 09:31 · Trabajo dependiente de Analytics 4 bloqueado; el resto continúa.');
+    if (i === 1) enc.historial.push('18 sep 2026 · 09:31 · Trabajo dependiente de ' + dgBloqueos(enc).map(x => x.nombre).join(', ') + ' bloqueado; el resto continúa.');
     dgSincronizarCliente(enc);
   });
 }
