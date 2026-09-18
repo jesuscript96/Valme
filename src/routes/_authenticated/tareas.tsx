@@ -54,6 +54,20 @@ const etiquetaPrioridad: Record<string, string> = {
   critica: "Crítica",
 };
 
+const etiquetaFase: Record<FaseTarea, string> = {
+  planificacion: "Planificación",
+  desarrollo: "Desarrollo",
+  revision: "Revisión",
+  entrega: "Entrega",
+};
+
+const descripcionFase: Record<FaseTarea, string> = {
+  planificacion: "Definir alcance, prioridad y responsable antes de producir nada.",
+  desarrollo: "Trabajo en producción por el equipo o por un agente.",
+  revision: "Control de calidad y decisiones del Project Manager.",
+  entrega: "Entrega al cliente y cierre documentado.",
+};
+
 const estilosEstado: Record<EstadoTarea, string> = {
   pendiente: "border-border text-muted-foreground",
   en_curso: "border-primary/60 text-primary",
