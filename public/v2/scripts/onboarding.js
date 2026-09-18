@@ -224,7 +224,9 @@ function onbPasoRevision(reg) {
     <div><dt>SITUACIÓN INICIAL</dt><dd>${escapeText(reg.data.base || 'Sin declarar')}</dd></div>
     <div><dt>ESTADO</dt><dd>${reg.estado}</dd></div>
   </dl><p class="v-small v-muted">Para corregir cualquier dato, vuelve al paso correspondiente: nada se pierde al retroceder.</p></div>
-  <div class="v-panel" style="margin-top:14px"><h3>Checklist de requisitos</h3>${reqs.map(r => {
+  <div class="v-panel" style="margin-top:14px"><h3>Checklist de requisitos</h3>
+  <div class="v-field"><label><span>Motivo de una excepción (opcional)</span><textarea rows="2" id="v-onb-motivo" placeholder="Por qué el PM asume este requisito pendiente"></textarea></label></div>
+  ${reqs.map(r => {
     const exc = reg.excepciones.find(e => e.req === r.id);
     return `<div class="v-row"><div>${tag(r.ok ? 'Cumplido' : exc ? 'Excepción registrada' : 'Pendiente', r.ok ? 'good' : exc ? 'warn' : 'bad')}<strong>${r.label}</strong><p>${r.detalle}${r.dispensable ? ' · requisito dispensable' : ' · requisito indispensable'}</p>${exc ? `<p class="v-small">Excepción del PM: ${escapeText(exc.motivo)} · ${exc.fecha}</p>` : ''}</div>${!r.ok && r.dispensable && !exc ? `<button data-onb-except="${r.id}">Registrar excepción</button>` : '<span class="v-mono v-muted">' + (r.ok ? '✓' : r.dispensable ? '—' : 'Sin excepción posible') + '</span>'}</div>`;
   }).join('')}
