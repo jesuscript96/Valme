@@ -8,12 +8,21 @@ Entrega 1 (hecha)
 - [x] Vista simulada "Completar información" del cliente (solo pasos A, C, D, E).
 - [x] Ficha de cliente centralizada: Resumen, Servicio, Onboarding, Objetivos, Accesos, Equipo, Plan, Entregables, Resultados, Decisiones, Historial.
 
+Entrega 2 (hecha)
+- [x] Al aprobar el onboarding el cliente pasa a "Diagnóstico pendiente"; nunca a servicio activo.
+- [x] Un único encargo de diagnóstico por cliente, vinculado a servicio, objetivos, accesos y agentes; sin duplicados al repetir la activación.
+- [x] Estados del encargo: pendiente, en curso, bloqueado, en revisión, completado.
+- [x] Hallazgos con evidencia identificada, fuente de ejemplo, fecha, prioridad, impacto ilustrativo y limitaciones.
+- [x] Bloqueo limitado al trabajo que depende de un acceso, con la vía de resolución explicada.
+- [x] Control de calidad simulado (alcance, evidencias, datos pendientes) con devolución y resolución registradas.
+- [x] Plan por versiones con hallazgo que lo justifica, entregable, criterio, agente, dependencias, plazo, coste ilustrativo y aprobación requerida.
+- [x] Decisión del PM en Supervisión: aprobar, solicitar cambios o rechazar, vinculada a la versión; modificar un plan aprobado crea una versión nueva.
+- [x] Contadores del centro de mando calculados sobre la cartera real de la demostración.
+- [x] Persistencia local del recorrido: al recargar se conserva todo.
+
 Pendiente (siguientes entregas)
 - [ ] Captación y contratación: embudo de oportunidades y conversión de "ganado" en un único onboarding.
-- [ ] Auditoría y situación inicial con fuente, fecha, evidencia, impacto y limitaciones.
-- [ ] Plan priorizado editable y aprobación de cambios de alcance o presupuesto.
 - [ ] Ciclo de ejecución por agentes con límites de reintento y escalado.
-- [ ] Control de calidad: ficha de aprobación con versión exacta, riesgos y plan de reversión.
 - [ ] Monitorización e incidencias con gravedad, responsable y plazo.
 - [ ] Informes separando trabajo, resultados, limitaciones, riesgos y próximas acciones.
 - [ ] Renovación, pausa y salida; gestión administrativa como apartado secundario.
