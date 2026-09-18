@@ -221,10 +221,14 @@ export const actualizarTarea = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const cambios: {
       estado?: string;
+      fase?: string;
+      proyecto?: string;
       responsable?: string;
       fecha_limite?: string | null;
     } = {};
     if (data.estado) cambios.estado = data.estado;
+    if (data.fase) cambios.fase = data.fase;
+    if (data.proyecto) cambios.proyecto = data.proyecto;
     if (data.responsable) cambios.responsable = data.responsable;
     if (data.fechaLimite !== undefined) {
       cambios.fecha_limite = data.fechaLimite ? new Date(data.fechaLimite).toISOString() : null;
