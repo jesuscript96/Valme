@@ -50,6 +50,7 @@ export type TareasVista = {
   tareas: Tarea[];
   resumen: TareasResumen;
   responsables: string[];
+  proyectos: ProyectoFlujo[];
   clientes: Array<{ id: string; nombre: string }>;
   agentes: Array<{ id: string; nombre: string; especialidad: string }>;
 };
@@ -60,6 +61,8 @@ type FilaTarea = {
   detalle: string | null;
   estado: string;
   prioridad: string;
+  fase: string;
+  proyecto: string | null;
   responsable: string;
   fecha_limite: string | null;
   completada_en: string | null;
@@ -67,6 +70,46 @@ type FilaTarea = {
   clients: { nombre: string } | null;
   agents: { nombre: string } | null;
 };
+
+function fasesVacias(): Record<FaseTarea, Tarea[]> {
+  return { planificacion: [], desarrollo: [], revision: [], entrega: [] };
+}
+
+// La fase actual del proyecto es la más temprana con trabajo sin completar:
+// avanzar de fase es una decisión del Project Manager, no un cálculo automático.
+function calcularFaseActual(fases: Record<FaseTarea, Tarea[]>): FaseTarea {
+  for (const fase of FASES_TAREA) {
+    if (fases[fase].some((t) => t.estado !== "completada")) return fase;
+  }
+  return "entrega";
+}
+
+function agruparProyectos(tareas: Tarea[]): ProyectoFlujo[] {
+  const mapa = new Map<string, Tarea[]>();
+  for (const tarea of tareas) {
+    const lista = mapa.get(tarea.proyecto) ?? [];
+    lista.push(tarea);
+    mapa.set(tarea.proyecto, lista);
+  }
+  const ahora = Date.now();
+  return Array.from(mapa.entries())
+    .map(([proyecto, lista]) => {
+      const fases = fasesVacias();
+      for (const tarea of lista) fases[tarea.fase].push(tarea);
+      return {
+        proyecto,
+        total: lista.length,
+        completadas: lista.filter((t) => t.estado === "completada").length,
+        bloqueadas: lista.filter((t) => t.estado === "bloqueada").length,
+        vencidas: lista.filter(
+          (t) => t.estado !== "completada" && t.fecha_limite && new Date(t.fecha_limite).getTime() < ahora,
+        ).length,
+        faseActual: calcularFaseActual(fases),
+        fases,
+      };
+    })
+    .sort((a, b) => a.proyecto.localeCompare(b.proyecto, "es"));
+}
 
 export const getTareas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
