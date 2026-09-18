@@ -14,6 +14,9 @@ const html = `<!doctype html>
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary" />
     <title>VALME Search OS · V2</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/v2/styles/main.css" />
   </head>
   <body>
@@ -22,9 +25,9 @@ const html = `<!doctype html>
       <div class="v-shell">
         <aside class="v-side" aria-label="Navegación de VALME Search OS">
           <div>
-            <div class="v-logo">
-              <img alt="VALME" src="/v2/assets/valme-wordmark.svg" style="display:block;width:120px;height:auto;filter:invert(1)" />
-              <span style="display:block;margin-top:10px;letter-spacing:.28em;font-family:'IBM Plex Mono',monospace;font-size:11px">SOLUTIONS</span>
+            <div class="v-logo v-logo-stacked">
+              <img alt="VALME" src="/v2/assets/valme-wordmark.svg" />
+              <span>SOLUTIONS</span>
             </div>
             <p>Search OS <span class="v-mono">/ V2</span></p>
           </div>
