@@ -223,6 +223,69 @@ export type Database = {
           },
         ]
       }
+      tasks: {
+        Row: {
+          agent_id: string | null
+          client_id: string | null
+          completada_en: string | null
+          created_at: string
+          created_by: string | null
+          detalle: string | null
+          estado: string
+          fecha_limite: string | null
+          id: string
+          prioridad: string
+          responsable: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          client_id?: string | null
+          completada_en?: string | null
+          created_at?: string
+          created_by?: string | null
+          detalle?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          prioridad?: string
+          responsable: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          client_id?: string | null
+          completada_en?: string | null
+          created_at?: string
+          created_by?: string | null
+          detalle?: string | null
+          estado?: string
+          fecha_limite?: string | null
+          id?: string
+          prioridad?: string
+          responsable?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
