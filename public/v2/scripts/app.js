@@ -47,7 +47,7 @@ function settings(){return heading('GOBIERNO DE LA AGENCIA','Configuración','Re
 function decorate(){root.querySelectorAll('button').forEach(b=>{b.type='button';b.classList.add('cursor-interaction')});if(typeof lucide!=='undefined')lucide.createIcons({attrs:{width:16,height:16}});root.querySelectorAll('.v-count').forEach(e=>e.textContent=pending().length);}
 function focusHeading(){const h=page.querySelector('h1');if(h)requestAnimationFrame(()=>h.focus({preventScroll:true}));}
 function announce(message){live.textContent=message;}
-function render(s,moveFocus=true){current=s;root.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===s?'page':'false'));root.querySelector('#v-mobile-select').value=s;page.innerHTML=({'Centro de mando':dashboard,'Onboarding':onbSeccion,'Clientes':clientList,'Agentes':agents,'Supervisión':supervision,'Operaciones':operations,'Informes':reportList,'Configuración':settings}[s])();decorate();window.scrollTo({top:0,behavior:'smooth'});if(moveFocus)focusHeading();}
+function render(s,moveFocus=true){current=s;root.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.go===s?'page':'false'));root.querySelector('#v-mobile-select').value=s;page.innerHTML=({'Centro de mando':dashboard,'Onboarding':()=>onbSeccion(),'Clientes':clientList,'Agentes':agents,'Supervisión':supervision,'Operaciones':operations,'Informes':reportList,'Configuración':settings}[s])();decorate();window.scrollTo({top:0,behavior:'smooth'});if(moveFocus)focusHeading();}
 root.addEventListener('click',e=>{
   const b=e.target.closest('button');
   if(!b)return;
