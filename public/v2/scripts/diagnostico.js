@@ -643,6 +643,15 @@ root.addEventListener('change', e => {
     const plan = dgPlan(enc);
     if (plan && plan.excluidas.length) enc.historial.push('18 sep 2026 · El plan v' + plan.version + ' excluyó trabajo por este acceso: requiere una versión nueva para incorporarlo.');
   }
+  if (ahora !== 'Validado' && quedan.length) {
+    const vuelven = enc.hallazgos.filter(h => h.dep === id).map(h => h.titulo);
+    if (vuelven.length) enc.historial.push('18 sep 2026 · Trabajo de nuevo bloqueado en: ' + vuelven.join(' · ') + '. Requiere resolver el acceso.');
+    enc.limitacionesDeclaradas = false;
+    if (enc.estado === 'En curso' || enc.estado === 'En revisión' || enc.estado === 'Completado') {
+      enc.estado = 'Bloqueado';
+      enc.historial.push('18 sep 2026 · Encargo «Bloqueado»: un acceso necesario ha dejado de estar validado.');
+    }
+  }
   if (!quedan.length) enc.limitacionesDeclaradas = false;
   enc.coberturaDeclarada = dgServiciosSinCobertura(enc).length ? enc.coberturaDeclarada : false;
   dgSincronizarCliente(enc);
