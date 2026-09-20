@@ -116,6 +116,73 @@ function dgSincronizarCliente(enc) {
   if (c) c.state = dgEstadoCliente(enc);
 }
 
+/* ---------- Validaciones y estados de error ---------- */
+
+// Aviso visible tras un intento bloqueado. No se persiste: describe el último intento.
+let dgAviso = null; // { encId, accion, titulo, problemas: [{ texto, resolucion }] }
+let dgAvisoPlan = null; // { encId, problemas } — decisión del PM rechazada por validación
+
+function dgHallazgosIncompletos(enc) {
+  return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
+}
+
+function dgAccesosSinRegistrar(reg) {
+  return (typeof ONB_ACCESOS !== 'undefined' ? ONB_ACCESOS : []).filter(x => !reg.accesos[x.id]);
+}
+
+// Requisitos incumplidos para una acción. Vacío = la acción puede ejecutarse.
+function dgRequisitos(enc, accion) {
+  const reg = dgReg(enc);
+  const p = [];
+  const bloqueos = dgBloqueos(enc);
+  if (accion === 'start') {
+    if (!enc.servicios.length) p.push({ texto: 'El encargo no tiene servicio contratado.', resolucion: 'Indicar el servicio en el paso B del onboarding.' });
+    if (!enc.objetivos) p.push({ texto: 'Sin objetivos de negocio registrados: el diagnóstico no tendría criterio de prioridad.', resolucion: 'Completar los objetivos en el paso C del onboarding.' });
+    if (!enc.agentes.length) p.push({ texto: 'Sin agentes asignados al encargo.', resolucion: 'Asignar equipo en el paso G del onboarding.' });
+    const sin = dgAccesosSinRegistrar(reg);
+    if (sin.length) p.push({ texto: 'Accesos sin estado registrado: ' + sin.map(x => x.label || x.id).join(', ') + '.', resolucion: 'Marcar cada acceso como validado, pendiente o no aplica en el paso E. Nunca se piden contraseñas.' });
+  }
+  if (accion === 'send') {
+    if (enc.estado !== 'En curso') p.push({ texto: 'El encargo no está «En curso» (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico antes de enviarlo a control de calidad.' });
+    if (!dgDisponibles(enc).length) p.push({ texto: 'No hay ningún hallazgo sin bloqueo: la respuesta sería vacía.', resolucion: 'Conseguir al menos un acceso validado para poder revisar algo con evidencia.' });
+    const inc = dgHallazgosIncompletos(enc);
+    if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
+    if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
+    if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
+  }
+  if (accion === 'declare') {
+    if (!bloqueos.length) p.push({ texto: 'No hay datos ausentes que declarar.', resolucion: 'Todos los accesos necesarios están validados.' });
+    if (enc.limitacionesDeclaradas) p.push({ texto: 'Las limitaciones ya están declaradas.', resolucion: 'No es necesario repetirlo.' });
+  }
+  if (accion === 'qa') {
+    if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
+  }
+  if (accion === 'plan') {
+    const ultima = enc.revisiones[enc.revisiones.length - 1];
+    if (enc.estado !== 'Completado') p.push({ texto: 'El diagnóstico no está completado (estado: ' + enc.estado + ').', resolucion: 'Pasar el control de calidad antes de planificar.' });
+    if (!ultima || ultima.resultado !== 'Validado') p.push({ texto: 'La última revisión de calidad no está validada.', resolucion: 'Corregir lo devuelto y volver a pasar control de calidad.' });
+    if (dgPlan(enc)) p.push({ texto: 'Ya existe un plan para este encargo.', resolucion: 'Abrir el plan y crear una versión nueva si hace falta cambiarlo.' });
+    if (!dgDisponibles(enc).length) p.push({ texto: 'No hay hallazgos sin bloqueo con los que construir acciones.', resolucion: 'Resolver los accesos bloqueados antes de planificar.' });
+    if (!enc.objetivos) p.push({ texto: 'Sin objetivos registrados: las acciones no podrían justificarse.', resolucion: 'Completar los objetivos en el paso C del onboarding.' });
+  }
+  return p;
+}
+
+function dgBloqueoHTML(titulo, problemas, id, etiqueta) {
+  return `<div class="v-error" role="alert"${id ? ' id="' + id + '"' : ''}>${tag(etiqueta || 'Acción no disponible', 'bad')}<strong>${escapeText(titulo)}</strong>
+  <ul class="v-error-list">${problemas.map(x => `<li><span>${escapeText(x.texto)}</span><span class="v-small v-muted">Cómo resolverlo: ${escapeText(x.resolucion)}</span></li>`).join('')}</ul></div>`;
+}
+
+// Devuelve true si la acción queda bloqueada: muestra el error y no cambia nada.
+function dgImpedir(enc, accion, titulo) {
+  const problemas = dgRequisitos(enc, accion);
+  if (!problemas.length) { dgAviso = null; return false; }
+  dgAviso = { encId: enc.id, accion, titulo, problemas };
+  dgAbrirCliente(enc);
+  announce(titulo + ' ' + problemas.length + ' requisito(s) sin cumplir: ' + problemas.map(x => x.texto).join(' ') );
+  return true;
+}
+
 /* ---------- Control de calidad ---------- */
 
 function dgRevisar(enc) {
@@ -244,7 +311,8 @@ function dgRestaurar() {
 
 function dgFichaHallazgo(enc, h) {
   const bloq = dgBloqueado(enc, h);
-  return `<div class="v-row"><div><div class="v-flex">${tag(bloq ? 'Bloqueado por acceso' : 'Hallazgo registrado', bloq ? 'bad' : 'dark')}${tag('Prioridad ' + h.prioridad, h.prioridad === 'Alta' ? 'warn' : 'dark')}<span class="v-mono v-muted">${h.evidencia}</span></div>
+  const incompleto = !h.evidencia || !h.fuente || !h.fecha;
+  return `<div class="v-row${incompleto ? ' v-row-error' : ''}"><div><div class="v-flex">${tag(bloq ? 'Bloqueado por acceso' : incompleto ? 'Evidencia incompleta' : 'Hallazgo registrado', bloq ? 'bad' : incompleto ? 'warn' : 'dark')}${tag('Prioridad ' + h.prioridad, h.prioridad === 'Alta' ? 'warn' : 'dark')}<span class="v-mono v-muted">${h.evidencia || 'SIN REFERENCIA'}</span></div>
   <strong>${escapeText(h.titulo)}</strong>
   <dl class="v-kv"><div><dt>FUENTE DE EJEMPLO</dt><dd>${escapeText(h.fuente)}</dd></div><div><dt>FECHA</dt><dd>${h.fecha}</dd></div><div><dt>IMPACTO ESTIMADO</dt><dd>${escapeText(h.impacto)}</dd></div><div><dt>LIMITACIONES</dt><dd>${escapeText(h.limitaciones)}</dd></div></dl>
   ${bloq ? `<p class="v-small">Trabajo detenido solo en este hallazgo. Cómo resolverlo: solicitar ${dgAccesoNombre(h.dep)} con el permiso mínimo previsto y marcarlo como validado en el paso E del onboarding. Sin ese acceso no se mide nada ni se inventan cifras.</p>` : ''}</div></div>`;
@@ -254,13 +322,28 @@ function dgPanelEstado(enc) {
   const bloqueos = dgBloqueos(enc);
   const plan = dgPlan(enc);
   const ultima = enc.revisiones[enc.revisiones.length - 1];
+  const posibles = [];
+  if (enc.estado === 'Pendiente') posibles.push({ attr: 'data-dg-start', label: 'Iniciar diagnóstico', accion: 'start', primary: true });
+  if (enc.estado === 'En curso') posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
+  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
+  if (enc.estado === 'En revisión') posibles.push({ attr: 'data-dg-qa', label: 'Ejecutar revisión de calidad (simulada)', accion: 'qa', primary: true });
+  if (enc.estado === 'Completado' && !plan) posibles.push({ attr: 'data-dg-plan', label: 'Generar plan de trabajo', accion: 'plan', primary: true });
   const acciones = [];
-  if (enc.estado === 'Pendiente') acciones.push('<button class="v-primary" data-dg-start="' + enc.id + '">Iniciar diagnóstico</button>');
-  if (enc.estado === 'En curso') acciones.push('<button class="v-primary" data-dg-send="' + enc.id + '">Enviar a control de calidad</button>');
-  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) acciones.push('<button data-dg-declare="' + enc.id + '">Declarar datos ausentes y limitaciones</button>');
-  if (enc.estado === 'En revisión') acciones.push('<button class="v-primary" data-dg-qa="' + enc.id + '">Ejecutar revisión de calidad (simulada)</button>');
-  if (enc.estado === 'Completado' && !plan) acciones.push('<button class="v-primary" data-dg-plan="' + enc.id + '">Generar plan de trabajo</button>');
+  const impedimentos = [];
+  posibles.forEach((a, i) => {
+    const problemas = dgRequisitos(enc, a.accion);
+    const descId = 'v-dg-req-' + enc.id + '-' + i;
+    if (problemas.length) {
+      acciones.push(`<button${a.primary ? ' class="v-primary"' : ''} ${a.attr}="${enc.id}" aria-disabled="true" aria-describedby="${descId}">${a.label}</button>`);
+      impedimentos.push(dgBloqueoHTML('No se puede continuar: ' + a.label.toLowerCase() + '.', problemas, descId));
+    } else {
+      acciones.push(`<button${a.primary ? ' class="v-primary"' : ''} ${a.attr}="${enc.id}">${a.label}</button>`);
+    }
+  });
   if (plan) acciones.push('<button data-plan-open="' + enc.id + '">Ver plan v' + plan.version + '</button>');
+  const aviso = dgAviso && dgAviso.encId === enc.id
+    ? dgBloqueoHTML(dgAviso.titulo, dgAviso.problemas)
+    : '';
   return `<div class="v-panel"><div class="v-section-head"><h2>Encargo ${enc.id}</h2>${tag(enc.estado, tone(enc.estado))}</div>
   <dl class="v-kv"><div><dt>CLIENTE</dt><dd>${escapeText(clients[enc.clienteId - 1].name)}</dd></div>
   <div><dt>SERVICIO CONTRATADO</dt><dd>${enc.servicios.join(', ') || 'Sin definir'}</dd></div>
@@ -270,7 +353,9 @@ function dgPanelEstado(enc) {
   <div><dt>CREADO</dt><dd>${enc.creado}</dd></div></dl>
   <p class="v-small v-muted">Estados posibles: ${DG_ESTADOS.join(' · ')}. El encargo es único por cliente: repetir la activación no lo duplica.</p>
   ${ultima ? `<div class="v-notice"><strong>Revisión ${ultima.n}: ${ultima.resultado}</strong><p class="v-small">${escapeText(ultima.comentario)}</p></div>` : ''}
-  ${acciones.length ? `<div class="v-flex" style="margin-top:16px">${acciones.join('')}</div>` : ''}</div>`;
+  ${aviso}
+  ${acciones.length ? `<div class="v-flex" style="margin-top:16px">${acciones.join('')}</div>` : ''}
+  ${impedimentos.join('')}</div>`;
 }
 
 function tabDiagnostico(c, reg) {
@@ -298,13 +383,15 @@ function planReview(enc) {
   const c = clients[enc.clienteId - 1];
   if (!plan) return tabDiagnostico(c, dgReg(enc));
   const pendiente = plan.estado === 'Pendiente de aprobación';
+  const errorPlan = dgAvisoPlan && dgAvisoPlan.encId === enc.id;
+  const avisoPlan = errorPlan ? dgBloqueoHTML('Decisión no registrada.', dgAvisoPlan.problemas, 'v-plan-comment-error', 'Falta información') : '';
   return `<button class="v-back" data-go="Supervisión">← Supervisión</button>`
     + heading('PLAN / ' + enc.id + ' · v' + plan.version, 'Plan de trabajo de ' + c.name, enc.servicios.join(', ') + ' · ' + plan.acciones.length + ' acciones', tag(plan.estado, tone(plan.estado)))
     + `<div class="v-panel"><dl class="v-kv"><div><dt>VERSIÓN</dt><dd>v${plan.version} de ${enc.planes.length}</dd></div><div><dt>ORIGEN</dt><dd>${escapeText(plan.motivo)}</dd></div><div><dt>DIAGNÓSTICO</dt><dd>${enc.estado} · ${enc.revisiones.length} revisiones de calidad</dd></div><div><dt>ESTADO DEL CLIENTE</dt><dd>${dgEstadoCliente(enc)}</dd></div></dl>
   <p class="v-small v-muted">Estado del cliente, estado del encargo y estado de la aprobación son distintos y se muestran por separado. Aprobar no ejecuta ni publica nada.</p></div>
   <section class="v-section"><div class="v-section-head"><h2>Acciones propuestas</h2><span class="v-mono">COSTES ILUSTRATIVOS</span></div><div class="v-panel">${dgTablaPlan(enc, plan)}</div></section>
   <section class="v-section v-panel"><h2>Decisión del Project Manager</h2>
-  ${pendiente ? `<div class="v-field"><label><span>Comentario o motivo</span><textarea rows="3" id="v-plan-comment" placeholder="Obligatorio para solicitar cambios o rechazar"></textarea></label></div>
+  ${pendiente ? `${avisoPlan}<div class="v-field"><label><span>Comentario o motivo</span><textarea rows="3" id="v-plan-comment" maxlength="500" placeholder="Obligatorio para solicitar cambios o rechazar (mínimo 12 caracteres)"${errorPlan ? ' aria-invalid="true" aria-describedby="v-plan-comment-error"' : ''}></textarea></label><p class="v-small v-muted">Máximo 500 caracteres. El comentario queda vinculado a la versión v${plan.version}.</p></div>
   <div class="v-flex" style="margin-top:14px"><button class="v-primary" data-plan-decision="approve">Aprobar plan v${plan.version}</button><button data-plan-decision="changes">Solicitar cambios</button><button data-plan-decision="reject">Rechazar</button></div>
   <p class="v-small v-muted" style="margin-top:12px">La decisión queda vinculada a la versión v${plan.version}. Aprobar deja el plan «Listo para ejecución»; no inicia trabajo real.</p>`
       : `<div class="v-notice"><strong>${plan.estado}</strong><p class="v-small">${escapeText(plan.decisiones.length ? plan.decisiones[plan.decisiones.length - 1].comentario : '')}</p></div>
@@ -408,6 +495,7 @@ root.addEventListener('click', e => {
   }
   if (d.dgStart) {
     enc = encargos.find(x => x.id === d.dgStart);
+    if (!enc || dgImpedir(enc, 'start', 'No se puede iniciar el diagnóstico.')) return;
     enc.estado = 'En curso';
     enc.historial.push('18 sep 2026 · Diagnóstico iniciado por los agentes asignados (simulado).');
     const bl = dgBloqueos(enc);
@@ -416,24 +504,27 @@ root.addEventListener('click', e => {
     announce('Diagnóstico en curso.' + (bl.length ? ' Hay trabajo bloqueado por accesos sin validar.' : ''));
   } else if (d.dgDeclare) {
     enc = encargos.find(x => x.id === d.dgDeclare);
+    if (!enc || dgImpedir(enc, 'declare', 'No hay nada que declarar.')) return;
     enc.limitacionesDeclaradas = true;
     enc.historial.push('18 sep 2026 · Datos ausentes y limitaciones declarados por el equipo.');
     dgGuardar(); dgAbrirCliente(enc);
     announce('Limitaciones declaradas. No se sustituyen por estimaciones.');
   } else if (d.dgSend) {
     enc = encargos.find(x => x.id === d.dgSend);
+    if (!enc || dgImpedir(enc, 'send', 'El diagnóstico está incompleto: no se envía a control de calidad.')) return;
     enc.estado = 'En revisión';
     enc.historial.push('18 sep 2026 · Diagnóstico enviado a control de calidad.');
     dgSincronizarCliente(enc); dgGuardar(); dgAbrirCliente(enc);
     announce('Diagnóstico en revisión de calidad.');
   } else if (d.dgQa) {
     enc = encargos.find(x => x.id === d.dgQa);
+    if (!enc || dgImpedir(enc, 'qa', 'No se puede ejecutar la revisión de calidad.')) return;
     const rev = dgRevisar(enc);
     dgGuardar(); dgAbrirCliente(enc);
-    announce('Revisión de calidad: ' + rev.resultado + '.');
+    announce('Revisión de calidad: ' + rev.resultado + '.' + (rev.resultado === 'Validado' ? '' : ' El diagnóstico vuelve a «En curso» con las correcciones pendientes.'));
   } else if (d.dgPlan) {
     enc = encargos.find(x => x.id === d.dgPlan);
-    if (enc.estado !== 'Completado' || dgPlan(enc)) return;
+    if (!enc || dgImpedir(enc, 'plan', 'No se puede generar el plan de trabajo.')) return;
     dgCrearPlan(enc, 'Generado desde el diagnóstico validado el 18 sep 2026.');
     dgGuardar();
     onbRender(planReview(enc));
@@ -447,11 +538,19 @@ root.addEventListener('click', e => {
     if (!enc) return;
     const campo = root.querySelector('#v-plan-comment');
     const texto = campo ? campo.value.trim() : '';
-    if (d.planDecision !== 'approve' && !texto) {
-      announce('Escribe el comentario o el motivo antes de solicitar cambios o rechazar el plan.');
-      if (campo) campo.focus();
+    const problemas = [];
+    if (d.planDecision !== 'approve' && !texto) problemas.push({ texto: 'Falta el comentario o el motivo de la decisión.', resolucion: 'Escribir qué debe cambiar o por qué se rechaza, con detalle suficiente para trabajar.' });
+    else if (d.planDecision !== 'approve' && texto.length < 12) problemas.push({ texto: 'El motivo es demasiado breve (' + texto.length + ' caracteres) y no sirve como instrucción.', resolucion: 'Ampliar a 12 caracteres como mínimo, indicando qué acción del plan está afectada.' });
+    if (texto.length > 500) problemas.push({ texto: 'El comentario supera los 500 caracteres permitidos.', resolucion: 'Resumir la decisión; los detalles largos van en el historial del encargo.' });
+    if (problemas.length) {
+      dgAvisoPlan = { encId: enc.id, problemas };
+      onbRender(planReview(enc));
+      const nuevo = root.querySelector('#v-plan-comment');
+      if (nuevo) nuevo.focus();
+      announce('Decisión no registrada: ' + problemas.map(x => x.texto).join(' '));
       return;
     }
+    dgAvisoPlan = null;
     dgDecidirPlan(enc, d.planDecision, texto);
     dgGuardar();
     onbRender(planReview(enc));
