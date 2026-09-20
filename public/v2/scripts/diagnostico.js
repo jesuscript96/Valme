@@ -174,7 +174,7 @@ function dgRequisitos(enc, accion) {
     if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
     if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
     const sinCob = dgServiciosSinCobertura(enc);
-    if (sinCob.length && !enc.coberturaDeclarada) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.', resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Tres hallazgos no cubren un servicio contratado.' });
+    if (sinCob.length && !dgCoberturaDeclarada(enc)) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.' + (enc.coberturaDeclarada ? ' La declaración anterior cubría: ' + (enc.serviciosSinCobertura || []).join(', ') + '.' : ''), resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Una declaración anterior sobre otro servicio no sirve para este.' });
     if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
   }
   if (accion === 'declare') {
