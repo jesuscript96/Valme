@@ -322,6 +322,8 @@ function dgGuardar() {
       ? 'El navegador no tiene espacio libre para guardar el recorrido de la demostración.'
       : 'El navegador ha rechazado guardar los datos de este sitio' + (err && err.message ? ' (' + err.message + ')' : '') + '.';
   }
+  // El aviso se actualiza en el momento: aparece al fallar y desaparece al guardar bien.
+  if (typeof dgPintarAviso === 'function') dgPintarAviso();
 }
 
 function dgRestaurar() {
