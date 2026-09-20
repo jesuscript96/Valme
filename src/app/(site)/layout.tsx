@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 import { Providers } from "./providers";
 import { getSettings } from "@/sanity/data";
 import { imageUrl } from "@/sanity/image";

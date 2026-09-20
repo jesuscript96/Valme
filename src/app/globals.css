@@ -65,3 +65,64 @@ html.has-custom-cursor * {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ===========================================================================
+   VALME OS — tokens del área de admin.
+   La web comercial va en negro; el área va en claro: densidad de datos,
+   formularios largos y sesiones de una hora. El acento de marca se mantiene.
+   Solo aplican bajo `[data-os]`, así que la web no se entera de que existen.
+   =========================================================================== */
+@theme {
+  --color-os-bg: #fbfbfa;
+  --color-os-surface: #ffffff;
+  --color-os-sunken: #f4f4f3;
+  --color-os-border: #e6e6e3;
+  --color-os-border-strong: #d4d4d0;
+  --color-os-text: #1a1a18;
+  --color-os-muted: #6f6f6a;
+  --color-os-faint: #9a9a94;
+  --color-os-accent: #ff3b21;
+  --color-os-accent-soft: #fff1ee;
+  --color-os-ok: #157f4b;
+  --color-os-ok-soft: #eaf6ef;
+  --color-os-warn: #9a6200;
+  --color-os-warn-soft: #fdf5e3;
+  --color-os-info-soft: #eef2fb;
+}
+
+html[data-os] {
+  background-color: var(--color-os-bg);
+}
+
+body.os-root {
+  background-color: var(--color-os-bg);
+  color: var(--color-os-text);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  overscroll-behavior: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* El área nunca usa el cursor personalizado de la web. */
+html[data-os],
+html[data-os] * {
+  cursor: auto;
+}
+html[data-os] button,
+html[data-os] a,
+html[data-os] [role="button"],
+html[data-os] summary {
+  cursor: pointer;
+}
+
+html[data-os] :focus-visible {
+  outline: 2px solid var(--color-os-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Números tabulares en tablas y contadores: las columnas no bailan. */
+.os-num {
+  font-variant-numeric: tabular-nums;
+}
