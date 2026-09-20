@@ -65,6 +65,8 @@ function dgCrearEncargo(reg, cliente) {
     agentes: reg.equipo.slice(),
     hallazgos: dgHallazgos(reg),
     limitacionesDeclaradas: false,
+    coberturaDeclarada: false,
+    serviciosSinCobertura: [],
     revisiones: [],
     planes: [],
     historial: ['18 sep 2026 · 09:42 · Encargo de diagnóstico creado tras la activación del onboarding.']
@@ -148,11 +150,14 @@ function dgRequisitos(enc, accion) {
     const inc = dgHallazgosIncompletos(enc);
     if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
     if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (sinCob.length && !enc.coberturaDeclarada) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.', resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Tres hallazgos no cubren un servicio contratado.' });
     if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
   }
   if (accion === 'declare') {
-    if (!bloqueos.length) p.push({ texto: 'No hay datos ausentes que declarar.', resolucion: 'Todos los accesos necesarios están validados.' });
-    if (enc.limitacionesDeclaradas) p.push({ texto: 'Las limitaciones ya están declaradas.', resolucion: 'No es necesario repetirlo.' });
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (!bloqueos.length && !sinCob.length) p.push({ texto: 'No hay datos ausentes ni servicios sin cobertura que declarar.', resolucion: 'Todos los accesos necesarios están validados y cada servicio contratado tiene hallazgos con evidencia.' });
+    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && (!sinCob.length || enc.coberturaDeclarada)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
   }
   if (accion === 'qa') {
     if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
