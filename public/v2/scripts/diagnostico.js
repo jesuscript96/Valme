@@ -203,7 +203,7 @@ function dgRevisar(enc) {
   const reg = dgReg(enc);
   const servicios = enc.servicios.length ? enc.servicios : ['SEO'];
   const comprobaciones = [
-    { id: 'alcance', label: DG_QA_PASOS[0].label, ok: servicios.every(s => enc.hallazgos.some(h => DG_CATALOGO.find(x => x.id === h.ref && x.servicio === s)) ) || enc.hallazgos.length >= 3 },
+    { id: 'alcance', label: DG_QA_PASOS[0].label + ' (uno por servicio contratado)', ok: dgServiciosSinCobertura(enc).length === 0 || enc.coberturaDeclarada, detalle: dgServiciosSinCobertura(enc).length ? 'Sin cobertura propia: ' + dgServiciosSinCobertura(enc).join(', ') + (enc.coberturaDeclarada ? ' · declarado como parte pendiente' : ' · sin declarar') : servicios.join(', ') + ' con hallazgos con evidencia' },
     { id: 'evidencia', label: DG_QA_PASOS[1].label, ok: enc.hallazgos.every(h => h.evidencia && h.fuente && h.fecha) },
     { id: 'pendientes', label: DG_QA_PASOS[2].label, ok: dgBloqueos(enc).length === 0 || enc.limitacionesDeclaradas }
   ];
