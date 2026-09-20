@@ -133,6 +133,20 @@ function dgServiciosSinCobertura(enc) {
   }));
 }
 
+// La declaración de cobertura solo vale para los servicios que se declararon.
+// Si hoy falta cobertura en otro servicio, la declaración anterior no sirve.
+function dgCoberturaDeclarada(enc) {
+  const sin = dgServiciosSinCobertura(enc);
+  if (!sin.length) return true;
+  const dec = enc.serviciosSinCobertura || [];
+  return !!enc.coberturaDeclarada && sin.every(s => dec.indexOf(s) !== -1);
+}
+
+// Hay trabajo ejecutable: un acceso revocado bloquea solo lo que depende de él.
+function dgEnCurso(enc) {
+  return enc.estado === 'En curso' || (enc.estado === 'Bloqueado' && dgDisponibles(enc).length > 0);
+}
+
 function dgHallazgosIncompletos(enc) {
   return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
 }
