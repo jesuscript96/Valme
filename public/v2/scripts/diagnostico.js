@@ -292,6 +292,9 @@ function dgDecidirPlan(enc, tipo, comentario) {
 
 const DG_KEY = 'valme-v2-demo';
 
+// Último error de guardado en el navegador. Si existe, se avisa en pantalla.
+let dgAlmacenError = null;
+
 function dgGuardar() {
   try {
     localStorage.setItem(DG_KEY, JSON.stringify({
@@ -388,7 +391,7 @@ function tabDiagnostico(c, reg) {
   return dgPanelEstado(enc)
     + `<section class="v-section"><div class="v-section-head"><h2>Hallazgos (${enc.hallazgos.length})</h2><span class="v-mono">${dgDisponibles(enc).length} SIN BLOQUEO</span></div><div class="v-panel">${enc.estado === 'Pendiente' ? '<p>Sin datos: el diagnóstico no se ha iniciado.</p>' : enc.hallazgos.map(h => dgFichaHallazgo(enc, h)).join('')}</div></section>`
     + (bloqueos.length ? `<section class="v-section"><div class="v-section-head"><h2>Trabajo bloqueado por accesos</h2>${tag(enc.limitacionesDeclaradas ? 'Limitaciones declaradas' : 'Sin declarar', enc.limitacionesDeclaradas ? 'good' : 'warn')}</div><div class="v-panel">${bloqueos.map(b => `<div class="v-row"><div>${tag(b.estado, tone(b.estado))}<strong>${b.nombre}</strong><p>Bloquea: ${b.afectados.map(escapeText).join(' · ')}</p><p class="v-small">Resolución: el cliente concede ${b.nombre} con permiso mínimo; después se marca como validado en el paso E. El resto del diagnóstico continúa.</p></div></div>`).join('')}</div></section>` : '')
-    + (enc.revisiones.length ? `<section class="v-section"><div class="v-section-head"><h2>Control de calidad</h2><span class="v-mono">${enc.revisiones.length} REVISIONES</span></div><div class="v-panel">${enc.revisiones.map(r => `<div class="v-row"><div>${tag(r.resultado, r.resultado === 'Validado' ? 'good' : 'warn')}<strong>Revisión ${r.n} · ${r.fecha}</strong><p>${escapeText(r.comentario)}</p>${r.comprobaciones.map(x => `<p class="v-small">${x.ok ? '✓' : '×'} ${x.label}</p>`).join('')}</div></div>`).join('')}</div></section>` : '')
+    + (enc.revisiones.length ? `<section class="v-section"><div class="v-section-head"><h2>Control de calidad</h2><span class="v-mono">${enc.revisiones.length} REVISIONES</span></div><div class="v-panel">${enc.revisiones.map(r => `<div class="v-row"><div>${tag(r.resultado, r.resultado === 'Validado' ? 'good' : 'warn')}<strong>Revisión ${r.n} · ${r.fecha}</strong><p>${escapeText(r.comentario)}</p>${r.comprobaciones.map(x => `<p class="v-small">${x.ok ? '✓' : '×'} ${x.label}${x.detalle ? ' · <span class="v-muted">' + escapeText(x.detalle) + '</span>' : ''}</p>`).join('')}</div></div>`).join('')}</div></section>` : '')
     + `<section class="v-section v-panel"><h2>Historial del encargo</h2>${enc.historial.map(h => `<p class="v-small">${escapeText(h)}</p>`).join('')}</section>`;
 }
 
@@ -526,7 +529,13 @@ root.addEventListener('click', e => {
   } else if (d.dgDeclare) {
     enc = encargos.find(x => x.id === d.dgDeclare);
     if (!enc || dgImpedir(enc, 'declare', 'No hay nada que declarar.')) return;
-    enc.limitacionesDeclaradas = true;
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (dgBloqueos(enc).length) enc.limitacionesDeclaradas = true;
+    if (sinCob.length) {
+      enc.coberturaDeclarada = true;
+      enc.serviciosSinCobertura = sinCob;
+      enc.historial.push('18 sep 2026 · Servicios contratados sin cobertura declarados como parte pendiente: ' + sinCob.join(', ') + '.');
+    }
     enc.historial.push('18 sep 2026 · Datos ausentes y limitaciones declarados por el equipo.');
     dgGuardar(); dgAbrirCliente(enc);
     announce('Limitaciones declaradas. No se sustituyen por estimaciones.');
