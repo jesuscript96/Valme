@@ -120,6 +120,7 @@ function dgSincronizarCliente(enc) {
 
 // Aviso visible tras un intento bloqueado. No se persiste: describe el último intento.
 let dgAviso = null; // { encId, accion, titulo, problemas: [{ texto, resolucion }] }
+let dgAvisoPlan = null; // { encId, problemas } — decisión del PM rechazada por validación
 
 function dgHallazgosIncompletos(enc) {
   return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
@@ -388,7 +389,7 @@ function planReview(enc) {
   <p class="v-small v-muted">Estado del cliente, estado del encargo y estado de la aprobación son distintos y se muestran por separado. Aprobar no ejecuta ni publica nada.</p></div>
   <section class="v-section"><div class="v-section-head"><h2>Acciones propuestas</h2><span class="v-mono">COSTES ILUSTRATIVOS</span></div><div class="v-panel">${dgTablaPlan(enc, plan)}</div></section>
   <section class="v-section v-panel"><h2>Decisión del Project Manager</h2>
-  ${pendiente ? `<div class="v-field"><label><span>Comentario o motivo</span><textarea rows="3" id="v-plan-comment" placeholder="Obligatorio para solicitar cambios o rechazar"></textarea></label></div>
+  ${pendiente ? `${avisoPlan}<div class="v-field"><label><span>Comentario o motivo</span><textarea rows="3" id="v-plan-comment" maxlength="500" placeholder="Obligatorio para solicitar cambios o rechazar (mínimo 12 caracteres)"${errorPlan ? ' aria-invalid="true" aria-describedby="v-plan-comment-error"' : ''}></textarea></label><p class="v-small v-muted">Máximo 500 caracteres. El comentario queda vinculado a la versión v${plan.version}.</p></div>
   <div class="v-flex" style="margin-top:14px"><button class="v-primary" data-plan-decision="approve">Aprobar plan v${plan.version}</button><button data-plan-decision="changes">Solicitar cambios</button><button data-plan-decision="reject">Rechazar</button></div>
   <p class="v-small v-muted" style="margin-top:12px">La decisión queda vinculada a la versión v${plan.version}. Aprobar deja el plan «Listo para ejecución»; no inicia trabajo real.</p>`
       : `<div class="v-notice"><strong>${plan.estado}</strong><p class="v-small">${escapeText(plan.decisiones.length ? plan.decisiones[plan.decisiones.length - 1].comentario : '')}</p></div>
