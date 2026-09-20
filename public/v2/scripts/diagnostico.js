@@ -180,7 +180,7 @@ function dgRequisitos(enc, accion) {
   if (accion === 'declare') {
     const sinCob = dgServiciosSinCobertura(enc);
     if (!bloqueos.length && !sinCob.length) p.push({ texto: 'No hay datos ausentes ni servicios sin cobertura que declarar.', resolucion: 'Todos los accesos necesarios están validados y cada servicio contratado tiene hallazgos con evidencia.' });
-    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && (!sinCob.length || enc.coberturaDeclarada)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
+    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && dgCoberturaDeclarada(enc)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
   }
   if (accion === 'qa') {
     if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
