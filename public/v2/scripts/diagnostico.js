@@ -599,6 +599,78 @@ root.addEventListener('click', () => setTimeout(dgGuardar, 0));
 root.addEventListener('change', () => setTimeout(dgGuardar, 0));
 root.addEventListener('input', () => setTimeout(dgGuardar, 0));
 
+/* ---------- Resolver accesos después de la activación ---------- */
+
+const _tabAccesos = tabAccesos;
+globalThis.tabAccesos = function (c, reg) {
+  const enc = dgEncargoDe(c.id);
+  if (!enc) return _tabAccesos(c, reg);
+  const bloqueos = dgBloqueos(enc);
+  const filas = ONB_ACCESOS.map(a => `<div class="v-row"><div>${tag(reg.accesos[a.id], reg.accesos[a.id] === 'Validado' ? 'good' : /Insuficiente|Caducado/.test(reg.accesos[a.id]) ? 'bad' : 'warn')}<strong>${a.nombre}</strong><p class="v-small">${a.finalidad} · permiso mínimo: ${a.permiso} · responsable: cliente</p></div><label><span class="v-sr-only">Nuevo estado de ${a.nombre}</span><select data-dg-acceso="${a.id}" data-dg-enc="${enc.id}">${ONB_ESTADOS_ACCESO.map(e => `<option ${reg.accesos[a.id] === e ? 'selected' : ''}>${e}</option>`).join('')}</select></label></div>`).join('');
+  return _tabAccesos(c, reg)
+    + `<section class="v-section v-panel"><div class="v-section-head"><h2>Actualizar accesos y reanudar trabajo</h2>${tag(bloqueos.length ? bloqueos.length + ' bloqueo(s) activos' : 'Sin bloqueos', bloqueos.length ? 'warn' : 'good')}</div>
+  <p class="v-small v-muted">Los accesos se pueden actualizar en cualquier momento, también después de activar el onboarding. Nunca se piden contraseñas, claves ni tokens: solo el estado del permiso, con validación simulada.</p>
+  ${filas}
+  <p class="v-small v-muted" style="margin-top:12px">Cada cambio queda registrado con fecha en el historial del encargo y reanuda solo el trabajo que dependía de ese acceso. Un plan ya generado no se modifica: haría falta una versión nueva.</p></section>`;
+};
+
+root.addEventListener('change', e => {
+  const t = e.target;
+  if (!t.dataset || !t.dataset.dgAcceso) return;
+  const enc = encargos.find(x => x.id === t.dataset.dgEnc);
+  if (!enc) return;
+  const reg = dgReg(enc);
+  const id = t.dataset.dgAcceso;
+  const antes = reg.accesos[id];
+  const ahora = t.value;
+  if (antes === ahora) return;
+  reg.accesos[id] = ahora;
+  const linea = '18 sep 2026 · Acceso ' + dgAccesoNombre(id) + ': ' + antes + ' → ' + ahora + ' (registrado por el Project Manager, validación simulada).';
+  reg.historial.push(linea);
+  enc.historial.push(linea);
+  const quedan = dgBloqueos(enc);
+  let reanudado = '';
+  if (ahora === 'Validado') {
+    const afectados = enc.hallazgos.filter(h => h.dep === id).map(h => h.titulo);
+    if (afectados.length) {
+      enc.historial.push('18 sep 2026 · Trabajo reanudado en: ' + afectados.join(' · ') + '.');
+      reanudado = ' Trabajo reanudado en ' + afectados.length + ' hallazgo(s).';
+    }
+    if (enc.estado === 'Bloqueado' && !quedan.length) {
+      enc.estado = 'En curso';
+      enc.historial.push('18 sep 2026 · Encargo de nuevo «En curso»: no quedan accesos bloqueantes.');
+    }
+    const plan = dgPlan(enc);
+    if (plan && plan.excluidas.length) enc.historial.push('18 sep 2026 · El plan v' + plan.version + ' excluyó trabajo por este acceso: requiere una versión nueva para incorporarlo.');
+  }
+  if (!quedan.length) enc.limitacionesDeclaradas = false;
+  enc.coberturaDeclarada = dgServiciosSinCobertura(enc).length ? enc.coberturaDeclarada : false;
+  dgSincronizarCliente(enc);
+  dgGuardar();
+  dgAbrirCliente(enc, 'Accesos');
+  announce('Acceso ' + dgAccesoNombre(id) + ' actualizado a ' + ahora + '.' + reanudado + (quedan.length ? ' Siguen bloqueados: ' + quedan.map(b => b.nombre).join(', ') + '.' : ' No quedan accesos bloqueantes.'));
+});
+
+/* ---------- Aviso cuando el navegador no guarda ---------- */
+
+function dgBannerAlmacen() {
+  if (!dgAlmacenError) return '';
+  return `<div class="v-error" role="alert">${tag('Sin guardar', 'bad')}<strong>Los cambios no se han guardado en este navegador.</strong>
+  <ul class="v-error-list"><li><span>${escapeText(dgAlmacenError)}</span><span class="v-small v-muted">Cómo resolverlo: permitir el almacenamiento de datos de este sitio (sin navegación privada ni bloqueo de datos) y repetir la acción. Mientras tanto, el recorrido solo existe en esta pestaña y se perderá al recargar.</span></li></ul></div>`;
+}
+
+const _onbRenderBase = onbRender;
+globalThis.onbRender = function (vista) {
+  _onbRenderBase(dgBannerAlmacen() + vista);
+};
+
+const _renderBase = render;
+globalThis.render = function (s, moveFocus = true) {
+  _renderBase(s, moveFocus);
+  const banner = dgBannerAlmacen();
+  if (banner) page.insertAdjacentHTML('afterbegin', banner);
+};
+
 /* ---------- Semilla y restauración ---------- */
 
 function dgSemilla() {
