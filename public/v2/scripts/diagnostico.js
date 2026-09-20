@@ -320,13 +320,28 @@ function dgPanelEstado(enc) {
   const bloqueos = dgBloqueos(enc);
   const plan = dgPlan(enc);
   const ultima = enc.revisiones[enc.revisiones.length - 1];
+  const posibles = [];
+  if (enc.estado === 'Pendiente') posibles.push({ attr: 'data-dg-start', label: 'Iniciar diagnóstico', accion: 'start', primary: true });
+  if (enc.estado === 'En curso') posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
+  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
+  if (enc.estado === 'En revisión') posibles.push({ attr: 'data-dg-qa', label: 'Ejecutar revisión de calidad (simulada)', accion: 'qa', primary: true });
+  if (enc.estado === 'Completado' && !plan) posibles.push({ attr: 'data-dg-plan', label: 'Generar plan de trabajo', accion: 'plan', primary: true });
   const acciones = [];
-  if (enc.estado === 'Pendiente') acciones.push('<button class="v-primary" data-dg-start="' + enc.id + '">Iniciar diagnóstico</button>');
-  if (enc.estado === 'En curso') acciones.push('<button class="v-primary" data-dg-send="' + enc.id + '">Enviar a control de calidad</button>');
-  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) acciones.push('<button data-dg-declare="' + enc.id + '">Declarar datos ausentes y limitaciones</button>');
-  if (enc.estado === 'En revisión') acciones.push('<button class="v-primary" data-dg-qa="' + enc.id + '">Ejecutar revisión de calidad (simulada)</button>');
-  if (enc.estado === 'Completado' && !plan) acciones.push('<button class="v-primary" data-dg-plan="' + enc.id + '">Generar plan de trabajo</button>');
+  const impedimentos = [];
+  posibles.forEach((a, i) => {
+    const problemas = dgRequisitos(enc, a.accion);
+    const descId = 'v-dg-req-' + enc.id + '-' + i;
+    if (problemas.length) {
+      acciones.push(`<button${a.primary ? ' class="v-primary"' : ''} ${a.attr}="${enc.id}" aria-disabled="true" aria-describedby="${descId}">${a.label}</button>`);
+      impedimentos.push(dgBloqueoHTML('No se puede continuar: ' + a.label.toLowerCase() + '.', problemas, descId));
+    } else {
+      acciones.push(`<button${a.primary ? ' class="v-primary"' : ''} ${a.attr}="${enc.id}">${a.label}</button>`);
+    }
+  });
   if (plan) acciones.push('<button data-plan-open="' + enc.id + '">Ver plan v' + plan.version + '</button>');
+  const aviso = dgAviso && dgAviso.encId === enc.id
+    ? dgBloqueoHTML(dgAviso.titulo, dgAviso.problemas)
+    : '';
   return `<div class="v-panel"><div class="v-section-head"><h2>Encargo ${enc.id}</h2>${tag(enc.estado, tone(enc.estado))}</div>
   <dl class="v-kv"><div><dt>CLIENTE</dt><dd>${escapeText(clients[enc.clienteId - 1].name)}</dd></div>
   <div><dt>SERVICIO CONTRATADO</dt><dd>${enc.servicios.join(', ') || 'Sin definir'}</dd></div>
