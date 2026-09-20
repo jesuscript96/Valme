@@ -11,7 +11,18 @@ import { costUsd, type Usage } from "@/os/domain/pricing";
  * `output_config.format` — `output_format` está deprecado.
  */
 
-export const MODEL = "claude-opus-5" as const;
+/**
+ * Modelo por defecto. Configurable para poder comparar proveedores sin tocar código:
+ * tanto DeepSeek (`https://api.deepseek.com/anthropic`) como Z.ai
+ * (`https://api.z.ai/api/anthropic`) exponen el protocolo de mensajes de Anthropic, y el
+ * SDK lee `ANTHROPIC_BASE_URL` del entorno por su cuenta.
+ *
+ * AVISO antes de intentarlo: la salida estructurada de este código usa
+ * `output_config.format`, que es propio de Anthropic. Sus capas de compatibilidad
+ * podrían no admitirlo y habría que reescribir `structured()` contra el
+ * `response_format` de sus endpoints OpenAI. Compruébalo antes de contar con ello.
+ */
+export const MODEL = process.env.OS_LLM_MODEL ?? "claude-opus-5";
 
 export { costUsd };
 export type { Usage };
