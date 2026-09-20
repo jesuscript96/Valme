@@ -124,6 +124,15 @@ function dgSincronizarCliente(enc) {
 let dgAviso = null; // { encId, accion, titulo, problemas: [{ texto, resolucion }] }
 let dgAvisoPlan = null; // { encId, problemas } — decisión del PM rechazada por validación
 
+// Servicios contratados sin ningún hallazgo utilizable (con evidencia y sin bloqueo).
+function dgServiciosSinCobertura(enc) {
+  const servicios = enc.servicios.length ? enc.servicios : ['SEO'];
+  return servicios.filter(s => !dgDisponibles(enc).some(h => {
+    const cat = DG_CATALOGO.find(x => x.id === h.ref);
+    return cat && cat.servicio === s && h.evidencia && h.fuente && h.fecha;
+  }));
+}
+
 function dgHallazgosIncompletos(enc) {
   return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
 }
