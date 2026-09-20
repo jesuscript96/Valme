@@ -116,6 +116,72 @@ function dgSincronizarCliente(enc) {
   if (c) c.state = dgEstadoCliente(enc);
 }
 
+/* ---------- Validaciones y estados de error ---------- */
+
+// Aviso visible tras un intento bloqueado. No se persiste: describe el último intento.
+let dgAviso = null; // { encId, accion, titulo, problemas: [{ texto, resolucion }] }
+
+function dgHallazgosIncompletos(enc) {
+  return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
+}
+
+function dgAccesosSinRegistrar(reg) {
+  return (typeof ONB_ACCESOS !== 'undefined' ? ONB_ACCESOS : []).filter(x => !reg.accesos[x.id]);
+}
+
+// Requisitos incumplidos para una acción. Vacío = la acción puede ejecutarse.
+function dgRequisitos(enc, accion) {
+  const reg = dgReg(enc);
+  const p = [];
+  const bloqueos = dgBloqueos(enc);
+  if (accion === 'start') {
+    if (!enc.servicios.length) p.push({ texto: 'El encargo no tiene servicio contratado.', resolucion: 'Indicar el servicio en el paso B del onboarding.' });
+    if (!enc.objetivos) p.push({ texto: 'Sin objetivos de negocio registrados: el diagnóstico no tendría criterio de prioridad.', resolucion: 'Completar los objetivos en el paso C del onboarding.' });
+    if (!enc.agentes.length) p.push({ texto: 'Sin agentes asignados al encargo.', resolucion: 'Asignar equipo en el paso G del onboarding.' });
+    const sin = dgAccesosSinRegistrar(reg);
+    if (sin.length) p.push({ texto: 'Accesos sin estado registrado: ' + sin.map(x => x.label || x.id).join(', ') + '.', resolucion: 'Marcar cada acceso como validado, pendiente o no aplica en el paso E. Nunca se piden contraseñas.' });
+  }
+  if (accion === 'send') {
+    if (enc.estado !== 'En curso') p.push({ texto: 'El encargo no está «En curso» (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico antes de enviarlo a control de calidad.' });
+    if (!dgDisponibles(enc).length) p.push({ texto: 'No hay ningún hallazgo sin bloqueo: la respuesta sería vacía.', resolucion: 'Conseguir al menos un acceso validado para poder revisar algo con evidencia.' });
+    const inc = dgHallazgosIncompletos(enc);
+    if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
+    if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
+    if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
+  }
+  if (accion === 'declare') {
+    if (!bloqueos.length) p.push({ texto: 'No hay datos ausentes que declarar.', resolucion: 'Todos los accesos necesarios están validados.' });
+    if (enc.limitacionesDeclaradas) p.push({ texto: 'Las limitaciones ya están declaradas.', resolucion: 'No es necesario repetirlo.' });
+  }
+  if (accion === 'qa') {
+    if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
+  }
+  if (accion === 'plan') {
+    const ultima = enc.revisiones[enc.revisiones.length - 1];
+    if (enc.estado !== 'Completado') p.push({ texto: 'El diagnóstico no está completado (estado: ' + enc.estado + ').', resolucion: 'Pasar el control de calidad antes de planificar.' });
+    if (!ultima || ultima.resultado !== 'Validado') p.push({ texto: 'La última revisión de calidad no está validada.', resolucion: 'Corregir lo devuelto y volver a pasar control de calidad.' });
+    if (dgPlan(enc)) p.push({ texto: 'Ya existe un plan para este encargo.', resolucion: 'Abrir el plan y crear una versión nueva si hace falta cambiarlo.' });
+    if (!dgDisponibles(enc).length) p.push({ texto: 'No hay hallazgos sin bloqueo con los que construir acciones.', resolucion: 'Resolver los accesos bloqueados antes de planificar.' });
+    if (!enc.objetivos) p.push({ texto: 'Sin objetivos registrados: las acciones no podrían justificarse.', resolucion: 'Completar los objetivos en el paso C del onboarding.' });
+  }
+  return p;
+}
+
+function dgBloqueoHTML(titulo, problemas, id) {
+  return `<div class="v-error" role="alert"${id ? ' id="' + id + '"' : ''}>${tag('Acción no disponible', 'bad')}<strong>${escapeText(titulo)}</strong>
+  <ul class="v-error-list">${problemas.map(x => `<li><span>${escapeText(x.texto)}</span><span class="v-small v-muted">Cómo resolverlo: ${escapeText(x.resolucion)}</span></li>`).join('')}</ul></div>`;
+}
+
+// Devuelve true si la acción queda bloqueada: muestra el error y no cambia nada.
+function dgImpedir(enc, accion, titulo) {
+  const problemas = dgRequisitos(enc, accion);
+  if (!problemas.length) { dgAviso = null; return false; }
+  dgAviso = { encId: enc.id, accion, titulo, problemas };
+  dgAbrirCliente(enc);
+  announce(titulo + ' ' + problemas.length + ' requisito(s) sin cumplir: ' + problemas.map(x => x.texto).join(' ') );
+  return true;
+}
+
 /* ---------- Control de calidad ---------- */
 
 function dgRevisar(enc) {
