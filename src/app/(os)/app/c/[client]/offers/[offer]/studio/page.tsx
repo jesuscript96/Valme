@@ -47,6 +47,8 @@ export default async function StudioPage({
           ...(isConfigured("higgsfield") ? [] : missingEnv("higgsfield")),
         ]}
         packHref={`/api/os/${slug}/offers/${offerId}/pack`}
+        slug={slug}
+        offerId={offerId}
       />
     </>
   );

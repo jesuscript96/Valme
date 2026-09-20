@@ -39,7 +39,9 @@ export default async function LandingEditorPage({
           status: landing.status,
           formFields: landing.formFields,
           emailTemplate: landing.emailTemplate,
+          doc: landing.blocks,
         }}
+        slug={slug}
         offerName={offer?.name ?? ""}
         colors={kit.identity.colors}
       />

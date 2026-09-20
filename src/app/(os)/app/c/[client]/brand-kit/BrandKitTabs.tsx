@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { CircleAlert, CircleCheck, ExternalLink, Sparkles } from "lucide-react";
 import type { BrandKit, Sourced } from "@/os/repo/types";
-import { Badge, Button, Card, cx, EmptyState } from "@/os/ui/primitives";
+import { Badge, Card, cx, EmptyState } from "@/os/ui/primitives";
+import { ActionButton } from "@/os/ui/ActionButton";
+import { approveBrandKit } from "@/os/repo/mutations";
 
 const TABS = ["Identidad", "Voz", "Negocio", "Público", "Legal", "Assets"] as const;
 type Tab = (typeof TABS)[number];
@@ -85,7 +87,9 @@ function Swatch({ hex, name }: { hex: string | null; name: string }) {
   );
 }
 
-export function BrandKitTabs({ kit, canApprove }: { kit: BrandKit; canApprove: boolean }) {
+export function BrandKitTabs({
+  kit, canApprove, slug,
+}: { kit: BrandKit; canApprove: boolean; slug: string }) {
   const [tab, setTab] = useState<Tab>("Identidad");
   const o = kit.origins;
 
@@ -121,9 +125,14 @@ export function BrandKitTabs({ kit, canApprove }: { kit: BrandKit; canApprove: b
         </div>
 
         {canApprove ? (
-          <Button variant={kit.status === "approved" ? "secondary" : "primary"} disabled={kit.status === "approved"}>
+          <ActionButton
+            variant={kit.status === "approved" ? "secondary" : "primary"}
+            disabled={kit.status === "approved"}
+            pendingLabel="Aprobando…"
+            action={() => approveBrandKit(slug)}
+          >
             {kit.status === "approved" ? "Aprobado" : "Aprobar kit"}
-          </Button>
+          </ActionButton>
         ) : null}
       </div>
 

@@ -101,3 +101,23 @@ export function emptyDoc(offerName: string): LandingDoc {
     ],
   };
 }
+
+/** Resumen de una línea de un bloque, para la lista del editor y la vista previa. */
+export function blockSummary(b: Block): string {
+  switch (b.type) {
+    case "hero":     return b.headline;
+    case "benefits": return b.items.map((i) => i.title).join(" · ") || "(sin beneficios)";
+    case "how":      return b.steps.map((s) => s.title).join(" · ") || "(sin pasos)";
+    case "proof":    return [...b.stats.map((s) => `${s.value} ${s.label}`), ...b.quotes.map((q) => `"${q.quote}"`)]
+                              .join(" · ") || "(sin pruebas)";
+    case "faq":      return `${b.items.length} preguntas`;
+    case "form":     return b.subtitle || b.title;
+    case "footer":   return b.legalHtml.replace(/<[^>]+>/g, "") || "(sin texto legal)";
+  }
+}
+
+/** Lee un documento guardado. Devuelve null si no valida — el editor no pinta basura. */
+export function readDoc(raw: unknown): LandingDoc | null {
+  const r = LandingDoc.safeParse(raw);
+  return r.success ? r.data : null;
+}

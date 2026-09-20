@@ -2,6 +2,7 @@ import Link from "next/link";
 import { forClient } from "@/os/repo";
 import { Badge, Button, Card, EmptyState, PageHeader } from "@/os/ui/primitives";
 import { CTA_LABEL, fmtDate } from "@/os/ui/labels";
+import { NewOfferForm } from "./NewOfferForm";
 
 export const metadata = { title: "Ofertas · Valme OS" };
 
@@ -10,6 +11,10 @@ export default async function OffersPage({ params }: { params: Promise<{ client:
   const { client: slug } = await params;
   const scope = await forClient(slug);
   const [kit, offers] = await Promise.all([scope.brandKit(), scope.offers.list()]);
+  const personaOptions = kit.personas.map((p, index) => ({
+    index,
+    label: p.profile.length > 60 ? `${p.profile.slice(0, 60)}…` : p.profile,
+  }));
 
   if (kit.status !== "approved") {
     return (
@@ -33,14 +38,14 @@ export default async function OffersPage({ params }: { params: Promise<{ client:
       <PageHeader
         title="Ofertas"
         description="Un Brand Kit tiene varias ofertas. Cada una genera sus creatividades, su landing y su campaña — y así cada lead queda atado a su origen sin trabajo manual."
-        action={<Button variant="primary">Nueva oferta</Button>}
+        action={<NewOfferForm slug={slug} personas={personaOptions} />}
       />
 
       {offers.length === 0 ? (
         <EmptyState
           title="Sin ofertas todavía"
           body="Una oferta es qué se vende, a quién y con qué gancho. Es lo mínimo que necesita el generador para escribir algo que no sea genérico."
-          action={<Button variant="primary">Crear la primera</Button>}
+          action={<NewOfferForm slug={slug} personas={personaOptions} />}
         />
       ) : (
         <div className="grid gap-3">

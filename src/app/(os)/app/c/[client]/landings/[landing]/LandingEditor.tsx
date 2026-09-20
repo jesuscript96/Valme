@@ -3,51 +3,62 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Eye, EyeOff, Lock, Monitor, Smartphone } from "lucide-react";
 import type { FormField } from "@/os/repo/types";
-import { Badge, Button, Card, CardHeader, cx } from "@/os/ui/primitives";
-import { BLOCK_LABEL, canHide, emptyDoc, type BlockKind, type LandingDoc } from "@/os/domain/landingBlocks";
+import { Badge, Card, CardHeader, cx } from "@/os/ui/primitives";
+import { ActionButton } from "@/os/ui/ActionButton";
+import { publishLanding } from "@/os/repo/mutations";
+import {
+  BLOCK_LABEL, blockSummary, canHide, readDoc, type LandingDoc,
+} from "@/os/domain/landingBlocks";
+import { EmptyState } from "@/os/ui/primitives";
 
 type Tab = "bloques" | "correo";
 
-const SAMPLE: { id: string; kind: BlockKind; visible: boolean; preview: string }[] = [
-  { id: "b1", kind: "hero", visible: true, preview: "Recupera la mordida sin sorpresas en la factura" },
-  { id: "b2", kind: "benefits", visible: true, preview: "Escáner 3D · Plan por escrito · Financiación clara" },
-  { id: "b3", kind: "how", visible: true, preview: "3 pasos: visita, plan, tratamiento" },
-  { id: "b4", kind: "proof", visible: true, preview: "412 reseñas · 4,8 de media · 18 años en Ruzafa" },
-  { id: "b5", kind: "faq", visible: false, preview: "5 preguntas frecuentes" },
-  { id: "b6", kind: "form", visible: true, preview: "Nombre, email, teléfono, franja horaria" },
-  { id: "b7", kind: "footer", visible: true, preview: "Aviso legal y política de privacidad" },
-];
-
 export function LandingEditor({
-  landing, offerName, colors,
+  landing, offerName, colors, slug,
 }: {
+  slug: string;
   landing: {
     id: string; slug: string; status: string;
     formFields: FormField[];
     emailTemplate: { subject: string; intro: string; whatsNext: string; signature: string } | null;
+    doc: unknown;
   };
   offerName: string;
   colors: { primary: string | null; accent: string | null };
 }) {
   const [tab, setTab] = useState<Tab>("bloques");
   const [device, setDevice] = useState<"mobile" | "desktop">("mobile");
-  const [blocks, setBlocks] = useState(SAMPLE);
-  // El documento vive con el esquema real; el editor sólo puede producir formas válidas.
-  const [, setDoc] = useState<LandingDoc>(() => emptyDoc(offerName));
+  // El documento se valida contra el esquema al leerlo: el editor nunca pinta algo que
+  // el renderizador no sepa servir.
+  const [doc, setDoc] = useState<LandingDoc | null>(() => readDoc(landing.doc));
 
   function move(i: number, dir: -1 | 1) {
+    if (!doc) return;
     const j = i + dir;
-    if (j < 0 || j >= blocks.length) return;
-    const next = [...blocks];
+    if (j < 0 || j >= doc.blocks.length) return;
+    const next = [...doc.blocks];
     [next[i], next[j]] = [next[j], next[i]];
-    setBlocks(next);
-    setDoc((d) => d);
+    setDoc({ blocks: next });
   }
 
   function toggle(i: number) {
-    if (!canHide(blocks[i].kind)) return;
-    setBlocks(blocks.map((b, k) => (k === i ? { ...b, visible: !b.visible } : b)));
+    if (!doc || !canHide(doc.blocks[i].block.type)) return;
+    setDoc({
+      blocks: doc.blocks.map((b, k) => (k === i ? { ...b, visible: !b.visible } : b)),
+    });
   }
+
+  if (!doc) {
+    return (
+      <EmptyState
+        title="Esta landing todavía no se ha generado"
+        body="Se genera desde la oferta: el LLM rellena los textos con el Brand Kit y la oferta, y los colores, tipografías y logo salen del kit en tiempo de render."
+      />
+    );
+  }
+
+  const heroEntry = doc.blocks.find((b) => b.block.type === "hero");
+  const hero = heroEntry?.block.type === "hero" ? heroEntry.block : null;
 
   return (
     <div className="space-y-4">
@@ -70,7 +81,14 @@ export function LandingEditor({
           <Badge tone={landing.status === "published" ? "ok" : "neutral"}>
             {landing.status === "published" ? "Publicada" : "Borrador"}
           </Badge>
-          <Button variant="primary" size="sm">Publicar</Button>
+          <ActionButton
+            variant="primary"
+            size="sm"
+            pendingLabel="Publicando…"
+            action={() => publishLanding(slug, landing.id)}
+          >
+            Publicar
+          </ActionButton>
         </div>
       </div>
 
@@ -79,12 +97,12 @@ export function LandingEditor({
           <Card>
             <CardHeader title="Bloques" />
             <ul>
-              {blocks.map((b, i) => (
+              {doc.blocks.map(({ id, visible, block }, i) => (
                 <li
-                  key={b.id}
+                  key={id}
                   className={cx(
                     "flex items-center gap-3 border-b border-os-border px-3 py-2.5 last:border-0",
-                    !b.visible && "opacity-45",
+                    !visible && "opacity-45",
                   )}
                 >
                   <span className="flex flex-col">
@@ -98,7 +116,7 @@ export function LandingEditor({
                     </button>
                     <button
                       onClick={() => move(i, 1)}
-                      disabled={i === blocks.length - 1}
+                      disabled={i === doc.blocks.length - 1}
                       aria-label="Bajar"
                       className="text-os-faint hover:text-os-text disabled:opacity-25"
                     >
@@ -107,17 +125,17 @@ export function LandingEditor({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[13px] font-medium text-os-text">
-                      {BLOCK_LABEL[b.kind]}
+                      {BLOCK_LABEL[block.type]}
                     </span>
-                    <span className="block truncate text-[12px] text-os-muted">{b.preview}</span>
+                    <span className="block truncate text-[12px] text-os-muted">{blockSummary(block)}</span>
                   </span>
-                  {canHide(b.kind) ? (
+                  {canHide(block.type) ? (
                     <button
                       onClick={() => toggle(i)}
-                      aria-label={b.visible ? "Ocultar" : "Mostrar"}
+                      aria-label={visible ? "Ocultar" : "Mostrar"}
                       className="text-os-faint hover:text-os-text"
                     >
-                      {b.visible ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
+                      {visible ? <Eye className="size-4" aria-hidden /> : <EyeOff className="size-4" aria-hidden />}
                     </button>
                   ) : (
                     <span title="El formulario y el pie legal no se pueden ocultar: sin ellos no hay lead ni RGPD.">
@@ -164,23 +182,25 @@ export function LandingEditor({
               >
                 <div className="px-4 py-6" style={{ background: colors.primary ?? "#111" }}>
                   <p className="text-[15px] font-semibold leading-snug text-white">
-                    {blocks.find((b) => b.kind === "hero")?.preview}
+                    {hero?.headline ?? offerName}
                   </p>
                   <span
                     className="mt-3 inline-block rounded px-3 py-1.5 text-[12px] font-medium text-white"
                     style={{ background: colors.accent ?? "#ff3b21" }}
                   >
-                    Pedir cita
+                    {hero?.ctaLabel ?? "Enviar"}
                   </span>
                 </div>
-                {blocks
-                  .filter((b) => b.visible && b.kind !== "hero")
-                  .map((b) => (
-                    <div key={b.id} className="border-t border-os-border px-4 py-3">
+                {doc.blocks
+                  .filter((b) => b.visible && b.block.type !== "hero")
+                  .map(({ id, block }) => (
+                    <div key={id} className="border-t border-os-border px-4 py-3">
                       <p className="text-[10px] uppercase tracking-wide text-os-faint">
-                        {BLOCK_LABEL[b.kind]}
+                        {BLOCK_LABEL[block.type]}
                       </p>
-                      <p className="mt-0.5 text-[12px] leading-relaxed text-os-text">{b.preview}</p>
+                      <p className="mt-0.5 text-[12px] leading-relaxed text-os-text">
+                        {blockSummary(block)}
+                      </p>
                     </div>
                   ))}
               </div>

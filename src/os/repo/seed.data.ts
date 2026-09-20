@@ -103,13 +103,39 @@ export const brandKits: BrandKit[] = [
     approvedAt: d(22), approvedBy: "u_juan",
   },
   {
-    id: "bk_boix", clientId: "c_boix", status: "extracting", version: 1,
-    identity: { logoLightPath: null, logoDarkPath: null, colors: { primary: null, secondary: null, accent: null, background: null, textPrimary: null }, fonts: { heading: null, body: null }, colorScheme: null, borderRadius: null, photoStyle: null, imageModel: null },
-    voice: { tone: [], address: null, wordsToUse: [], wordsToAvoid: [], sampleCopy: [] },
-    business: { valueProposition: null, services: [], differentiators: [], proof: [], geo: null },
-    personas: [],
+    // Recién extraído y sin revisar: es el estado donde se ve para qué sirve el
+    // marcado de procedencia — todo "sugerido" hasta que una persona lo mira.
+    id: "bk_boix", clientId: "c_boix", status: "extracted", version: 1,
+    identity: {
+      logoLightPath: "seed/boix-logo.svg", logoDarkPath: null,
+      colors: { primary: "#2E4034", secondary: "#C8B79A", accent: "#8A5B2E", background: "#FBF9F5", textPrimary: "#22251F" },
+      fonts: { heading: "Playfair Display", body: "Inter" },
+      colorScheme: "light", borderRadius: "2px",
+      photoStyle: null, imageModel: null,
+    },
+    voice: {
+      tone: ["cálido", "sobrio", "familiar"], address: "usted",
+      wordsToUse: ["de temporada", "casa", "mercado"],
+      wordsToAvoid: ["fusión", "experiencia gastronómica"],
+      sampleCopy: [],
+    },
+    business: {
+      valueProposition: { value: "Cocina de mercado en un comedor de toda la vida, con menú diario y carta corta.", sourceUrl: "https://casaboix.es/" },
+      services: [{ value: "Menú diario", sourceUrl: "https://casaboix.es/" }],
+      differentiators: [],
+      proof: [],
+      geo: null,
+    },
+    personas: [
+      { profile: "Oficinista de la zona que come fuera entre semana", pains: ["Poco tiempo", "Cansancio del menú de siempre"], desires: ["Comer bien sin gastar de más"], objections: ["¿Habrá sitio sin reservar?"] },
+    ],
     legal: { privacyUrl: null, controller: null, consentText: null, capiLegalBasis: "consent" },
-    origins: {},
+    origins: {
+      "identity.colors": "suggested", "identity.fonts": "suggested",
+      "identity.photoStyle": "empty", "voice.tone": "suggested",
+      "business.valueProposition": "suggested", "business.proof": "empty",
+      "personas": "suggested", "legal.consentText": "empty",
+    },
     approvedAt: null, approvedBy: null,
   },
 ];
@@ -164,7 +190,64 @@ export const campaigns: Campaign[] = [
 export const landings: Landing[] = [
   {
     id: "ld_nordic", clientId: "c_nordic", offerId: "of_nordic_implante", slug: "primera-visita",
-    blocks: null, publishedBlocks: null,
+    blocks: {
+      blocks: [
+        { id: "b1", visible: true, block: { type: "hero", headline: "Recupera la mordida sin sorpresas en la factura", subheadline: "Primera visita con escáner 3D y plan de tratamiento por escrito. Sin compromiso.", ctaLabel: "Pedir cita", imageAssetId: null } },
+        { id: "b2", visible: true, block: { type: "benefits", title: "Qué incluye la primera visita", items: [
+          { title: "Escáner 3D", body: "Vemos el hueso y la posición real antes de proponer nada." },
+          { title: "Plan por escrito", body: "Qué se hace, en cuántas visitas y cuánto cuesta. Todo, antes de empezar." },
+          { title: "Financiación clara", body: "Si hace falta, con las condiciones delante desde el primer día." },
+        ] } },
+        { id: "b3", visible: true, block: { type: "how", title: "Cómo funciona", steps: [
+          { title: "1. Te escuchamos", body: "Qué te molesta y desde cuándo." },
+          { title: "2. Escaneamos", body: "Quince minutos, sin dolor." },
+          { title: "3. Te damos el plan", body: "Por escrito, y decides tú." },
+        ] } },
+        { id: "b4", visible: true, block: { type: "proof", title: "Por qué se fían", quotes: [
+          { quote: "Me dijeron el precio final en la primera visita y fue exactamente ese.", author: "Reseña en Google" },
+        ], stats: [
+          { value: "412", label: "reseñas en Google" },
+          { value: "4,8", label: "de media" },
+          { value: "18 años", label: "en Ruzafa" },
+        ] } },
+        { id: "b5", visible: false, block: { type: "faq", title: "Dudas frecuentes", items: [
+          { q: "¿La primera visita cuesta algo?", a: "No. Ni la visita ni el escáner." },
+          { q: "¿Cuánto tarda un implante?", a: "Depende del caso; te lo decimos en el plan." },
+          { q: "¿Puedo financiarlo?", a: "Sí, y verás las condiciones antes de firmar." },
+        ] } },
+        { id: "b6", visible: true, block: { type: "form", title: "Pide tu primera visita", subtitle: "Te llamamos en menos de 24 h laborables.", submitLabel: "Pedir cita" } },
+        { id: "b7", visible: true, block: { type: "footer", legalHtml: "Nordic Clinic Valencia S.L. · Aviso legal y política de privacidad" } },
+      ],
+    },
+    publishedBlocks: {
+      blocks: [
+        { id: "b1", visible: true, block: { type: "hero", headline: "Recupera la mordida sin sorpresas en la factura", subheadline: "Primera visita con escáner 3D y plan de tratamiento por escrito. Sin compromiso.", ctaLabel: "Pedir cita", imageAssetId: null } },
+        { id: "b2", visible: true, block: { type: "benefits", title: "Qué incluye la primera visita", items: [
+          { title: "Escáner 3D", body: "Vemos el hueso y la posición real antes de proponer nada." },
+          { title: "Plan por escrito", body: "Qué se hace, en cuántas visitas y cuánto cuesta. Todo, antes de empezar." },
+          { title: "Financiación clara", body: "Si hace falta, con las condiciones delante desde el primer día." },
+        ] } },
+        { id: "b3", visible: true, block: { type: "how", title: "Cómo funciona", steps: [
+          { title: "1. Te escuchamos", body: "Qué te molesta y desde cuándo." },
+          { title: "2. Escaneamos", body: "Quince minutos, sin dolor." },
+          { title: "3. Te damos el plan", body: "Por escrito, y decides tú." },
+        ] } },
+        { id: "b4", visible: true, block: { type: "proof", title: "Por qué se fían", quotes: [
+          { quote: "Me dijeron el precio final en la primera visita y fue exactamente ese.", author: "Reseña en Google" },
+        ], stats: [
+          { value: "412", label: "reseñas en Google" },
+          { value: "4,8", label: "de media" },
+          { value: "18 años", label: "en Ruzafa" },
+        ] } },
+        { id: "b5", visible: false, block: { type: "faq", title: "Dudas frecuentes", items: [
+          { q: "¿La primera visita cuesta algo?", a: "No. Ni la visita ni el escáner." },
+          { q: "¿Cuánto tarda un implante?", a: "Depende del caso; te lo decimos en el plan." },
+          { q: "¿Puedo financiarlo?", a: "Sí, y verás las condiciones antes de firmar." },
+        ] } },
+        { id: "b6", visible: true, block: { type: "form", title: "Pide tu primera visita", subtitle: "Te llamamos en menos de 24 h laborables.", submitLabel: "Pedir cita" } },
+        { id: "b7", visible: true, block: { type: "footer", legalHtml: "Nordic Clinic Valencia S.L. · Aviso legal y política de privacidad" } },
+      ],
+    },
     formFields: [
       { key: "name", label: "Nombre", type: "text", required: true },
       { key: "email", label: "Email", type: "email", required: true },
@@ -176,7 +259,29 @@ export const landings: Landing[] = [
   },
   {
     id: "ld_rivas", clientId: "c_rivas", offerId: "of_rivas_previt", slug: "pre-itv",
-    blocks: null, publishedBlocks: null,
+    blocks: {
+      blocks: [
+        { id: "b1", visible: true, block: { type: "hero", headline: "Pasa la ITV a la primera, por 39 €", subheadline: "Revisión de 25 puntos con presupuesto cerrado. Te enseñamos lo que falla antes de tocarlo.", ctaLabel: "Pedir hora", imageAssetId: null } },
+        { id: "b2", visible: true, block: { type: "benefits", title: "Qué revisamos", items: [
+          { title: "Frenos y suspensión", body: "Los dos motivos de rechazo más habituales." },
+          { title: "Luces y emisiones", body: "Medidas con el equipo, no a ojo." },
+          { title: "Presupuesto cerrado", body: "Si hay que arreglar algo, el precio es el que te decimos." },
+        ] } },
+        { id: "b3", visible: true, block: { type: "how", title: "Cómo va", steps: [
+          { title: "1. Traes el coche", body: "Sin cita previa si vienes por la mañana." },
+          { title: "2. Te llamamos", body: "Con lo que hemos visto y lo que cuesta." },
+        ] } },
+        { id: "b4", visible: false, block: { type: "proof", title: "Prueba social", quotes: [], stats: [] } },
+        { id: "b5", visible: false, block: { type: "faq", title: "Dudas", items: [
+          { q: "¿Lleváis el coche a la ITV?", a: "Si lo necesitas, sí." },
+          { q: "¿Y si no pasa?", a: "Te decimos por qué antes de ir." },
+          { q: "¿Coche de sustitución?", a: "Incluido si el arreglo pasa del día." },
+        ] } },
+        { id: "b6", visible: true, block: { type: "form", title: "Pide hora", subtitle: "Te llamamos hoy mismo.", submitLabel: "Pedir hora" } },
+        { id: "b7", visible: true, block: { type: "footer", legalHtml: "Talleres Rivas S.L. · Aviso legal y política de privacidad" } },
+      ],
+    },
+    publishedBlocks: null,
     formFields: [
       { key: "name", label: "Nombre", type: "text", required: true },
       { key: "phone", label: "Teléfono", type: "tel", required: true },

@@ -23,7 +23,7 @@ export default async function BrandKitPage({ params }: { params: Promise<{ clien
           </span>
         }
       />
-      <BrandKitTabs kit={kit} canApprove={scope.role !== "operator"} />
+      <BrandKitTabs kit={kit} canApprove={scope.role !== "operator"} slug={slug} />
     </>
   );
 }

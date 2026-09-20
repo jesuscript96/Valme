@@ -6,6 +6,8 @@ import type { AdCreative } from "@/os/repo/types";
 import { Badge, Button, Card, cx, EmptyState } from "@/os/ui/primitives";
 import { ANGLE_LABEL, CTA_LABEL, CreativeStatusBadge } from "@/os/ui/labels";
 import { checkCopy, FIELD_LABEL, type LengthCheck } from "@/os/domain/metaCopy";
+import { ActionButton } from "@/os/ui/ActionButton";
+import { generateCreatives, setCreativeStatus } from "@/os/repo/mutations";
 
 /** Contador con el corte visible marcado. Avisa, nunca bloquea. */
 function Counter({ c }: { c: LengthCheck }) {
@@ -70,13 +72,15 @@ function FeedPreview({ c, brandName }: { c: AdCreative; brandName: string }) {
 }
 
 export function StudioBoard({
-  creatives, brandName, imageModel, missingKeys, packHref,
+  creatives, brandName, imageModel, missingKeys, packHref, slug, offerId,
 }: {
   creatives: AdCreative[];
   brandName: string;
   imageModel: string | null;
   missingKeys: string[];
   packHref: string;
+  slug: string;
+  offerId: string;
 }) {
   const [angleFilter, setAngleFilter] = useState<string>("all");
   const angles = [...new Set(creatives.map((c) => c.angle))];
@@ -87,7 +91,21 @@ export function StudioBoard({
       <EmptyState
         title="Sin anuncios generados"
         body="Por defecto 3 ángulos × 2 variantes. Cada ángulo es una llamada independiente: regenerar uno no tira los otros."
-        action={<Button variant="primary" disabled={missingKeys.length > 0}>Generar 6 anuncios</Button>}
+        action={
+          <ActionButton
+            variant="primary"
+            disabled={missingKeys.length > 0}
+            pendingLabel="Generando…"
+            action={() =>
+              generateCreatives(slug, offerId, {
+                angles: ["pain", "benefit", "social_proof"],
+                variants: 2,
+              })
+            }
+          >
+            Generar 6 anuncios
+          </ActionButton>
+        }
       />
     );
   }
@@ -173,9 +191,28 @@ export function StudioBoard({
                 <Button size="sm" variant="ghost" disabled={missingKeys.length > 0}>
                   <RefreshCw className="size-3.5" aria-hidden /> Regenerar
                 </Button>
-                {c.status !== "approved" ? (
-                  <Button size="sm" variant="primary" className="ml-auto">Aprobar</Button>
-                ) : null}
+                <span className="ml-auto flex gap-1.5">
+                  {c.status !== "discarded" ? (
+                    <ActionButton
+                      size="sm"
+                      variant="ghost"
+                      confirm="¿Descartar este anuncio?"
+                      action={() => setCreativeStatus(slug, c.id, "discarded")}
+                    >
+                      Descartar
+                    </ActionButton>
+                  ) : null}
+                  {c.status !== "approved" ? (
+                    <ActionButton
+                      size="sm"
+                      variant="primary"
+                      pendingLabel="…"
+                      action={() => setCreativeStatus(slug, c.id, "approved")}
+                    >
+                      Aprobar
+                    </ActionButton>
+                  ) : null}
+                </span>
               </div>
             </Card>
           );

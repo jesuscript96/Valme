@@ -164,3 +164,20 @@ test("beneficios exige entre 3 y 6 elementos", () => {
   assert.equal(LandingDoc.safeParse(mk(3)).success, true);
   assert.equal(LandingDoc.safeParse(mk(7)).success, false);
 });
+
+// --- Lectura del documento de landing --------------------------------------
+
+test("readDoc devuelve null ante un documento inválido en vez de romper el editor", async () => {
+  const { readDoc } = await import("../landingBlocks");
+  assert.equal(readDoc(null), null);
+  assert.equal(readDoc({ blocks: [{ id: "x", visible: true, block: { type: "nope" } }] }), null);
+});
+
+test("el resumen de un bloque sin contenido lo dice, no se queda en blanco", async () => {
+  const { blockSummary } = await import("../landingBlocks");
+  assert.equal(blockSummary({ type: "proof", title: "t", quotes: [], stats: [] }), "(sin pruebas)");
+  assert.equal(
+    blockSummary({ type: "proof", title: "t", quotes: [], stats: [{ value: "412", label: "reseñas" }] }),
+    "412 reseñas",
+  );
+});
