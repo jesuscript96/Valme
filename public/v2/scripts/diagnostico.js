@@ -168,7 +168,7 @@ function dgRequisitos(enc, accion) {
     if (sin.length) p.push({ texto: 'Accesos sin estado registrado: ' + sin.map(x => x.label || x.id).join(', ') + '.', resolucion: 'Marcar cada acceso como validado, pendiente o no aplica en el paso E. Nunca se piden contraseñas.' });
   }
   if (accion === 'send') {
-    if (enc.estado !== 'En curso') p.push({ texto: 'El encargo no está «En curso» (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico antes de enviarlo a control de calidad.' });
+    if (!dgEnCurso(enc)) p.push({ texto: 'El encargo no tiene trabajo en curso (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico, o conseguir al menos un acceso validado para que quede trabajo ejecutable.' });
     if (!dgDisponibles(enc).length) p.push({ texto: 'No hay ningún hallazgo sin bloqueo: la respuesta sería vacía.', resolucion: 'Conseguir al menos un acceso validado para poder revisar algo con evidencia.' });
     const inc = dgHallazgosIncompletos(enc);
     if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
