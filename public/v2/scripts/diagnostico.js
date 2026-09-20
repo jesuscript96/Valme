@@ -663,13 +663,23 @@ root.addEventListener('change', e => {
     const vuelven = enc.hallazgos.filter(h => h.dep === id).map(h => h.titulo);
     if (vuelven.length) enc.historial.push('18 sep 2026 · Trabajo de nuevo bloqueado en: ' + vuelven.join(' · ') + '. Requiere resolver el acceso.');
     enc.limitacionesDeclaradas = false;
-    if (enc.estado === 'En curso' || enc.estado === 'En revisión' || enc.estado === 'Completado') {
-      enc.estado = 'Bloqueado';
-      enc.historial.push('18 sep 2026 · Encargo «Bloqueado»: un acceso necesario ha dejado de estar validado.');
+    const ejecutable = dgDisponibles(enc).length;
+    if (enc.estado === 'En curso' || enc.estado === 'En revisión' || enc.estado === 'Completado' || enc.estado === 'Bloqueado') {
+      enc.estado = ejecutable ? 'En curso' : 'Bloqueado';
+      enc.historial.push(ejecutable
+        ? '18 sep 2026 · Encargo «En curso» con alcance reducido: se detiene solo lo que dependía de ' + dgAccesoNombre(id) + '; hay que declarar las limitaciones antes de enviarlo a calidad.'
+        : '18 sep 2026 · Encargo «Bloqueado»: sin ese acceso no queda ningún hallazgo ejecutable.');
     }
   }
   if (!quedan.length) enc.limitacionesDeclaradas = false;
-  enc.coberturaDeclarada = dgServiciosSinCobertura(enc).length ? enc.coberturaDeclarada : false;
+  const sinCobAhora = dgServiciosSinCobertura(enc);
+  if (!sinCobAhora.length) {
+    enc.coberturaDeclarada = false;
+    enc.serviciosSinCobertura = [];
+  } else if (enc.coberturaDeclarada && !sinCobAhora.every(s => (enc.serviciosSinCobertura || []).indexOf(s) !== -1)) {
+    enc.coberturaDeclarada = false;
+    enc.historial.push('18 sep 2026 · La declaración de cobertura queda sin efecto: ahora falta cobertura en ' + sinCobAhora.join(', ') + '. Hay que declararlo de nuevo antes de enviar a calidad.');
+  }
   dgSincronizarCliente(enc);
   dgGuardar();
   dgAbrirCliente(enc, 'Accesos');
