@@ -20,6 +20,11 @@ Entrega 2 (hecha)
 - [x] Contadores del centro de mando calculados sobre la cartera real de la demostración.
 - [x] Persistencia local del recorrido: al recargar se conserva todo.
 
+Entrega 3 (hecha) — consolidación del flujo
+- [x] Actualizar accesos después de activar el onboarding, con registro del cambio y reanudación del trabajo afectado.
+- [x] Control de calidad verifica cobertura por servicio contratado; las partes sin cobertura deben declararse expresamente.
+- [x] Aviso visible cuando el navegador no consigue guardar el recorrido; el error ya no se silencia.
+
 Pendiente (siguientes entregas)
 - [ ] Captación y contratación: embudo de oportunidades y conversión de "ganado" en un único onboarding.
 - [ ] Ciclo de ejecución por agentes con límites de reintento y escalado.
