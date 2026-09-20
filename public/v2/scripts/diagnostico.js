@@ -310,7 +310,8 @@ function dgRestaurar() {
 
 function dgFichaHallazgo(enc, h) {
   const bloq = dgBloqueado(enc, h);
-  return `<div class="v-row"><div><div class="v-flex">${tag(bloq ? 'Bloqueado por acceso' : 'Hallazgo registrado', bloq ? 'bad' : 'dark')}${tag('Prioridad ' + h.prioridad, h.prioridad === 'Alta' ? 'warn' : 'dark')}<span class="v-mono v-muted">${h.evidencia}</span></div>
+  const incompleto = !h.evidencia || !h.fuente || !h.fecha;
+  return `<div class="v-row${incompleto ? ' v-row-error' : ''}"><div><div class="v-flex">${tag(bloq ? 'Bloqueado por acceso' : incompleto ? 'Evidencia incompleta' : 'Hallazgo registrado', bloq ? 'bad' : incompleto ? 'warn' : 'dark')}${tag('Prioridad ' + h.prioridad, h.prioridad === 'Alta' ? 'warn' : 'dark')}<span class="v-mono v-muted">${h.evidencia || 'SIN REFERENCIA'}</span></div>
   <strong>${escapeText(h.titulo)}</strong>
   <dl class="v-kv"><div><dt>FUENTE DE EJEMPLO</dt><dd>${escapeText(h.fuente)}</dd></div><div><dt>FECHA</dt><dd>${h.fecha}</dd></div><div><dt>IMPACTO ESTIMADO</dt><dd>${escapeText(h.impacto)}</dd></div><div><dt>LIMITACIONES</dt><dd>${escapeText(h.limitaciones)}</dd></div></dl>
   ${bloq ? `<p class="v-small">Trabajo detenido solo en este hallazgo. Cómo resolverlo: solicitar ${dgAccesoNombre(h.dep)} con el permiso mínimo previsto y marcarlo como validado en el paso E del onboarding. Sin ese acceso no se mide nada ni se inventan cifras.</p>` : ''}</div></div>`;
@@ -351,7 +352,9 @@ function dgPanelEstado(enc) {
   <div><dt>CREADO</dt><dd>${enc.creado}</dd></div></dl>
   <p class="v-small v-muted">Estados posibles: ${DG_ESTADOS.join(' · ')}. El encargo es único por cliente: repetir la activación no lo duplica.</p>
   ${ultima ? `<div class="v-notice"><strong>Revisión ${ultima.n}: ${ultima.resultado}</strong><p class="v-small">${escapeText(ultima.comentario)}</p></div>` : ''}
-  ${acciones.length ? `<div class="v-flex" style="margin-top:16px">${acciones.join('')}</div>` : ''}</div>`;
+  ${aviso}
+  ${acciones.length ? `<div class="v-flex" style="margin-top:16px">${acciones.join('')}</div>` : ''}
+  ${impedimentos.join('')}</div>`;
 }
 
 function tabDiagnostico(c, reg) {
