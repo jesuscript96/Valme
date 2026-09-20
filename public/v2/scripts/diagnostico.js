@@ -298,7 +298,13 @@ function dgGuardar() {
       v: 1, onbRegistros, onbSeq, encargos, encSeq,
       clientes: clients.map(c => ({ id: c.id, name: c.name, state: c.state, service: c.service, progress: c.progress, pod: c.pod }))
     }));
-  } catch (err) { /* almacenamiento no disponible: la demo sigue en memoria */ }
+    dgAlmacenError = null;
+  } catch (err) {
+    // El almacenamiento del navegador ha fallado: se avisa, no se silencia.
+    dgAlmacenError = (err && err.name === 'QuotaExceededError')
+      ? 'El navegador no tiene espacio libre para guardar el recorrido de la demostración.'
+      : 'El navegador ha rechazado guardar los datos de este sitio' + (err && err.message ? ' (' + err.message + ')' : '') + '.';
+  }
 }
 
 function dgRestaurar() {
@@ -339,7 +345,8 @@ function dgPanelEstado(enc) {
   const posibles = [];
   if (enc.estado === 'Pendiente') posibles.push({ attr: 'data-dg-start', label: 'Iniciar diagnóstico', accion: 'start', primary: true });
   if (enc.estado === 'En curso') posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
-  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
+  const sinCobertura = dgServiciosSinCobertura(enc);
+  if (enc.estado === 'En curso' && ((bloqueos.length && !enc.limitacionesDeclaradas) || (sinCobertura.length && !enc.coberturaDeclarada))) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
   if (enc.estado === 'En revisión') posibles.push({ attr: 'data-dg-qa', label: 'Ejecutar revisión de calidad (simulada)', accion: 'qa', primary: true });
   if (enc.estado === 'Completado' && !plan) posibles.push({ attr: 'data-dg-plan', label: 'Generar plan de trabajo', accion: 'plan', primary: true });
   const acciones = [];
