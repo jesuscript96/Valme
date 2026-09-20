@@ -492,6 +492,7 @@ root.addEventListener('click', e => {
   }
   if (d.dgStart) {
     enc = encargos.find(x => x.id === d.dgStart);
+    if (!enc || dgImpedir(enc, 'start', 'No se puede iniciar el diagnóstico.')) return;
     enc.estado = 'En curso';
     enc.historial.push('18 sep 2026 · Diagnóstico iniciado por los agentes asignados (simulado).');
     const bl = dgBloqueos(enc);
@@ -500,24 +501,27 @@ root.addEventListener('click', e => {
     announce('Diagnóstico en curso.' + (bl.length ? ' Hay trabajo bloqueado por accesos sin validar.' : ''));
   } else if (d.dgDeclare) {
     enc = encargos.find(x => x.id === d.dgDeclare);
+    if (!enc || dgImpedir(enc, 'declare', 'No hay nada que declarar.')) return;
     enc.limitacionesDeclaradas = true;
     enc.historial.push('18 sep 2026 · Datos ausentes y limitaciones declarados por el equipo.');
     dgGuardar(); dgAbrirCliente(enc);
     announce('Limitaciones declaradas. No se sustituyen por estimaciones.');
   } else if (d.dgSend) {
     enc = encargos.find(x => x.id === d.dgSend);
+    if (!enc || dgImpedir(enc, 'send', 'El diagnóstico está incompleto: no se envía a control de calidad.')) return;
     enc.estado = 'En revisión';
     enc.historial.push('18 sep 2026 · Diagnóstico enviado a control de calidad.');
     dgSincronizarCliente(enc); dgGuardar(); dgAbrirCliente(enc);
     announce('Diagnóstico en revisión de calidad.');
   } else if (d.dgQa) {
     enc = encargos.find(x => x.id === d.dgQa);
+    if (!enc || dgImpedir(enc, 'qa', 'No se puede ejecutar la revisión de calidad.')) return;
     const rev = dgRevisar(enc);
     dgGuardar(); dgAbrirCliente(enc);
-    announce('Revisión de calidad: ' + rev.resultado + '.');
+    announce('Revisión de calidad: ' + rev.resultado + '.' + (rev.resultado === 'Validado' ? '' : ' El diagnóstico vuelve a «En curso» con las correcciones pendientes.'));
   } else if (d.dgPlan) {
     enc = encargos.find(x => x.id === d.dgPlan);
-    if (enc.estado !== 'Completado' || dgPlan(enc)) return;
+    if (!enc || dgImpedir(enc, 'plan', 'No se puede generar el plan de trabajo.')) return;
     dgCrearPlan(enc, 'Generado desde el diagnóstico validado el 18 sep 2026.');
     dgGuardar();
     onbRender(planReview(enc));
@@ -531,11 +535,19 @@ root.addEventListener('click', e => {
     if (!enc) return;
     const campo = root.querySelector('#v-plan-comment');
     const texto = campo ? campo.value.trim() : '';
-    if (d.planDecision !== 'approve' && !texto) {
-      announce('Escribe el comentario o el motivo antes de solicitar cambios o rechazar el plan.');
-      if (campo) campo.focus();
+    const problemas = [];
+    if (d.planDecision !== 'approve' && !texto) problemas.push({ texto: 'Falta el comentario o el motivo de la decisión.', resolucion: 'Escribir qué debe cambiar o por qué se rechaza, con detalle suficiente para trabajar.' });
+    else if (d.planDecision !== 'approve' && texto.length < 12) problemas.push({ texto: 'El motivo es demasiado breve (' + texto.length + ' caracteres) y no sirve como instrucción.', resolucion: 'Ampliar a 12 caracteres como mínimo, indicando qué acción del plan está afectada.' });
+    if (texto.length > 500) problemas.push({ texto: 'El comentario supera los 500 caracteres permitidos.', resolucion: 'Resumir la decisión; los detalles largos van en el historial del encargo.' });
+    if (problemas.length) {
+      dgAvisoPlan = { encId: enc.id, problemas };
+      onbRender(planReview(enc));
+      const nuevo = root.querySelector('#v-plan-comment');
+      if (nuevo) nuevo.focus();
+      announce('Decisión no registrada: ' + problemas.map(x => x.texto).join(' '));
       return;
     }
+    dgAvisoPlan = null;
     dgDecidirPlan(enc, d.planDecision, texto);
     dgGuardar();
     onbRender(planReview(enc));
