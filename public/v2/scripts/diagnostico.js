@@ -133,6 +133,20 @@ function dgServiciosSinCobertura(enc) {
   }));
 }
 
+// La declaración de cobertura solo vale para los servicios que se declararon.
+// Si hoy falta cobertura en otro servicio, la declaración anterior no sirve.
+function dgCoberturaDeclarada(enc) {
+  const sin = dgServiciosSinCobertura(enc);
+  if (!sin.length) return true;
+  const dec = enc.serviciosSinCobertura || [];
+  return !!enc.coberturaDeclarada && sin.every(s => dec.indexOf(s) !== -1);
+}
+
+// Hay trabajo ejecutable: un acceso revocado bloquea solo lo que depende de él.
+function dgEnCurso(enc) {
+  return enc.estado === 'En curso' || (enc.estado === 'Bloqueado' && dgDisponibles(enc).length > 0);
+}
+
 function dgHallazgosIncompletos(enc) {
   return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
 }
@@ -154,19 +168,19 @@ function dgRequisitos(enc, accion) {
     if (sin.length) p.push({ texto: 'Accesos sin estado registrado: ' + sin.map(x => x.label || x.id).join(', ') + '.', resolucion: 'Marcar cada acceso como validado, pendiente o no aplica en el paso E. Nunca se piden contraseñas.' });
   }
   if (accion === 'send') {
-    if (enc.estado !== 'En curso') p.push({ texto: 'El encargo no está «En curso» (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico antes de enviarlo a control de calidad.' });
+    if (!dgEnCurso(enc)) p.push({ texto: 'El encargo no tiene trabajo en curso (estado actual: ' + enc.estado + ').', resolucion: 'Iniciar el diagnóstico, o conseguir al menos un acceso validado para que quede trabajo ejecutable.' });
     if (!dgDisponibles(enc).length) p.push({ texto: 'No hay ningún hallazgo sin bloqueo: la respuesta sería vacía.', resolucion: 'Conseguir al menos un acceso validado para poder revisar algo con evidencia.' });
     const inc = dgHallazgosIncompletos(enc);
     if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
     if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
     const sinCob = dgServiciosSinCobertura(enc);
-    if (sinCob.length && !enc.coberturaDeclarada) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.', resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Tres hallazgos no cubren un servicio contratado.' });
+    if (sinCob.length && !dgCoberturaDeclarada(enc)) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.' + (enc.coberturaDeclarada ? ' La declaración anterior cubría: ' + (enc.serviciosSinCobertura || []).join(', ') + '.' : ''), resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Una declaración anterior sobre otro servicio no sirve para este.' });
     if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
   }
   if (accion === 'declare') {
     const sinCob = dgServiciosSinCobertura(enc);
     if (!bloqueos.length && !sinCob.length) p.push({ texto: 'No hay datos ausentes ni servicios sin cobertura que declarar.', resolucion: 'Todos los accesos necesarios están validados y cada servicio contratado tiene hallazgos con evidencia.' });
-    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && (!sinCob.length || enc.coberturaDeclarada)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
+    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && dgCoberturaDeclarada(enc)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
   }
   if (accion === 'qa') {
     if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
@@ -203,7 +217,7 @@ function dgRevisar(enc) {
   const reg = dgReg(enc);
   const servicios = enc.servicios.length ? enc.servicios : ['SEO'];
   const comprobaciones = [
-    { id: 'alcance', label: DG_QA_PASOS[0].label + ' (uno por servicio contratado)', ok: dgServiciosSinCobertura(enc).length === 0 || enc.coberturaDeclarada, detalle: dgServiciosSinCobertura(enc).length ? 'Sin cobertura propia: ' + dgServiciosSinCobertura(enc).join(', ') + (enc.coberturaDeclarada ? ' · declarado como parte pendiente' : ' · sin declarar') : servicios.join(', ') + ' con hallazgos con evidencia' },
+    { id: 'alcance', label: DG_QA_PASOS[0].label + ' (uno por servicio contratado)', ok: dgCoberturaDeclarada(enc), detalle: dgServiciosSinCobertura(enc).length ? 'Sin cobertura propia: ' + dgServiciosSinCobertura(enc).join(', ') + (dgCoberturaDeclarada(enc) ? ' · declarado como parte pendiente' : enc.coberturaDeclarada ? ' · declaración anterior sobre ' + (enc.serviciosSinCobertura || []).join(', ') + ', no cubre estos servicios' : ' · sin declarar') : servicios.join(', ') + ' con hallazgos con evidencia' },
     { id: 'evidencia', label: DG_QA_PASOS[1].label, ok: enc.hallazgos.every(h => h.evidencia && h.fuente && h.fecha) },
     { id: 'pendientes', label: DG_QA_PASOS[2].label, ok: dgBloqueos(enc).length === 0 || enc.limitacionesDeclaradas }
   ];
@@ -308,6 +322,8 @@ function dgGuardar() {
       ? 'El navegador no tiene espacio libre para guardar el recorrido de la demostración.'
       : 'El navegador ha rechazado guardar los datos de este sitio' + (err && err.message ? ' (' + err.message + ')' : '') + '.';
   }
+  // El aviso se actualiza en el momento: aparece al fallar y desaparece al guardar bien.
+  if (typeof dgPintarAviso === 'function') dgPintarAviso();
 }
 
 function dgRestaurar() {
@@ -347,9 +363,9 @@ function dgPanelEstado(enc) {
   const ultima = enc.revisiones[enc.revisiones.length - 1];
   const posibles = [];
   if (enc.estado === 'Pendiente') posibles.push({ attr: 'data-dg-start', label: 'Iniciar diagnóstico', accion: 'start', primary: true });
-  if (enc.estado === 'En curso') posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
+  if (dgEnCurso(enc)) posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
   const sinCobertura = dgServiciosSinCobertura(enc);
-  if (enc.estado === 'En curso' && ((bloqueos.length && !enc.limitacionesDeclaradas) || (sinCobertura.length && !enc.coberturaDeclarada))) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
+  if (dgEnCurso(enc) && ((bloqueos.length && !enc.limitacionesDeclaradas) || (sinCobertura.length && !dgCoberturaDeclarada(enc)))) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
   if (enc.estado === 'En revisión') posibles.push({ attr: 'data-dg-qa', label: 'Ejecutar revisión de calidad (simulada)', accion: 'qa', primary: true });
   if (enc.estado === 'Completado' && !plan) posibles.push({ attr: 'data-dg-plan', label: 'Generar plan de trabajo', accion: 'plan', primary: true });
   const acciones = [];
@@ -647,13 +663,23 @@ root.addEventListener('change', e => {
     const vuelven = enc.hallazgos.filter(h => h.dep === id).map(h => h.titulo);
     if (vuelven.length) enc.historial.push('18 sep 2026 · Trabajo de nuevo bloqueado en: ' + vuelven.join(' · ') + '. Requiere resolver el acceso.');
     enc.limitacionesDeclaradas = false;
-    if (enc.estado === 'En curso' || enc.estado === 'En revisión' || enc.estado === 'Completado') {
-      enc.estado = 'Bloqueado';
-      enc.historial.push('18 sep 2026 · Encargo «Bloqueado»: un acceso necesario ha dejado de estar validado.');
+    const ejecutable = dgDisponibles(enc).length;
+    if (enc.estado === 'En curso' || enc.estado === 'En revisión' || enc.estado === 'Completado' || enc.estado === 'Bloqueado') {
+      enc.estado = ejecutable ? 'En curso' : 'Bloqueado';
+      enc.historial.push(ejecutable
+        ? '18 sep 2026 · Encargo «En curso» con alcance reducido: se detiene solo lo que dependía de ' + dgAccesoNombre(id) + '; hay que declarar las limitaciones antes de enviarlo a calidad.'
+        : '18 sep 2026 · Encargo «Bloqueado»: sin ese acceso no queda ningún hallazgo ejecutable.');
     }
   }
   if (!quedan.length) enc.limitacionesDeclaradas = false;
-  enc.coberturaDeclarada = dgServiciosSinCobertura(enc).length ? enc.coberturaDeclarada : false;
+  const sinCobAhora = dgServiciosSinCobertura(enc);
+  if (!sinCobAhora.length) {
+    enc.coberturaDeclarada = false;
+    enc.serviciosSinCobertura = [];
+  } else if (enc.coberturaDeclarada && !sinCobAhora.every(s => (enc.serviciosSinCobertura || []).indexOf(s) !== -1)) {
+    enc.coberturaDeclarada = false;
+    enc.historial.push('18 sep 2026 · La declaración de cobertura queda sin efecto: ahora falta cobertura en ' + sinCobAhora.join(', ') + '. Hay que declararlo de nuevo antes de enviar a calidad.');
+  }
   dgSincronizarCliente(enc);
   dgGuardar();
   dgAbrirCliente(enc, 'Accesos');
@@ -668,16 +694,31 @@ function dgBannerAlmacen() {
   <ul class="v-error-list"><li><span>${escapeText(dgAlmacenError)}</span><span class="v-small v-muted">Cómo resolverlo: permitir el almacenamiento de datos de este sitio (sin navegación privada ni bloqueo de datos) y repetir la acción. Mientras tanto, el recorrido solo existe en esta pestaña y se perderá al recargar.</span></li></ul></div>`;
 }
 
-const _onbRenderBase = onbRender;
-globalThis.onbRender = function (vista) {
-  _onbRenderBase(dgBannerAlmacen() + vista);
-};
+// El aviso vive fuera de la vista: se actualiza tras cada intento de guardado,
+// sin volver a dibujar la pantalla y sin perder lo que se esté escribiendo.
+let dgAvisoHost = null;
+function dgHostAviso() {
+  if (dgAvisoHost && dgAvisoHost.isConnected) return dgAvisoHost;
+  dgAvisoHost = document.getElementById('v-almacen-aviso');
+  if (!dgAvisoHost) {
+    dgAvisoHost = document.createElement('div');
+    dgAvisoHost.id = 'v-almacen-aviso';
+    if (page && page.parentNode) page.parentNode.insertBefore(dgAvisoHost, page);
+    else root.appendChild(dgAvisoHost);
+  }
+  return dgAvisoHost;
+}
+
+function dgPintarAviso() {
+  const host = dgHostAviso();
+  const html = dgBannerAlmacen();
+  if (host.innerHTML !== html) host.innerHTML = html;
+}
 
 const _renderBase = render;
 globalThis.render = function (s, moveFocus = true) {
   _renderBase(s, moveFocus);
-  const banner = dgBannerAlmacen();
-  if (banner) page.insertAdjacentHTML('afterbegin', banner);
+  dgPintarAviso();
 };
 
 /* ---------- Semilla y restauración ---------- */
