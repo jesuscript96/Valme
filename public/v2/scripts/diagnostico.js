@@ -682,16 +682,31 @@ function dgBannerAlmacen() {
   <ul class="v-error-list"><li><span>${escapeText(dgAlmacenError)}</span><span class="v-small v-muted">Cómo resolverlo: permitir el almacenamiento de datos de este sitio (sin navegación privada ni bloqueo de datos) y repetir la acción. Mientras tanto, el recorrido solo existe en esta pestaña y se perderá al recargar.</span></li></ul></div>`;
 }
 
-const _onbRenderBase = onbRender;
-globalThis.onbRender = function (vista) {
-  _onbRenderBase(dgBannerAlmacen() + vista);
-};
+// El aviso vive fuera de la vista: se actualiza tras cada intento de guardado,
+// sin volver a dibujar la pantalla y sin perder lo que se esté escribiendo.
+let dgAvisoHost = null;
+function dgHostAviso() {
+  if (dgAvisoHost && dgAvisoHost.isConnected) return dgAvisoHost;
+  dgAvisoHost = document.getElementById('v-almacen-aviso');
+  if (!dgAvisoHost) {
+    dgAvisoHost = document.createElement('div');
+    dgAvisoHost.id = 'v-almacen-aviso';
+    if (page && page.parentNode) page.parentNode.insertBefore(dgAvisoHost, page);
+    else root.appendChild(dgAvisoHost);
+  }
+  return dgAvisoHost;
+}
+
+function dgPintarAviso() {
+  const host = dgHostAviso();
+  const html = dgBannerAlmacen();
+  if (host.innerHTML !== html) host.innerHTML = html;
+}
 
 const _renderBase = render;
 globalThis.render = function (s, moveFocus = true) {
   _renderBase(s, moveFocus);
-  const banner = dgBannerAlmacen();
-  if (banner) page.insertAdjacentHTML('afterbegin', banner);
+  dgPintarAviso();
 };
 
 /* ---------- Semilla y restauración ---------- */
