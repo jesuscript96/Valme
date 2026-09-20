@@ -82,3 +82,11 @@ html,body{background:#E9E6E0}
 #valme-v2 .v-tabs button{font-size:12px}
 #valme-v2 .v-tabs button[aria-selected=true]{background:var(--v-ink);border-color:var(--v-ink);color:var(--v-white);box-shadow:inset 0 -3px 0 var(--v-accent)}
 @container (max-width:760px){#valme-v2 .v-steps button,#valme-v2 .v-tabs button{flex:1 1 44%}}
+#valme-v2 .v-error{border:1px solid var(--v-danger);border-left-width:3px;background:#fbf1ef;padding:12px 15px;margin:14px 0}
+#valme-v2 .v-error strong{display:block;margin:6px 0 4px}
+#valme-v2 .v-error-list{margin:0;padding-left:18px}
+#valme-v2 .v-error-list li{margin-bottom:8px}
+#valme-v2 .v-error-list li span{display:block}
+#valme-v2 .v-row-error{border-left:3px solid var(--v-amber)}
+#valme-v2 button[aria-disabled=true]{opacity:.55;text-decoration:line-through}
+#valme-v2 textarea[aria-invalid=true]{border-color:var(--v-danger);outline:2px solid #f8e7e3}
