@@ -168,8 +168,8 @@ function dgRequisitos(enc, accion) {
   return p;
 }
 
-function dgBloqueoHTML(titulo, problemas, id) {
-  return `<div class="v-error" role="alert"${id ? ' id="' + id + '"' : ''}>${tag('Acción no disponible', 'bad')}<strong>${escapeText(titulo)}</strong>
+function dgBloqueoHTML(titulo, problemas, id, etiqueta) {
+  return `<div class="v-error" role="alert"${id ? ' id="' + id + '"' : ''}>${tag(etiqueta || 'Acción no disponible', 'bad')}<strong>${escapeText(titulo)}</strong>
   <ul class="v-error-list">${problemas.map(x => `<li><span>${escapeText(x.texto)}</span><span class="v-small v-muted">Cómo resolverlo: ${escapeText(x.resolucion)}</span></li>`).join('')}</ul></div>`;
 }
 
@@ -384,7 +384,7 @@ function planReview(enc) {
   if (!plan) return tabDiagnostico(c, dgReg(enc));
   const pendiente = plan.estado === 'Pendiente de aprobación';
   const errorPlan = dgAvisoPlan && dgAvisoPlan.encId === enc.id;
-  const avisoPlan = errorPlan ? dgBloqueoHTML('Decisión no registrada.', dgAvisoPlan.problemas, 'v-plan-comment-error') : '';
+  const avisoPlan = errorPlan ? dgBloqueoHTML('Decisión no registrada.', dgAvisoPlan.problemas, 'v-plan-comment-error', 'Falta información') : '';
   return `<button class="v-back" data-go="Supervisión">← Supervisión</button>`
     + heading('PLAN / ' + enc.id + ' · v' + plan.version, 'Plan de trabajo de ' + c.name, enc.servicios.join(', ') + ' · ' + plan.acciones.length + ' acciones', tag(plan.estado, tone(plan.estado)))
     + `<div class="v-panel"><dl class="v-kv"><div><dt>VERSIÓN</dt><dd>v${plan.version} de ${enc.planes.length}</dd></div><div><dt>ORIGEN</dt><dd>${escapeText(plan.motivo)}</dd></div><div><dt>DIAGNÓSTICO</dt><dd>${enc.estado} · ${enc.revisiones.length} revisiones de calidad</dd></div><div><dt>ESTADO DEL CLIENTE</dt><dd>${dgEstadoCliente(enc)}</dd></div></dl>
