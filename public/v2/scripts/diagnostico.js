@@ -65,6 +65,8 @@ function dgCrearEncargo(reg, cliente) {
     agentes: reg.equipo.slice(),
     hallazgos: dgHallazgos(reg),
     limitacionesDeclaradas: false,
+    coberturaDeclarada: false,
+    serviciosSinCobertura: [],
     revisiones: [],
     planes: [],
     historial: ['18 sep 2026 · 09:42 · Encargo de diagnóstico creado tras la activación del onboarding.']
@@ -122,6 +124,15 @@ function dgSincronizarCliente(enc) {
 let dgAviso = null; // { encId, accion, titulo, problemas: [{ texto, resolucion }] }
 let dgAvisoPlan = null; // { encId, problemas } — decisión del PM rechazada por validación
 
+// Servicios contratados sin ningún hallazgo utilizable (con evidencia y sin bloqueo).
+function dgServiciosSinCobertura(enc) {
+  const servicios = enc.servicios.length ? enc.servicios : ['SEO'];
+  return servicios.filter(s => !dgDisponibles(enc).some(h => {
+    const cat = DG_CATALOGO.find(x => x.id === h.ref);
+    return cat && cat.servicio === s && h.evidencia && h.fuente && h.fecha;
+  }));
+}
+
 function dgHallazgosIncompletos(enc) {
   return enc.hallazgos.filter(h => !h.evidencia || !h.fuente || !h.fecha);
 }
@@ -148,11 +159,14 @@ function dgRequisitos(enc, accion) {
     const inc = dgHallazgosIncompletos(enc);
     if (inc.length) p.push({ texto: inc.length + ' hallazgo(s) sin fuente, fecha o referencia de evidencia.', resolucion: 'Completar la evidencia de cada hallazgo; sin fuente no se envía.' });
     if (bloqueos.length && !enc.limitacionesDeclaradas) p.push({ texto: 'Hay accesos sin validar y las limitaciones no están declaradas.', resolucion: 'Pulsar «Declarar datos ausentes y limitaciones»: lo que no se puede medir se dice, no se estima.' });
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (sinCob.length && !enc.coberturaDeclarada) p.push({ texto: 'Servicios contratados sin ningún hallazgo con evidencia: ' + sinCob.join(', ') + '.', resolucion: 'Revisar esos servicios, o declararlos expresamente como parte pendiente con «Declarar datos ausentes y limitaciones». Tres hallazgos no cubren un servicio contratado.' });
     if (!reg.responsableCalidad) p.push({ texto: 'Sin responsable de control de calidad.', resolucion: 'Designar responsable de calidad en el paso G del onboarding.' });
   }
   if (accion === 'declare') {
-    if (!bloqueos.length) p.push({ texto: 'No hay datos ausentes que declarar.', resolucion: 'Todos los accesos necesarios están validados.' });
-    if (enc.limitacionesDeclaradas) p.push({ texto: 'Las limitaciones ya están declaradas.', resolucion: 'No es necesario repetirlo.' });
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (!bloqueos.length && !sinCob.length) p.push({ texto: 'No hay datos ausentes ni servicios sin cobertura que declarar.', resolucion: 'Todos los accesos necesarios están validados y cada servicio contratado tiene hallazgos con evidencia.' });
+    else if ((!bloqueos.length || enc.limitacionesDeclaradas) && (!sinCob.length || enc.coberturaDeclarada)) p.push({ texto: 'Lo pendiente ya está declarado.', resolucion: 'No es necesario repetirlo.' });
   }
   if (accion === 'qa') {
     if (enc.estado !== 'En revisión') p.push({ texto: 'La revisión de calidad solo se ejecuta sobre un diagnóstico enviado a revisión.', resolucion: 'Enviar el diagnóstico a control de calidad primero.' });
@@ -189,7 +203,7 @@ function dgRevisar(enc) {
   const reg = dgReg(enc);
   const servicios = enc.servicios.length ? enc.servicios : ['SEO'];
   const comprobaciones = [
-    { id: 'alcance', label: DG_QA_PASOS[0].label, ok: servicios.every(s => enc.hallazgos.some(h => DG_CATALOGO.find(x => x.id === h.ref && x.servicio === s)) ) || enc.hallazgos.length >= 3 },
+    { id: 'alcance', label: DG_QA_PASOS[0].label + ' (uno por servicio contratado)', ok: dgServiciosSinCobertura(enc).length === 0 || enc.coberturaDeclarada, detalle: dgServiciosSinCobertura(enc).length ? 'Sin cobertura propia: ' + dgServiciosSinCobertura(enc).join(', ') + (enc.coberturaDeclarada ? ' · declarado como parte pendiente' : ' · sin declarar') : servicios.join(', ') + ' con hallazgos con evidencia' },
     { id: 'evidencia', label: DG_QA_PASOS[1].label, ok: enc.hallazgos.every(h => h.evidencia && h.fuente && h.fecha) },
     { id: 'pendientes', label: DG_QA_PASOS[2].label, ok: dgBloqueos(enc).length === 0 || enc.limitacionesDeclaradas }
   ];
@@ -278,13 +292,22 @@ function dgDecidirPlan(enc, tipo, comentario) {
 
 const DG_KEY = 'valme-v2-demo';
 
+// Último error de guardado en el navegador. Si existe, se avisa en pantalla.
+let dgAlmacenError = null;
+
 function dgGuardar() {
   try {
     localStorage.setItem(DG_KEY, JSON.stringify({
       v: 1, onbRegistros, onbSeq, encargos, encSeq,
       clientes: clients.map(c => ({ id: c.id, name: c.name, state: c.state, service: c.service, progress: c.progress, pod: c.pod }))
     }));
-  } catch (err) { /* almacenamiento no disponible: la demo sigue en memoria */ }
+    dgAlmacenError = null;
+  } catch (err) {
+    // El almacenamiento del navegador ha fallado: se avisa, no se silencia.
+    dgAlmacenError = (err && err.name === 'QuotaExceededError')
+      ? 'El navegador no tiene espacio libre para guardar el recorrido de la demostración.'
+      : 'El navegador ha rechazado guardar los datos de este sitio' + (err && err.message ? ' (' + err.message + ')' : '') + '.';
+  }
 }
 
 function dgRestaurar() {
@@ -325,7 +348,8 @@ function dgPanelEstado(enc) {
   const posibles = [];
   if (enc.estado === 'Pendiente') posibles.push({ attr: 'data-dg-start', label: 'Iniciar diagnóstico', accion: 'start', primary: true });
   if (enc.estado === 'En curso') posibles.push({ attr: 'data-dg-send', label: 'Enviar a control de calidad', accion: 'send', primary: true });
-  if (enc.estado === 'En curso' && bloqueos.length && !enc.limitacionesDeclaradas) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
+  const sinCobertura = dgServiciosSinCobertura(enc);
+  if (enc.estado === 'En curso' && ((bloqueos.length && !enc.limitacionesDeclaradas) || (sinCobertura.length && !enc.coberturaDeclarada))) posibles.push({ attr: 'data-dg-declare', label: 'Declarar datos ausentes y limitaciones', accion: 'declare' });
   if (enc.estado === 'En revisión') posibles.push({ attr: 'data-dg-qa', label: 'Ejecutar revisión de calidad (simulada)', accion: 'qa', primary: true });
   if (enc.estado === 'Completado' && !plan) posibles.push({ attr: 'data-dg-plan', label: 'Generar plan de trabajo', accion: 'plan', primary: true });
   const acciones = [];
@@ -367,7 +391,7 @@ function tabDiagnostico(c, reg) {
   return dgPanelEstado(enc)
     + `<section class="v-section"><div class="v-section-head"><h2>Hallazgos (${enc.hallazgos.length})</h2><span class="v-mono">${dgDisponibles(enc).length} SIN BLOQUEO</span></div><div class="v-panel">${enc.estado === 'Pendiente' ? '<p>Sin datos: el diagnóstico no se ha iniciado.</p>' : enc.hallazgos.map(h => dgFichaHallazgo(enc, h)).join('')}</div></section>`
     + (bloqueos.length ? `<section class="v-section"><div class="v-section-head"><h2>Trabajo bloqueado por accesos</h2>${tag(enc.limitacionesDeclaradas ? 'Limitaciones declaradas' : 'Sin declarar', enc.limitacionesDeclaradas ? 'good' : 'warn')}</div><div class="v-panel">${bloqueos.map(b => `<div class="v-row"><div>${tag(b.estado, tone(b.estado))}<strong>${b.nombre}</strong><p>Bloquea: ${b.afectados.map(escapeText).join(' · ')}</p><p class="v-small">Resolución: el cliente concede ${b.nombre} con permiso mínimo; después se marca como validado en el paso E. El resto del diagnóstico continúa.</p></div></div>`).join('')}</div></section>` : '')
-    + (enc.revisiones.length ? `<section class="v-section"><div class="v-section-head"><h2>Control de calidad</h2><span class="v-mono">${enc.revisiones.length} REVISIONES</span></div><div class="v-panel">${enc.revisiones.map(r => `<div class="v-row"><div>${tag(r.resultado, r.resultado === 'Validado' ? 'good' : 'warn')}<strong>Revisión ${r.n} · ${r.fecha}</strong><p>${escapeText(r.comentario)}</p>${r.comprobaciones.map(x => `<p class="v-small">${x.ok ? '✓' : '×'} ${x.label}</p>`).join('')}</div></div>`).join('')}</div></section>` : '')
+    + (enc.revisiones.length ? `<section class="v-section"><div class="v-section-head"><h2>Control de calidad</h2><span class="v-mono">${enc.revisiones.length} REVISIONES</span></div><div class="v-panel">${enc.revisiones.map(r => `<div class="v-row"><div>${tag(r.resultado, r.resultado === 'Validado' ? 'good' : 'warn')}<strong>Revisión ${r.n} · ${r.fecha}</strong><p>${escapeText(r.comentario)}</p>${r.comprobaciones.map(x => `<p class="v-small">${x.ok ? '✓' : '×'} ${x.label}${x.detalle ? ' · <span class="v-muted">' + escapeText(x.detalle) + '</span>' : ''}</p>`).join('')}</div></div>`).join('')}</div></section>` : '')
     + `<section class="v-section v-panel"><h2>Historial del encargo</h2>${enc.historial.map(h => `<p class="v-small">${escapeText(h)}</p>`).join('')}</section>`;
 }
 
@@ -505,7 +529,13 @@ root.addEventListener('click', e => {
   } else if (d.dgDeclare) {
     enc = encargos.find(x => x.id === d.dgDeclare);
     if (!enc || dgImpedir(enc, 'declare', 'No hay nada que declarar.')) return;
-    enc.limitacionesDeclaradas = true;
+    const sinCob = dgServiciosSinCobertura(enc);
+    if (dgBloqueos(enc).length) enc.limitacionesDeclaradas = true;
+    if (sinCob.length) {
+      enc.coberturaDeclarada = true;
+      enc.serviciosSinCobertura = sinCob;
+      enc.historial.push('18 sep 2026 · Servicios contratados sin cobertura declarados como parte pendiente: ' + sinCob.join(', ') + '.');
+    }
     enc.historial.push('18 sep 2026 · Datos ausentes y limitaciones declarados por el equipo.');
     dgGuardar(); dgAbrirCliente(enc);
     announce('Limitaciones declaradas. No se sustituyen por estimaciones.');
@@ -568,6 +598,78 @@ root.addEventListener('click', e => {
 root.addEventListener('click', () => setTimeout(dgGuardar, 0));
 root.addEventListener('change', () => setTimeout(dgGuardar, 0));
 root.addEventListener('input', () => setTimeout(dgGuardar, 0));
+
+/* ---------- Resolver accesos después de la activación ---------- */
+
+const _tabAccesos = tabAccesos;
+globalThis.tabAccesos = function (c, reg) {
+  const enc = dgEncargoDe(c.id);
+  if (!enc) return _tabAccesos(c, reg);
+  const bloqueos = dgBloqueos(enc);
+  const filas = ONB_ACCESOS.map(a => `<div class="v-row"><div>${tag(reg.accesos[a.id], reg.accesos[a.id] === 'Validado' ? 'good' : /Insuficiente|Caducado/.test(reg.accesos[a.id]) ? 'bad' : 'warn')}<strong>${a.nombre}</strong><p class="v-small">${a.finalidad} · permiso mínimo: ${a.permiso} · responsable: cliente</p></div><label><span class="v-sr-only">Nuevo estado de ${a.nombre}</span><select data-dg-acceso="${a.id}" data-dg-enc="${enc.id}">${ONB_ESTADOS_ACCESO.map(e => `<option ${reg.accesos[a.id] === e ? 'selected' : ''}>${e}</option>`).join('')}</select></label></div>`).join('');
+  return _tabAccesos(c, reg)
+    + `<section class="v-section v-panel"><div class="v-section-head"><h2>Actualizar accesos y reanudar trabajo</h2>${tag(bloqueos.length ? bloqueos.length + ' bloqueo(s) activos' : 'Sin bloqueos', bloqueos.length ? 'warn' : 'good')}</div>
+  <p class="v-small v-muted">Los accesos se pueden actualizar en cualquier momento, también después de activar el onboarding. Nunca se piden contraseñas, claves ni tokens: solo el estado del permiso, con validación simulada.</p>
+  ${filas}
+  <p class="v-small v-muted" style="margin-top:12px">Cada cambio queda registrado con fecha en el historial del encargo y reanuda solo el trabajo que dependía de ese acceso. Un plan ya generado no se modifica: haría falta una versión nueva.</p></section>`;
+};
+
+root.addEventListener('change', e => {
+  const t = e.target;
+  if (!t.dataset || !t.dataset.dgAcceso) return;
+  const enc = encargos.find(x => x.id === t.dataset.dgEnc);
+  if (!enc) return;
+  const reg = dgReg(enc);
+  const id = t.dataset.dgAcceso;
+  const antes = reg.accesos[id];
+  const ahora = t.value;
+  if (antes === ahora) return;
+  reg.accesos[id] = ahora;
+  const linea = '18 sep 2026 · Acceso ' + dgAccesoNombre(id) + ': ' + antes + ' → ' + ahora + ' (registrado por el Project Manager, validación simulada).';
+  reg.historial.push(linea);
+  enc.historial.push(linea);
+  const quedan = dgBloqueos(enc);
+  let reanudado = '';
+  if (ahora === 'Validado') {
+    const afectados = enc.hallazgos.filter(h => h.dep === id).map(h => h.titulo);
+    if (afectados.length) {
+      enc.historial.push('18 sep 2026 · Trabajo reanudado en: ' + afectados.join(' · ') + '.');
+      reanudado = ' Trabajo reanudado en ' + afectados.length + ' hallazgo(s).';
+    }
+    if (enc.estado === 'Bloqueado' && !quedan.length) {
+      enc.estado = 'En curso';
+      enc.historial.push('18 sep 2026 · Encargo de nuevo «En curso»: no quedan accesos bloqueantes.');
+    }
+    const plan = dgPlan(enc);
+    if (plan && plan.excluidas.length) enc.historial.push('18 sep 2026 · El plan v' + plan.version + ' excluyó trabajo por este acceso: requiere una versión nueva para incorporarlo.');
+  }
+  if (!quedan.length) enc.limitacionesDeclaradas = false;
+  enc.coberturaDeclarada = dgServiciosSinCobertura(enc).length ? enc.coberturaDeclarada : false;
+  dgSincronizarCliente(enc);
+  dgGuardar();
+  dgAbrirCliente(enc, 'Accesos');
+  announce('Acceso ' + dgAccesoNombre(id) + ' actualizado a ' + ahora + '.' + reanudado + (quedan.length ? ' Siguen bloqueados: ' + quedan.map(b => b.nombre).join(', ') + '.' : ' No quedan accesos bloqueantes.'));
+});
+
+/* ---------- Aviso cuando el navegador no guarda ---------- */
+
+function dgBannerAlmacen() {
+  if (!dgAlmacenError) return '';
+  return `<div class="v-error" role="alert">${tag('Sin guardar', 'bad')}<strong>Los cambios no se han guardado en este navegador.</strong>
+  <ul class="v-error-list"><li><span>${escapeText(dgAlmacenError)}</span><span class="v-small v-muted">Cómo resolverlo: permitir el almacenamiento de datos de este sitio (sin navegación privada ni bloqueo de datos) y repetir la acción. Mientras tanto, el recorrido solo existe en esta pestaña y se perderá al recargar.</span></li></ul></div>`;
+}
+
+const _onbRenderBase = onbRender;
+globalThis.onbRender = function (vista) {
+  _onbRenderBase(dgBannerAlmacen() + vista);
+};
+
+const _renderBase = render;
+globalThis.render = function (s, moveFocus = true) {
+  _renderBase(s, moveFocus);
+  const banner = dgBannerAlmacen();
+  if (banner) page.insertAdjacentHTML('afterbegin', banner);
+};
 
 /* ---------- Semilla y restauración ---------- */
 
