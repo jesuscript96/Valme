@@ -283,8 +283,8 @@ export function CaseView({
               as="p"
               className="max-w-xl text-gray-500 leading-relaxed mb-10"
             >
-              Empieza por un diagnóstico. Te decimos qué procesos te están frenando y
-              qué se puede automatizar primero.
+              Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra
+              y por dónde empezaríamos.
             </Reveal>
             <Reveal as="div">
               <Magnetic strength={0.5}>
@@ -293,7 +293,7 @@ export function CaseView({
                   onClick={openWhatsApp}
                   className="group inline-flex items-center gap-2 px-8 py-4 bg-brand-black text-white text-sm font-medium tracking-wide rounded-full"
                 >
-                  Solicitar diagnóstico
+                  Hablemos 30 minutos
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </Magnetic>
