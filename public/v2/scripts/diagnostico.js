@@ -304,7 +304,7 @@ function dgDecidirPlan(enc, tipo, comentario) {
 
 /* ---------- Persistencia local ---------- */
 
-const DG_KEY = 'valme-v2-demo';
+const DG_KEY = 'valme-v2-demo-2';
 
 // Último error de guardado en el navegador. Si existe, se avisa en pantalla.
 let dgAlmacenError = null;
@@ -724,8 +724,8 @@ globalThis.render = function (s, moveFocus = true) {
 /* ---------- Semilla y restauración ---------- */
 
 function dgSemilla() {
-  const a = clients[18], b = clients[19];
-  [a, b].forEach((c, i) => {
+  // Un único cliente de demostración.
+  [clients[0]].forEach((c, i) => {
     const reg = onbDeCliente(c);
     reg.estado = 'Activo';
     ONB_ACCESOS.forEach(x => { reg.accesos[x.id] = 'Validado'; });
