@@ -744,24 +744,28 @@ function dgSemilla() {
     if (i === 1) enc.historial.push('18 sep 2026 · 09:31 · Trabajo dependiente de ' + dgBloqueos(enc).map(x => x.nombre).join(', ') + ' bloqueado; el resto continúa.');
     dgSincronizarCliente(enc);
   });
+  dgSemillaReal();
+}
 
-  // Alta real de prueba: solo el nombre; el resto lo completa el Project Manager.
+// Alta real de prueba: solo el nombre; el resto lo completa el Project Manager.
+function dgSemillaReal() {
   const real = clients[1];
-  if (real) {
-    const reg = onbDeCliente(real);
-    reg.estado = 'Borrador';
-    reg.data = Object.assign({}, reg.data, {
-      nombre: real.name, dominio: '', sector: '', mercados: '', contacto: '', aprobador: '',
-      entregables: '', exclusiones: '', limites: '', prioritarios: '', publico: '',
-      competidores: '', objetivos: '', indicadores: '', base: 'Pendiente de medir',
-      marca: '', materiales: '', restricciones: '', previos: '', fuentes: ''
-    });
-    reg.servicios = ['SEO', 'AEO', 'GEO'];
-    reg.equipo = [];
-    ONB_ACCESOS.forEach(a => { reg.accesos[a.id] = 'No solicitado'; });
-    reg.historial.push('Alta creada para una prueba real; ningún dato precargado.');
-  }
+  if (!real) return;
+  if (onbRegistros.some(r => r.clienteId === real.id)) return;
+  const reg = onbDeCliente(real);
+  reg.estado = 'Borrador';
+  reg.data = Object.assign({}, reg.data, {
+    nombre: real.name, dominio: '', sector: '', mercados: '', contacto: '', aprobador: '',
+    entregables: '', exclusiones: '', limites: '', prioritarios: '', publico: '',
+    competidores: '', objetivos: '', indicadores: '', base: 'Pendiente de medir',
+    marca: '', materiales: '', restricciones: '', previos: '', fuentes: ''
+  });
+  reg.servicios = ['SEO', 'AEO', 'GEO'];
+  reg.equipo = [];
+  ONB_ACCESOS.forEach(a => { reg.accesos[a.id] = 'No solicitado'; });
+  reg.historial.push('Alta creada para una prueba real; ningún dato precargado.');
 }
 
 if (!dgRestaurar()) { dgSemilla(); dgGuardar(); }
+else if (dgSemillaReal() !== false) { dgGuardar(); }
 render(current, false);
