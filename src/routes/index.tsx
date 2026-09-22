@@ -50,7 +50,7 @@ const html = `<!doctype html>
           </header>
           <div class="v-live" role="status" aria-live="polite" aria-atomic="true"></div>
           <main class="v-content" id="v-page"></main>
-          <footer class="v-bottom"><span>84 clientes · 8 especialidades · 672 agentes asignados</span><span>Sin conexiones reales · entorno de demostración</span></footer>
+          <footer class="v-bottom"><span>1 cliente de demostración · 8 especialidades · agentes simulados</span><span>Sin conexiones reales · entorno de demostración</span></footer>
         </div>
       </div>
     </div>
