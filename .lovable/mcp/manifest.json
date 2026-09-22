@@ -3,7 +3,12 @@
   "sdk_version": "3.0.1",
   "path": "/mcp",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "issuer": "https://rkejzxlpfkciwsuevmxv.supabase.co/auth/v1",
+    "resource_name": "VALME Search OS",
+    "accepted_audiences": [
+      "authenticated"
+    ]
   },
   "mcp": {
     "server": {

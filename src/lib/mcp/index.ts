@@ -1,10 +1,20 @@
-import { defineMcp } from "@lovable.dev/mcp-js";
+import { auth, defineMcp } from "@lovable.dev/mcp-js";
 import explainDiagnosticFlowTool from "./tools/explain-diagnostic-flow";
 import listOnboardingStepsTool from "./tools/list-onboarding-steps";
 import listServicesTool from "./tools/list-services";
 import listSupervisionRulesTool from "./tools/list-supervision-rules";
 
+const SUPABASE_URL =
+  import.meta.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"] ?? "";
+
 export default defineMcp({
+  // El servidor exige inicio de sesión: solo tokens emitidos por la
+  // autenticación del propio proyecto pueden llamar a las herramientas.
+  auth: auth.oauth.issuer({
+    issuer: `${SUPABASE_URL}/auth/v1`,
+    acceptedAudiences: "authenticated",
+    resourceName: "VALME Search OS",
+  }),
   name: "github-connector",
   title: "GitHub Connector",
   version: "0.1.0",
