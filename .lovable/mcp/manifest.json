@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "sdk_version": "3.0.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "github-connector",
+      "version": "0.1.0",
+      "title": "GitHub Connector"
+    },
+    "tools": [
+      {
+        "name": "list_services",
+        "title": "Listar servicios y especialidades",
+        "description": "Devuelve el catálogo de servicios (SEO, SEO técnico, AEO, GEO, Contenidos) y las especialidades de agente de VALME Search OS. Datos de demostración.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      },
+      {
+        "name": "list_onboarding_steps",
+        "title": "Listar pasos del alta de cliente",
+        "description": "Devuelve los ocho pasos (A–H) del alta guiada de cliente, indicando cuáles ve el equipo del cliente, y los estados posibles de un acceso. Datos de demostración.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      },
+      {
+        "name": "explain_diagnostic_flow",
+        "title": "Explicar el recorrido de diagnóstico",
+        "description": "Explica los estados del encargo de diagnóstico, las comprobaciones de control de calidad y los tipos de hallazgo con sus dependencias de acceso. Datos de demostración.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "estado": {
+              "description": "Limitar la explicación a un solo estado del encargo.",
+              "type": "string",
+              "enum": [
+                "Pendiente",
+                "En curso",
+                "Bloqueado",
+                "En revisión",
+                "Completado"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_supervision_rules",
+        "title": "Listar reglas de supervisión",
+        "description": "Devuelve las reglas del flujo supervisado: qué autoriza el Project Manager, qué bloquea un acceso sin validar y por qué aprobar no equivale a ejecutar. Datos de demostración.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      }
+    ]
+  }
+}
