@@ -7,10 +7,14 @@
  * `NEXT_PUBLIC_SANITY_PROJECT_ID` + `_DATASET` are present, Sanity wins and this
  * file is ignored (see `sanity/env.ts` → `hasSanityConfig`).
  *
- * Tone (v2): NO "firma privada exclusiva / gatekeeper". SÍ acompañamiento a una
- * transformación operativa: adaptar la pyme a los tiempos, a la tecnología y a la
- * IA actuales, quitando procesos manuales, desordenados e ineficientes para que
- * compita de verdad. La dualidad Juan (GTM) / Jesús (tech) es el método.
+ * Posicionamiento (v3): Valme es TU DEPARTAMENTO DE MARKETING, sin necesidad de
+ * montarlo. Ocho funciones siempre activas (se ajusta el peso, no la cobertura),
+ * expertise por función y una operativa con datos y control encima. El tono es
+ * premium pero llano: hacer buen marketing es difícil; tenerlo, no.
+ *
+ * Las cuatro áreas de operaciones (revenue / internal / administrative /
+ * executive) SIGUEN publicadas en /areas/* y enlazadas desde el footer, pero ya
+ * no aparecen en la home: la home vende una sola cosa.
  *
  * Casos de éxito (`caseDocs`): client-facing, prominentes y con página propia
  * (/casos/[slug]). Se describen por sector + tamaño, sin nombres reales y sin
@@ -36,48 +40,46 @@ export const homeSeed: any = {
   _id: 'homePage',
 
   hero: {
-    eyebrow: 'Transformación operativa con IA · Pymes B2B',
-    titleLine1: 'Analizamos tu problema.',
-    titleLine2: 'Implementamos soluciones.',
-    subtitle: 'Optimizamos procesos y acompañamos a tu equipo de principio a fin.',
+    eyebrow: 'Departamento de marketing · Pymes B2B',
+    titleLine1: 'Hacer buen marketing es difícil.',
+    titleLine2: 'Tenerlo, no.',
+    subtitle: 'Tu departamento de marketing 360, montado y operando dentro de tu empresa.',
     paragraph:
-      'Has crecido a base de esfuerzo, y por el camino se han acumulado procesos manuales, desordenados y poco eficientes. No por falta de capacidad, sino de tiempo y de foco. Te acompañamos a transformar tu operativa en una más actual, automatizada y preparada para la IA, para que compitas de verdad.',
-    primaryCta: {label: 'Solicitar diagnóstico', kind: 'whatsapp'},
-    secondaryCta: {label: 'Ver casos de éxito', kind: 'section', href: 'casos'},
+      'Son ocho funciones las que tienen que estar activas para que el marketing funcione. Montarlas por tu cuenta son ocho procesos de selección, ocho nóminas y meses de prueba y error. Con nosotros es un contrato de servicios, un solo interlocutor y un equipo que ya está montado y ya ha trabajado junto. Operativo en tres semanas.',
+    primaryCta: {label: 'Hablemos 30 minutos', kind: 'whatsapp'},
+    secondaryCta: {label: 'Ver las ocho funciones', kind: 'section', href: 'intervencion'},
     mediaUrl: '/assets/ValmeSolutionsVideo.webm',
   },
 
   mission: {
-    eyebrow: '/ Qué hacemos',
+    eyebrow: '/ Qué somos',
     heading: {
-      lead: 'Adaptamos tu empresa',
-      dim: 'a como se opera y se compite hoy.',
+      lead: 'No es una agencia.',
+      dim: 'Es tu departamento de marketing.',
     },
     lead:
-      'La tecnología para tener una operación ágil, ordenada y automatizada ya existe. Lo que suele faltar en una pyme que crece es tiempo y foco para implantarla. Ahí entramos: unimos estrategia comercial y tecnología (CRM, datos y automatización con IA) para que tu operativa deje de frenarte y empiece a impulsarte. No instalamos software: acompañamos una transformación.',
-    // Mismos contenidos que la sección "Cómo trabajamos" (methodology.steps),
-    // duplicados a propósito por decisión de negocio.
-    principlesEyebrow: '/ Cómo lo hacemos',
+      'Una agencia te entrega campañas y un informe. Un departamento opera: decide, ejecuta, mide y corrige cada semana, con las mismas personas, con nombre y cara, en tus reuniones y en tu chat. Eso es lo que montamos dentro de tu empresa, sin la maquinaria de montarlo ni de sostenerlo.',
+    principlesEyebrow: '/ Cuatro principios',
     principles: [
       {
         id: '01',
-        title: 'Diagnóstico',
-        body: 'Auditamos cómo vendes, entregas y cobras hoy. Sacamos a la luz los procesos manuales, desordenados o ineficientes.',
+        title: 'Holístico',
+        body: 'Las ocho funciones activas desde el primer mes. No elegimos tres y dejamos el resto para más adelante: el marketing solo funciona completo.',
       },
       {
         id: '02',
-        title: 'Estrategia',
-        body: 'Diseñamos el embudo comercial y el modelo operativo. Definimos qué debe hacer la tecnología para que vendas más.',
+        title: 'Expertise por función',
+        body: 'Cada función la lleva quien sabe de esa función. No un generalista que hace de todo a medias ni alguien aprendiendo con tu presupuesto.',
       },
       {
         id: '03',
-        title: 'Construcción',
-        body: 'Integramos CRM, bases de datos y automatización con IA. Convertimos la estrategia en una operación que funciona sola.',
+        title: 'Operativa, no campañas',
+        body: 'Un calendario, un proceso y un ritmo. Lo que hoy se decide en un grupo de WhatsApp pasa a ser un sistema que funciona sin ti.',
       },
       {
         id: '04',
-        title: 'Adopción',
-        body: 'Formamos a tu equipo hasta que la nueva operativa es parte de su día a día. Sin resistencia y sin dependencia de nosotros.',
+        title: 'Control y datos',
+        body: 'Un panel con lo que se ha gastado, lo que ha entrado y cuánto te cuesta cada lead. Decides con números, no con la sensación de que algo se mueve.',
       },
     ],
   },
@@ -85,185 +87,266 @@ export const homeSeed: any = {
   // CASOS DE ÉXITO — sección destacada, alta en la página. (Ver `casesSection`
   // + `caseDocs`; se renderiza con el componente <Cases/>.)
   casesSection: {
-    eyebrow: '/ Casos de éxito',
-    heading: {lead: 'Empresas como la tuya,', dim: 'operando como se opera hoy.'},
+    eyebrow: '/ Casos',
+    heading: {lead: 'Tres empresas,', dim: 'tres problemas distintos de marketing.'},
     intro:
-      'Tres transformaciones de operativa en pymes B2B: dónde estaban, qué cambiamos y en qué se tradujo. Puede que reconozcas la tuya.',
-    cta: {label: 'Quiero una transformación así', kind: 'whatsapp'},
+      'Un gerente que no sabía en qué se le iba la inversión, una empresa que llevaba un año optimizando el canal equivocado y un arranque desde cero. Qué había, qué montamos y en qué se tradujo.',
+    cta: {label: 'Hablemos 30 minutos', kind: 'whatsapp'},
   },
 
   symptoms: {
     eyebrow: '/ ¿Te suena esto?',
     heading: {
-      lead: 'Señales de que tu operativa',
-      dim: 'se ha quedado atrás.',
+      lead: 'Señales de que tu marketing',
+      dim: 'no es un departamento todavía.',
     },
     items: [
       {
-        label: 'El comercial imprescindible',
-        statement: 'Si tu mejor comercial se va, se va también su cartera.',
+        label: 'Marketing sin dueño',
+        statement: 'Nadie lleva el marketing. Lo lleváis todos un rato.',
         detail:
-          'El pipeline vive en su cabeza y en su móvil. Nadie más sabe en qué punto está cada oportunidad y la empresa depende de una persona, no de un sistema.',
+          'Una parte la hace el comercial, otra un diseñador freelance, otra tú un domingo. Nadie tiene la foto completa ni responde de los resultados.',
         solution:
-          'Pasamos ese conocimiento a un CRM que el equipo usa de verdad: cada oportunidad queda registrada, visible y con seguimiento. El criterio deja de irse por la puerta.',
+          'Pasa a haber un responsable y un equipo detrás, con un plan mensual y un número al que rendir cuentas. Tú dejas de ser el director de marketing por defecto.',
       },
       {
-        label: 'Ventas a ciegas',
-        statement: 'No sabes qué vas a facturar este mes hasta que ya ha pasado.',
+        label: 'Campañas sueltas',
+        statement: 'Haces cosas de marketing, pero no tienes marketing.',
         detail:
-          'Las previsiones se basan en intuición. Los datos llegan tarde y repartidos en varios Excels, y decides mirando por el retrovisor.',
+          'Un mes anuncios, otro un vídeo, otro rehacer la web. Cada acción empieza de cero y ninguna se apoya en la anterior, así que nada compone.',
         solution:
-          'Unificamos la información en un panel único y en tiempo real. Ves el mes según avanza, con alertas antes de que un desvío te cueste dinero.',
+          'Montamos una operativa con las ocho funciones activas y un calendario que se cumple. Cada mes construye sobre el anterior en lugar de sustituirlo.',
       },
       {
-        label: 'Todo a mano',
-        statement: 'Tu equipo dedica el día a tareas que un sistema haría solo.',
+        label: 'Presupuesto a ciegas',
+        statement: 'Inviertes cada mes y no sabes qué te devuelve.',
         detail:
-          'Copiar datos de una herramienta a otra, perseguir aprobaciones por correo, rehacer el mismo informe cada semana. Horas que se van en trabajo que no aporta.',
+          'El informe habla de impresiones y alcance. Lo que no aparece por ningún sitio es cuántas oportunidades reales entraron y a qué coste.',
         solution:
-          'Automatizamos ese trasiego con integraciones e IA con criterio. Tu equipo suelta la tarea mecánica y recupera el tiempo para lo que sí importa.',
+          'Conectamos campañas, web y CRM en un panel único: gasto, leads, coste por lead y qué canal trae los que acaban comprando.',
       },
       {
-        label: 'El CEO sin visibilidad',
-        statement: 'Para saber cómo va tu empresa tienes que convocar tres reuniones.',
+        label: 'Leads que se enfrían',
+        statement: 'Entran contactos, pero nadie los atiende a tiempo.',
         detail:
-          'La información está fragmentada por departamento y por persona. No existe una única versión de la realidad y has perdido el control de tu propia operación.',
+          'El formulario llega a un correo que se mira cuando se puede. Para cuando alguien responde, el cliente ya está hablando con otro.',
         solution:
-          'Montamos un cuadro de mando para dirección con una sola fuente de datos. Abres el panel y sabes cómo va el negocio, sin convocar a nadie.',
+          'Montamos el circuito completo: el lead entra, se cualifica, se asigna y se persigue solo. Y se mide qué pasa con cada uno.',
       },
       {
-        label: 'El miedo a contratar',
-        statement: 'Creces, pero contratar estructura fija para apagar fuegos te aterra.',
+        label: 'Contratar da vértigo',
+        statement: 'Montar el equipo en fijo son ocho contratos y meses de riesgo.',
         detail:
-          'Cada nuevo cliente exige más gente para sostener el desorden. Sumar personas no arregla un problema de sistema: solo lo hace más caro.',
+          'Ocho funciones son ocho procesos de selección: redactar, filtrar, entrevistar y decidir. Normalmente, tú. Y si un perfil no encaja, has perdido meses de salario.',
         solution:
-          'Ordenamos y automatizamos la operativa para que absorba el crecimiento sin inflar la plantilla. Creces por sistema, no a base de contratar.',
+          'El equipo ya está montado y ya ha trabajado junto. Si un perfil no encaja, lo cambiamos nosotros. Subes o bajas el equipo con un mes de aviso.',
       },
     ],
   },
 
-  areasSection: {
-    eyebrow: '/ Dónde intervenimos',
+  // LAS OCHO FUNCIONES — sustituye a la antigua sección de áreas en la home.
+  // Son tarjetas, NO documentos: no tienen slug ni página propia. Se renderizan
+  // con <Areas/>, que pinta un div en lugar de un enlace cuando falta el slug.
+  functions: {
+    eyebrow: '/ Qué cubre',
     heading: {
-      lead: 'Cuatro frentes',
-      dim: 'donde tu operación pierde tiempo y dinero.',
+      lead: 'Ocho funciones.',
+      dim: 'Ninguna es opcional.',
     },
     intro:
-      'Son las cuatro capas por las que tu empresa vende, entrega, cobra y decide. En una pyme que ha crecido rápido casi siempre hay procesos manuales o desordenados escondidos en cada una. Ahí es donde la tecnología actual marca la diferencia.',
-    closingEyebrow: '/ ¿Por dónde empezar?',
-    closingHeading: 'Un diagnóstico de operación te dice qué arreglar primero.',
-    closingCta: {label: 'Solicitar diagnóstico', kind: 'whatsapp'},
+      'El marketing no falla por hacer una cosa mal: falla por dejar siete sin hacer. Estas ocho están siempre activas en tu cuenta. Lo que se ajusta cada mes es el peso de cada una, no la cobertura.',
+    items: [
+      {
+        _id: 'direccion-y-estrategia',
+        index: '01',
+        name: 'Dirección y estrategia',
+        icon: 'compass',
+        tagline: 'Sin un plan con números, cada mes se decide por intuición y no se aprende nada.',
+      },
+      {
+        _id: 'paid-media',
+        index: '02',
+        name: 'Paid media',
+        icon: 'megaphone',
+        tagline: 'Una cuenta mal montada quema presupuesto rápido y en silencio.',
+      },
+      {
+        _id: 'seo-contenido-geo',
+        index: '03',
+        name: 'SEO, contenido y GEO',
+        icon: 'search',
+        tagline: 'Es lo único que sigue trayendo clientes cuando dejas de pagar. Tarda meses: empieza ya.',
+      },
+      {
+        _id: 'social-organico',
+        index: '04',
+        name: 'Social orgánico',
+        icon: 'users',
+        tagline: 'Casi todos te investigan antes de escribirte. Un perfil muerto cuesta oportunidades.',
+      },
+      {
+        _id: 'creatividad-diseno-video',
+        index: '05',
+        name: 'Creatividad, diseño y vídeo',
+        icon: 'palette',
+        tagline: 'La creatividad decide más el resultado de una campaña que la segmentación.',
+      },
+      {
+        _id: 'mensaje-y-copy',
+        index: '06',
+        name: 'Mensaje y copy',
+        icon: 'pen-tool',
+        tagline: 'Si no dices por qué tú y no otro, da igual cuánto tráfico traigas.',
+      },
+      {
+        _id: 'web-landings-cro',
+        index: '07',
+        name: 'Web, landings y CRO',
+        icon: 'mouse-pointer-click',
+        tagline: 'Duplicar la conversión vale lo mismo que duplicar el presupuesto, y cuesta mucho menos.',
+      },
+      {
+        _id: 'datos-crm-leads',
+        index: '08',
+        name: 'Datos, CRM y leads',
+        icon: 'database',
+        tagline: 'Se pierde más dinero tratando mal los leads que optimizando campañas. Responder tarde mata la venta.',
+      },
+    ],
+    weightsTitle: 'Las ocho están siempre activas. Se ajusta el peso, no la cobertura.',
+    weightsNote: 'Reparto por defecto · se revisa cada mes',
+    weights: [
+      {label: 'Dirección y estrategia', value: 9},
+      {label: 'Paid media', value: 15},
+      {label: 'SEO, contenido y GEO', value: 16},
+      {label: 'Social orgánico', value: 15},
+      {label: 'Creatividad y vídeo', value: 15},
+      {label: 'Mensaje y copy', value: 5},
+      {label: 'Web, landings y CRO', value: 13},
+      {label: 'Datos, CRM y leads', value: 12},
+    ],
+    closingEyebrow: '/ Y lo ves',
+    closingHeading:
+      'Cada mes ves qué se hizo, qué costó y qué entró. En un panel, no en un PDF de 40 páginas.',
+    closingCta: {label: 'Hablemos 30 minutos', kind: 'whatsapp'},
   },
 
   methodology: {
     eyebrow: '/ Cómo trabajamos',
     heading: {
-      lead: 'Cómo transformamos',
-      dim: 'tu operativa, paso a paso.',
+      lead: 'De la primera llamada',
+      dim: 'a un departamento operando.',
     },
-    lead: 'Un recorrido de cuatro fases que va del diagnóstico a que tu equipo lo use solo. Lo llamamos',
+    lead:
+      'Cuatro fases que van del diagnóstico a una operativa que se revisa con datos cada mes. Lo llamamos',
     leadMono: 'The Valme Mandate',
     steps: [
       {
         id: '01',
         name: 'Diagnóstico',
         description:
-          'Auditamos cómo vendes, entregas y cobras hoy. Sacamos a la luz los procesos manuales, desordenados o ineficientes.',
+          'Auditamos lo que ya tienes: cuentas de paid, web, medición, CRM y contenido. Sale un mapa de qué está montado, qué está roto y qué no existe.',
       },
       {
         id: '02',
         name: 'Estrategia',
         description:
-          'Diseñamos el embudo comercial y el modelo operativo. Definimos qué debe hacer la tecnología para que vendas más.',
+          'De ahí sale el plan a 90 días: mensaje, canales, reparto de peso entre las ocho funciones y los números a los que vamos. Con fechas.',
       },
       {
         id: '03',
-        name: 'Construcción',
+        name: 'Construcción y adopción',
         description:
-          'Integramos CRM, bases de datos y automatización con IA. Convertimos la estrategia en una operación que funciona sola.',
+          'Montamos lo que falte —web, medición, circuito de leads— y el equipo entra en tus reuniones y en tu chat hasta que operar así es lo normal.',
       },
       {
         id: '04',
-        name: 'Adopción',
+        name: 'Medición',
         description:
-          'Formamos a tu equipo hasta que la nueva operativa es parte de su día a día. Sin resistencia y sin dependencia de nosotros.',
+          'Revisión mensual con los datos delante: qué funcionó, qué no y cómo se reparte el peso el mes siguiente. El marketing deja de decidirse por intuición.',
       },
     ],
   },
 
   mandates: {
-    eyebrow: '/ Modelos de colaboración',
-    heading: {lead: 'Dos formas', dim: 'de trabajar con nosotros.'},
-    lead: 'Empezamos acotado para demostrar valor. Escalamos cuando el sistema ya se sostiene solo.',
-    footnote: 'No trabajamos por horas ni vendemos licencias.',
+    eyebrow: '/ Por dónde empezar',
+    heading: {lead: 'Dos puntos de partida.', dim: 'Según lo que ya tengas montado.'},
+    lead:
+      'El primer paso no es el mismo si ya tienes cuentas y web funcionando que si empiezas de cero. En los dos casos sales de la primera conversación sabiendo qué se hace y cuándo.',
+    footnote:
+      'Un contrato de servicios, no una relación laboral: sin nóminas, sin gestión de personal y con un mes de aviso para subir o bajar el equipo. Encajamos mejor con empresas B2B de 10 a 50 personas y ticket por encima de 1.500 €.',
     plans: [
       {
         index: 'M/01',
-        name: 'Intervención',
+        name: 'Si ya tienes operativa',
         variant: 'light',
         pitch:
-          'Un proyecto acotado sobre el punto que más te frena hoy: pipeline, entregas, administración o control de dirección.',
+          'Ya inviertes en marketing: tienes cuentas montadas, web y algo de medición. El problema no es empezar, es que nadie lo está dirigiendo entero.',
         includes: [
-          'Diagnóstico de operación',
-          'Rediseño del proceso crítico',
-          'Automatización e integración a medida',
-          'Formación del equipo implicado',
+          'Auditoría de cuentas, web, medición y CRM',
+          'Mapa de qué está montado, roto o sin hacer',
+          'Plan a 90 días con números y fechas',
+          'En tres semanas tienes el plan y el equipo dentro',
         ],
-        ctaLabel: 'Solicitar diagnóstico',
+        ctaLabel: 'Quiero la auditoría',
       },
       {
         index: 'M/02',
-        name: 'Transformación continua',
+        name: 'Si empiezas de cero',
         variant: 'dark',
         pitch:
-          'Nos convertimos en el equipo de operaciones y tecnología que tu empresa no puede permitirse contratar en fijo. Evolucionamos tu operativa mes a mes.',
+          'No hay nada montado, o lo que hay no sirve. Construimos la base entera —mensaje, web, medición y circuito de leads— y a partir de ahí se capta.',
         includes: [
-          'Todo lo de Intervención',
-          'Evolución continua del sistema',
-          'Panel de control para dirección',
-          'Soporte y formación permanentes',
-          'Sin ampliar tu plantilla',
+          'Mensaje y propuesta de valor',
+          'Web y landings que convierten',
+          'Medición y CRM desde el primer día',
+          'Circuito de leads completo',
+          'Captando en ocho semanas',
         ],
-        ctaLabel: 'Hablar con el equipo',
+        ctaLabel: 'Quiero empezar',
       },
     ],
   },
 
+  // Comparativa montarlo-tú / con-nosotros. Reutiliza <CareersCallout/>: el panel
+  // de la izquierda es el enunciado y las dos columnas de la derecha son las
+  // listas con X (montarlo tú) y con check (con nosotros).
   admission: {
-    eyebrow: '/ Con quién trabajamos',
-    heading: 'Encajamos mejor con unas empresas que con otras.',
+    eyebrow: '/ Por qué así',
+    heading: 'Hacer buen marketing es difícil. Y montar el equipo que lo ejecute, también.',
     intro:
-      'No trabajamos con todo el mundo, y decirlo es lo justo. Con este perfil de empresa la transformación tiene mucho más impacto.',
-    notAcceptedTitle: 'No encajamos si',
+      'No es que no sepas lo que hay que hacer. Es que montarlo por dentro son ocho contrataciones, ocho relaciones laborales y todo el riesgo de acertar a la primera. Esa parte ya la hicimos nosotros.',
+    notAcceptedTitle: 'Si lo montas tú',
     notAccepted: [
-      'Buscas la solución más barata',
-      'Quieres a alguien que instale un software y desaparezca',
-      'Tu empresa aún no tiene un modelo de negocio validado',
-      'Esperas resultados sin implicar a tu equipo',
+      'Ocho funciones son ocho procesos de selección: redactar, filtrar, entrevistar y decidir. Normalmente, tú.',
+      'Cada contratación es una relación laboral: nóminas, periodo de prueba, formación, vacaciones, bajas y rotación.',
+      'Y no se acierta a la primera: un perfil que no encaja cuesta meses de salario y volver a empezar.',
+      'Y el día que haya que reducir el equipo, es un despido.',
     ],
-    acceptedTitle: 'Encajamos cuando',
+    acceptedTitle: 'Con nosotros',
     accepted: [
-      'Eres B2B con más de 10 años y de 10 a 50 personas',
-      'Vendes servicios o proyectos de ticket alto (>1.500 €)',
-      'Has crecido y la operativa se te ha quedado pequeña',
-      'Quieres competir con una operación actual, no otro parche',
+      'Esa parte ya la hicimos: el equipo está montado, ya ha trabajado junto y es operativo en tres semanas.',
+      'Un contrato de servicios y un solo interlocutor. Sin nóminas y sin gestión de personal.',
+      'Si un perfil no encaja, lo cambiamos nosotros. El riesgo de acertar es nuestro, no tuyo.',
+      'Subes o bajas el equipo cuando lo necesites, con un mes de aviso.',
     ],
   },
 
   contact: {
     eyebrow: '/ El primer paso',
-    heading: 'Empieza por un diagnóstico de tu operación.',
+    heading: 'Hablemos 30 minutos.',
     paragraph:
-      'Una conversación para entender qué procesos te están frenando y qué se puede automatizar primero. Sin compromiso y sin tecnicismos.',
-    cta: {label: 'Solicitar diagnóstico', kind: 'whatsapp'},
+      'Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra y por dónde empezaríamos. Sin presentación de agencia y sin compromiso.',
+    cta: {label: 'Hablemos 30 minutos', kind: 'whatsapp'},
     footnote: 'Respondemos en menos de 24 horas laborables.',
   },
 
   seo: {
-    title: 'Valme Solutions | Transformación operativa con IA para pymes B2B',
+    title: 'Valme Solutions | Tu departamento de marketing, sin montarlo',
     description:
-      'Te acompañamos a poner tu operativa al día: menos procesos manuales, más automatización e IA. Estrategia comercial y tecnología para pymes B2B, sin ampliar plantilla.',
+      'Un equipo de marketing 360 que se integra en tu pyme B2B: estrategia, paid, SEO, contenido, creatividad, web y datos. Las ocho funciones activas, un solo contrato y un solo interlocutor. Operativo en tres semanas.',
   },
+
 }
 
 // ---------------------------------------------------------------------------
@@ -271,103 +354,86 @@ export const homeSeed: any = {
 // ---------------------------------------------------------------------------
 export const caseDocs: any[] = [
   {
-    _id: 'club-tenis-alto-rendimiento',
-    slug: 'club-tenis-alto-rendimiento',
+    _id: 'ceo-sin-visibilidad-marketing',
+    slug: 'ceo-sin-visibilidad-marketing',
     index: '01',
-    image: '/assets/stock/case-tenis.jpg',
-    galleryEyebrow: '/ El producto',
-    galleryHeading: 'La herramienta que usan cada día.',
-    galleryFit: 'contain',
-    gallery: [
-      '/assets/cases/tenis-movil.png',
-      '/assets/cases/tenis-1.png',
-      '/assets/cases/tenis-2.png',
-    ],
-    title: 'El fin del caos en un centro de tenis que no paraba de crecer',
-    sector: 'Club de tenis · Alto rendimiento · Cientos de alumnos',
+    image: '/assets/stock/working.jpg',
+    title: 'El CEO que dejó de preguntar en qué se iba el dinero de marketing',
+    sector: 'Servicios B2B · 35 personas · Dirección general',
     summary:
-      'El director deportivo dirigía el club desde una hoja de Excel. Construimos las aplicaciones, móvil y de escritorio, que ordenan pistas y evaluaciones, y le devolvieron su papel de director.',
+      'Invertía todos los meses y solo recibía un informe con impresiones y alcance. Montamos la medición y el panel que le dicen qué entra, por dónde y a qué coste.',
     challenge:
-      'Un club de tenis de alto rendimiento en pleno crecimiento: cientos de niños, jóvenes y adultos entrenando cada semana y un centro de tecnificación con decenas de jugadores, cada uno con su casuística. Encajarlos a todos en las pistas era un rompecabezas diario —horarios, entrenador asignado, preferencias, salidas a torneos, una lesión que arrastrar, un jugador invitado— que el director deportivo resolvía a mano, en un Excel, entre dos y tres horas cada mañana. Y cuando por fin cerraba las pistas, empezaba a perseguir a los entrenadores para reunir las evaluaciones de cada jugador y presentárselas a las familias como podía: tarde y sin una imagen a la altura del club.',
+      'El gerente llevaba dos años invirtiendo en marketing y no sabía decir si funcionaba. Cada mes recibía un informe lleno de impresiones, alcance y crecimiento de seguidores, y ni una sola línea sobre lo único que le importaba: cuántas oportunidades reales habían entrado y cuánto le había costado cada una. Los formularios de la web caían en un correo compartido, los de LinkedIn los descargaba alguien a mano y las llamadas no se registraban en ningún sitio. Cuando su socio le preguntaba cuánto de la facturación venía de marketing, la respuesta honesta era que no lo sabía. Así que decidía por sensación: recortaba donde le parecía caro y subía donde le habían dicho que había que estar.',
     intervention: [
-      'Escuchamos al director deportivo y a los entrenadores, pista a pista',
-      'Localizamos el origen real del caos: un crecimiento que la gestión manual ya no aguantaba',
-      'Diseñamos y construimos un producto a medida, con app móvil y de escritorio',
-      'Un rol para cada figura del club: dirección deportiva, entrenador y jugador',
-      'Un motor de cuadrantes que respeta horarios, entrenadores, lesiones, torneos e invitados',
-      'Evaluaciones en un par de toques, con aviso automático a las familias',
-      'Acompañamos al club hasta que las aplicaciones fueron su forma natural de trabajar',
+      'Auditamos qué se estaba midiendo y encontramos que casi nada llegaba al CRM',
+      'Montamos el seguimiento de punta a punta: anuncio, web, formulario, llamada y oportunidad',
+      'Unificamos los leads de todos los canales en una sola entrada, sin descargas manuales',
+      'Conectamos el CRM para que cada oportunidad arrastre de dónde vino',
+      'Construimos un panel de dirección con gasto, leads, coste por lead y cierres',
+      'Fijamos una revisión mensual de 45 minutos con los datos delante',
     ],
     result: [
-      'Cuadrar todas las pistas pasó de dos o tres horas a cinco o diez minutos al día',
-      'Cada evaluación se actualiza y se notifica en apenas dos minutos por jugador',
-      'Las familias siguen la evolución de sus hijos al instante y con la imagen que el club merece',
-      'El director deportivo vuelve a dirigir: su tiempo va a lo deportivo y lo estratégico',
-      'El club sigue creciendo sin que la operativa se vuelva a desbordar',
+      'Sabe cada semana cuánto ha invertido y cuántas oportunidades ha traído',
+      'El coste por oportunidad dejó de ser una incógnita y pasó a ser un objetivo',
+      'Las decisiones de presupuesto se toman sobre la tabla, no sobre la sensación',
+      'Puede responder a su socio cuánta facturación viene de marketing, con el dato',
+      'Dejó de pagar dos canales que no habían traído ni una sola oportunidad',
     ],
   },
   {
-    _id: 'publicidad-exterior',
-    slug: 'publicidad-exterior',
+    _id: 'atribucion-canal-rentable',
+    slug: 'atribucion-canal-rentable',
     index: '02',
-    image: '/assets/stock/case-publicidad.jpg',
-    galleryEyebrow: '/ El producto',
-    galleryHeading: 'La aplicación interna, por dentro.',
-    galleryFit: 'contain',
-    gallery: ['/assets/cases/publi-1.png', '/assets/cases/publi-2.png'],
-    title: 'El fin del caos en un departamento de ventas que no paraba de crecer',
-    sector: 'Publicidad exterior · Empresa familiar · +40 años',
+    image: '/assets/stock/case-ia.jpg',
+    title: 'Su mejor canal era el que menos leads traía',
+    sector: 'Industrial B2B · Ticket alto · Ciclo de venta largo',
     summary:
-      'El jefe de ventas hacía de administrador de sus comerciales. Construimos una aplicación interna a medida que puso orden y le devolvió su capacidad de vender.',
+      'Optimizaban el canal que más volumen daba. Al medir hasta el cierre resultó ser el que menos vendía, y el presupuesto se movió al que sí.',
     challenge:
-      'Una empresa familiar de publicidad exterior con más de 40 años, que no paraba de crecer en ventas, clientes y operativa, pero con un departamento comercial desbordado. El jefe de ventas, socio de la empresa, tenía que estar encima de cada comercial, casi haciendo de su administración. Los comerciales trabajaban sin material preparado, sin información fiable del stock de espacios, sin visibilidad de los solapes con ventas de compañeros y sin criterio claro para presupuestar ni para gestionar la documentación que exige cerrar un acuerdo.',
+      'Repartían el presupuesto por intuición y por volumen: el canal que más formularios traía se llevaba la mayor parte, porque parecía el que funcionaba. El problema es que nadie había mirado nunca qué pasaba con esos contactos después. El equipo comercial se quejaba de que la mayoría no tenían ni presupuesto ni proyecto, pero esa queja no llegaba nunca a la decisión de inversión. Mientras tanto, otro canal traía bastantes menos contactos, no llamaba la atención de nadie en el informe mensual y llevaba meses infrafinanciado. Estaban optimizando para conseguir más de lo que no vendía.',
     intervention: [
-      'Entrevistamos al socio jefe de ventas y al equipo comercial del día a día',
-      'Identificamos el caos real del proceso, de la oportunidad al cierre',
-      'Diseñamos y construimos una aplicación interna a medida, por módulos',
-      'Módulo de gestión de disponibilidades y stock de espacios',
-      'Módulo de reservas y de documentación presupuestaria',
-      'Módulo de documentación financiera y contractual para cerrar acuerdos',
-      'Formamos al equipo hasta que la aplicación fue su forma normal de trabajar',
+      'Medimos cada canal hasta el final: no hasta el lead, sino hasta el contrato firmado',
+      'Cruzamos seis meses de histórico entre campañas y oportunidades cerradas del CRM',
+      'Calculamos coste por oportunidad cualificada y por cliente, canal a canal',
+      'Salió a la luz que el canal de más volumen tenía la peor tasa de cierre con diferencia',
+      'Movimos el peso del presupuesto al canal que sí traía clientes',
+      'Rehicimos los anuncios y la landing del canal bueno, que llevaba meses sin tocarse',
+      'Cambiamos el informe mensual: de volumen de leads a coste por cliente',
     ],
     result: [
-      'El jefe de ventas dejó de hacer de administrador de sus comerciales',
-      'El equipo vende con material, stock y presupuestos siempre a mano',
-      'Se acabaron los solapes entre ventas de distintos comerciales',
-      'Mejor trato al cliente: menos tiempos y más calidad en los entregables',
-      'Acogen más oportunidades y gestionan más clientes con el mismo proceso',
+      'El presupuesto dejó de premiar el volumen y pasó a premiar el cierre',
+      'El equipo comercial recibe menos contactos y bastantes más aprovechables',
+      'El coste por cliente bajó sin subir ni un euro la inversión total',
+      'Las campañas se juzgan por lo que facturan, no por lo que aparentan',
+      'Se dejó de invertir en un canal que llevaba un año pareciendo el mejor',
     ],
   },
   {
-    _id: 'trabajador-clave-ia',
-    slug: 'trabajador-clave-ia',
+    _id: 'paid-con-seo-desde-cero',
+    slug: 'paid-con-seo-desde-cero',
     index: '03',
-    image: '/assets/stock/case-ia.jpg',
-    galleryEyebrow: '/ En contexto',
-    galleryHeading: 'El sistema de trabajo asistido.',
-    galleryFit: 'cover',
-    gallery: ['/assets/stock/soft-code.jpg', '/assets/stock/working.jpg'],
-    title: 'El trabajador clave que la IA no sustituyó, sino que potenció',
-    sector: 'Pyme B2B · Un rol crítico · Conocimiento interno',
+    image: '/assets/stock/case-publicidad.jpg',
+    title: 'Empezaron de cero: paid para vender ya, SEO para dejar de depender de él',
+    sector: 'B2B de servicios · Sin presencia previa · Arranque',
     summary:
-      'Su trabajador de más experiencia se estaba quedando atrás frente a la IA. En vez de prescindir de él, construimos un sistema de trabajo asistido que multiplicó su valor.',
+      'No tenían nada montado. Paid para que entraran oportunidades desde el primer mes y SEO en paralelo para que sigan entrando el día que se apague la inversión.',
     challenge:
-      'Tenían a un trabajador que conocía la operación como nadie: años de contexto, criterio y decisiones que no estaban escritas en ningún sitio. El problema no era su valía, sino su forma de trabajar. Se movía entre herramientas dispersas, repetía las mismas tareas manuales cada día y usaba la IA con inseguridad, a tientas. La empresa lo veía venir: si esa manera de operar no evolucionaba, la persona más valiosa acababa siendo también un cuello de botella. No querían sustituirlo ni recortar equipo; querían que diera el salto sin perder lo que lo hacía imprescindible.',
+      'Vendían bien por recomendación y por la agenda de los socios, pero esa vía tenía techo y ellos lo sabían. No había web que convirtiera, ni medición, ni un sitio donde aterrizaran los contactos. El riesgo de arrancar solo con paid era evidente: funciona desde el primer día, pero el día que dejas de pagar se acaba, y cuanto más creces con él más caro se vuelve depender de él. El riesgo de arrancar solo con SEO era el contrario: es lo único que sigue trayendo clientes cuando cierras el grifo, pero tarda meses en dar señales y no aguantaban ese silencio.',
     intervention: [
-      'Analizamos sus tareas reales, una a una, sin partir de la teoría',
-      'Detectamos dónde la IA aporta sin poner en riesgo la calidad',
-      'Construimos un copiloto interno para su día a día',
-      'Preparamos guías y prompts controlados para trabajar con criterio',
-      'Añadimos revisión humana y checklist de calidad en cada entrega',
-      'Montamos un seguimiento para que dirección viera el avance',
-      'Le acompañamos hasta que la IA fue una herramienta suya, no una amenaza',
+      'Definimos el mensaje y la propuesta de valor antes de gastar un euro en tráfico',
+      'Montamos web y landings pensadas para convertir, no para lucir',
+      'Instalamos medición y CRM desde el primer día, antes de encender campañas',
+      'Arrancamos paid acotado a las búsquedas de intención clara de compra',
+      'En paralelo, atacamos con contenido y SEO las mismas búsquedas que compraba el paid',
+      'Usamos los datos del paid para saber qué palabras merecían contenido propio',
+      'Montamos el circuito de leads: entra, se cualifica, se asigna y se persigue solo',
     ],
     result: [
-      'El trabajador no perdió valor: lo multiplicó',
-      'Menos tareas repetitivas y más foco en lo que de verdad aporta',
-      'Aprendió a usar la IA con criterio y seguridad',
-      'La empresa conserva su conocimiento interno, sin transiciones bruscas',
-      'IA para hacer crecer a las personas, no para prescindir de ellas',
+      'Oportunidades entrando desde el primer mes gracias al paid',
+      'El contenido empezó a traer tráfico propio antes de acabar el arranque',
+      'El paid se usó también como laboratorio: qué mensaje funciona antes de escribirlo',
+      'A medida que el SEO sube, el coste de captación deja de depender de la inversión',
+      'Dejaron de crecer solo por recomendación y por la agenda de los socios',
     ],
   },
 ]
@@ -398,34 +464,34 @@ export const otherCases = (slug?: string) =>
 export const settingsSeed: any = {
   _id: 'siteSettings',
   brandName: 'Valme',
-  descriptor: 'Transformación operativa con IA',
+  descriptor: 'Tu departamento de marketing',
   logo: null,
   whatsappNumber: '34600412492',
-  whatsappMessage: 'Hola, me gustaría solicitar un diagnóstico de operación de mi empresa.',
+  whatsappMessage: 'Hola, me gustaría hablar 30 minutos sobre el marketing de mi empresa.',
   email: 'hola@valmesolutions.com',
   linkedinUrl: 'https://www.linkedin.com/company/valme-solutions',
   siteUrl: 'https://valmesolutions.com',
   navLinks: [
-    {label: 'Qué hacemos', sectionId: 'tesis'},
+    {label: 'Qué cubre', sectionId: 'intervencion'},
+    {label: 'Qué somos', sectionId: 'tesis'},
     {label: 'Casos', sectionId: 'casos'},
-    {label: 'Síntomas', sectionId: 'sintomas'},
-    {label: 'Método', sectionId: 'mandato'},
+    {label: 'Cómo trabajamos', sectionId: 'mandato'},
     {label: 'Contacto', sectionId: 'contacto'},
   ],
-  navCtaLabel: 'Solicitar diagnóstico',
+  navCtaLabel: 'Hablemos 30 minutos',
   footerLegal:
-    'Valme Solutions — Transformación operativa con IA para pymes B2B.\nEstrategia comercial, automatización e IA, y control para dirección.',
+    'Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor.',
   footerColumns: [
     {
-      title: 'Casos de éxito',
+      title: 'Casos',
       links: [
-        {label: 'Orden en un centro de tenis', href: '/casos/club-tenis-alto-rendimiento'},
-        {label: 'Orden en publicidad exterior', href: '/casos/publicidad-exterior'},
-        {label: 'Trabajador clave con IA', href: '/casos/trabajador-clave-ia'},
+        {label: 'Un CEO sin visibilidad', href: '/casos/ceo-sin-visibilidad-marketing'},
+        {label: 'El canal que sí vendía', href: '/casos/atribucion-canal-rentable'},
+        {label: 'Paid con SEO desde cero', href: '/casos/paid-con-seo-desde-cero'},
       ],
     },
     {
-      title: 'Intervención',
+      title: 'También hacemos',
       links: [
         {label: 'Revenue Operations', href: '/areas/revenue-operations'},
         {label: 'Internal Operations', href: '/areas/internal-operations'},
@@ -436,9 +502,9 @@ export const settingsSeed: any = {
     {
       title: 'Empresa',
       links: [
-        {label: 'Qué hacemos', href: '/#tesis'},
-        {label: 'Método', href: '/#mandato'},
-        {label: 'Solicitar diagnóstico', href: '/#contacto'},
+        {label: 'Qué cubre', href: '/#intervencion'},
+        {label: 'Cómo trabajamos', href: '/#mandato'},
+        {label: 'Hablemos 30 minutos', href: '/#contacto'},
       ],
     },
   ],
@@ -452,10 +518,11 @@ export const settingsSeed: any = {
   areaScenariosNote:
     'Los siguientes escenarios son situaciones que encontramos habitualmente en empresas B2B como la tuya. Describen el tipo de problema en el que intervenimos.',
   defaultSeo: {
-    title: 'Valme Solutions | Transformación operativa con IA para pymes B2B',
+    title: 'Valme Solutions | Tu departamento de marketing, sin montarlo',
     description:
-      'Te acompañamos a poner tu operativa al día: menos procesos manuales, más automatización e IA, sin ampliar plantilla.',
+      'Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.',
   },
+
 }
 
 // ---------------------------------------------------------------------------

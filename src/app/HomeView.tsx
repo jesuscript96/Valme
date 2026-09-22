@@ -18,12 +18,10 @@ import { Footer } from "@/components/Footer";
 export function HomeView({
   home,
   settings,
-  areas,
   cases,
 }: {
   home: any;
   settings: any;
-  areas: any[];
   cases: any[];
 }) {
   const [ready, setReady] = useState(false);
@@ -35,13 +33,15 @@ export function HomeView({
         <Navbar settings={settings} />
         <main>
           <Hero ready={ready} data={home?.hero} />
-          <Cases data={home?.casesSection} cases={cases} />
+          {/* Las ocho funciones: <Areas/> con tarjetas sin slug. */}
+          <Areas data={home?.functions} />
           <Mission data={home?.mission} />
           <FeatureTabs data={home?.symptoms} />
-          <Areas data={home?.areasSection} areas={areas} />
+          <Cases data={home?.casesSection} cases={cases} />
           <Services data={home?.methodology} />
-          <Mandates data={home?.mandates} />
+          {/* Comparativa montarlo-tú / con-nosotros. */}
           <CareersCallout data={home?.admission} />
+          <Mandates data={home?.mandates} />
           <CTABlocks data={home?.contact} />
         </main>
         <Footer settings={settings} />

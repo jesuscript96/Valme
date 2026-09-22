@@ -4,7 +4,7 @@ import { sanityFetch } from "@/sanity/fetch";
 import { HOME_QUERY, HOME_SEO_QUERY } from "@/sanity/queries";
 import { imageUrl } from "@/sanity/image";
 import { useSanity } from "@/sanity/env";
-import { homeSeed, settingsSeed, areasSeed, caseCards } from "@/content/seed";
+import { homeSeed, settingsSeed, caseCards } from "@/content/seed";
 import { HomeView } from "./HomeView";
 import { absoluteUrl } from "@/lib/site";
 
@@ -52,12 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function Page() {
   if (!useSanity) {
     return (
-      <HomeView
-        home={homeSeed}
-        settings={settingsSeed}
-        areas={areasSeed}
-        cases={caseCards}
-      />
+      <HomeView home={homeSeed} settings={settingsSeed} cases={caseCards} />
     );
   }
 
@@ -72,7 +67,6 @@ export default async function Page() {
     <HomeView
       home={data.home}
       settings={data.settings}
-      areas={data.areas ?? []}
       cases={data.cases ?? []}
     />
   );

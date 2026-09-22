@@ -37,22 +37,10 @@ export function Mission({ data }: { data: MissionData }) {
           {data?.lead}
         </Reveal>
 
-        <Reveal as="div" delay={0.15} y={40} className="mt-16 md:mt-20">
-          <div className="relative h-[320px] md:h-[500px] overflow-hidden rounded-lg">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/corp/glass.jpeg"
-              alt="Fachada corporativa de vidrio y hormigón"
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-black/70 via-brand-black/10 to-transparent" />
-          </div>
-        </Reveal>
-
         <Reveal
           as="span"
           delay={0.15}
-          className="block mt-16 md:mt-20 font-mono text-xs tracking-[0.35em] uppercase text-white/40 mb-8"
+          className="block mt-20 md:mt-28 font-mono text-xs tracking-[0.35em] uppercase text-white/40 mb-8"
         >
           {data?.principlesEyebrow}
         </Reveal>

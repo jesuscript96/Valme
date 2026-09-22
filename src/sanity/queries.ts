@@ -1,13 +1,8 @@
 import {defineQuery} from 'next-sanity'
 
-const AREA_CARD = `{
-  _id, name, "slug": slug.current, index, eyebrow, icon, tagline, image
-}`
-
 export const HOME_QUERY = defineQuery(`{
   "home": *[_id == "homePage"][0]{...},
-  "settings": *[_id == "siteSettings"][0]{...},
-  "areas": *[_type == "area"] | order(orderRank asc) ${AREA_CARD}
+  "settings": *[_id == "siteSettings"][0]{...}
 }`)
 
 export const AREA_QUERY = defineQuery(`{

@@ -23,7 +23,7 @@ export const homePage = defineType({
     {name: 'hero', title: 'Hero', default: true},
     {name: 'mission', title: 'Tesis'},
     {name: 'symptoms', title: 'Síntomas'},
-    {name: 'areas', title: 'Intervención'},
+    {name: 'functions', title: 'Las ocho funciones'},
     {name: 'method', title: 'Metodología'},
     {name: 'mandates', title: 'Mandatos'},
     {name: 'admission', title: 'Admisión'},
@@ -108,17 +108,75 @@ export const homePage = defineType({
       ],
     }),
 
-    // INTERVENCIÓN (áreas)
+    // LAS OCHO FUNCIONES
     defineField({
-      name: 'areasSection',
-      title: 'Intervención',
+      name: 'functions',
+      title: 'Las ocho funciones',
       type: 'object',
-      group: 'areas',
-      description: 'Las 4 tarjetas se toman de los documentos "Área de intervención".',
+      group: 'functions',
+      description:
+        'Las tarjetas viven aquí dentro: no son documentos y no tienen página propia.',
       fields: [
         defineField({name: 'eyebrow', title: 'Eyebrow', type: 'string'}),
         heading('heading', 'Titular'),
         defineField({name: 'intro', title: 'Introducción', type: 'text', rows: 3}),
+        defineField({
+          name: 'items',
+          title: 'Funciones',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              fields: [
+                defineField({name: '_id', title: 'Identificador', type: 'string'}),
+                defineField({name: 'index', title: 'Nº', type: 'string'}),
+                defineField({name: 'name', title: 'Nombre', type: 'string'}),
+                defineField({
+                  name: 'icon',
+                  title: 'Icono',
+                  type: 'string',
+                  options: {
+                    list: [
+                      {title: 'Brújula (estrategia)', value: 'compass'},
+                      {title: 'Megáfono (paid)', value: 'megaphone'},
+                      {title: 'Lupa (SEO)', value: 'search'},
+                      {title: 'Personas (social)', value: 'users'},
+                      {title: 'Paleta (creatividad)', value: 'palette'},
+                      {title: 'Pluma (copy)', value: 'pen-tool'},
+                      {title: 'Clic (web y CRO)', value: 'mouse-pointer-click'},
+                      {title: 'Base de datos (datos y CRM)', value: 'database'},
+                    ],
+                  },
+                }),
+                defineField({name: 'tagline', title: 'Descripción', type: 'text', rows: 2}),
+              ],
+              preview: {select: {title: 'name', subtitle: 'tagline'}},
+            }),
+          ],
+        }),
+        defineField({name: 'weightsTitle', title: 'Titular del reparto de peso', type: 'string'}),
+        defineField({name: 'weightsNote', title: 'Nota del reparto de peso', type: 'string'}),
+        defineField({
+          name: 'weights',
+          title: 'Reparto de peso',
+          description: 'El porcentaje define el ancho de cada tramo de la barra.',
+          type: 'array',
+          of: [
+            defineArrayMember({
+              type: 'object',
+              fields: [
+                defineField({name: 'label', title: 'Etiqueta', type: 'string'}),
+                defineField({
+                  name: 'value',
+                  title: 'Porcentaje',
+                  type: 'number',
+                  validation: (Rule) => Rule.min(0).max(100),
+                }),
+              ],
+              preview: {select: {title: 'label', subtitle: 'value'}},
+            }),
+          ],
+        }),
         defineField({name: 'closingEyebrow', title: 'Eyebrow del bloque de cierre', type: 'string'}),
         defineField({name: 'closingHeading', title: 'Titular del bloque de cierre', type: 'string'}),
         defineField({name: 'closingCta', title: 'CTA del bloque de cierre', type: 'cta'}),
