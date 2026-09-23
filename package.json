@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test \"src/os/**/__tests__/*.test.ts\""
+    "test": "tsx --test \"src/os/**/__tests__/*.test.ts\"",
+    "audit": "tsx scripts/audit.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",
@@ -18,6 +19,7 @@
     "motion": "^13.1.0",
     "next": "16.3.0",
     "next-sanity": "^13.3.2",
+    "playwright-core": "^1.63.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "three": "^0.185.1",
