@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { AccessGate } from "@/components/valme-access-gate";
+import { getV2Shell } from "@/lib/v2-shell.functions";
 
 export const Route = createFileRoute("/_authenticated/panel")({
   head: () => ({
@@ -16,12 +19,16 @@ export const Route = createFileRoute("/_authenticated/panel")({
 });
 
 function Panel() {
-  return (
-    <AccessGate>
-      {() => (
-        // La V2 es la interfaz de demostración (datos ficticios); nunca contiene datos reales.
-        <iframe title="VALME Search OS · centro de mando" src="/v2/index.html" className="h-full w-full border-0" />
-      )}
-    </AccessGate>
-  );
+  return <AccessGate>{() => <V2Frame />}</AccessGate>;
+}
+
+function V2Frame() {
+  const fn = useServerFn(getV2Shell);
+  const q = useQuery({ queryKey: ["v2-shell"], queryFn: () => fn(), staleTime: Infinity, retry: false });
+  if (q.isError || (q.data && !q.data.allowed)) {
+    return <p className="p-6 font-mono text-sm text-muted-foreground">Acceso denegado: tu rol no permite abrir el centro de mando.</p>;
+  }
+  if (!q.data) return <p className="p-6 font-mono text-sm text-muted-foreground">Cargando centro de mando…</p>;
+  // La V2 es la interfaz de demostración (datos ficticios); nunca contiene datos reales.
+  return <iframe title="VALME Search OS · centro de mando" srcDoc={q.data.html} className="h-full w-full border-0" />;
 }
