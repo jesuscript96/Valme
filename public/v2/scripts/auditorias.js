@@ -401,8 +401,22 @@ function seoAuditEvidence(a) {
 }
 
 function seoAuditFindings(a) {
+  const rows = a.findings
+    .map(
+      (
+        f,
+      ) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong>
+      <p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p>
+      ${f.description ? `<p class="v-small">${safe(f.description)}</p>` : ""}
+      ${f.impact ? `<p class="v-small v-muted"><b>Impacto:</b> ${safe(f.impact)}</p>` : ""}
+      ${f.recommendation ? `<p class="v-small v-muted"><b>Recomendación:</b> ${safe(f.recommendation)}</p>` : ""}
+      ${Array.isArray(f.evidenceIds) && f.evidenceIds.length ? `<p class="v-small v-mono v-muted">Evidencia: ${safe(f.evidenceIds.join(", "))}</p>` : '<p class="v-small v-muted">Evidencia incompleta</p>'}
+      </div><span class="v-mono">${safe(f.id)}</span></div>`,
+    )
+    .join("");
   return `<section><div class="v-section-head"><h2>Hallazgos</h2><span class="v-mono">${a.findings.length} REGISTROS</span></div>
-    <div class="v-audit-plain-list">${a.findings.map((f) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong><p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p></div><span class="v-mono">${safe(f.id)}</span></div>`).join("") || '<div class="v-audit-empty"><strong>Sin hallazgos.</strong><p>El borrador aún no contiene resultados.</p></div>'}</div></section>`;
+    <div class="v-audit-plain-list">${rows || '<div class="v-audit-empty"><strong>Sin hallazgos.</strong><p>El borrador aún no contiene resultados.</p></div>'}</div>
+    ${Array.isArray(a.limitations) && a.limitations.length ? `<div class="v-notice"><strong>Límites de esta ejecución</strong><ul>${a.limitations.map((l) => `<li>${safe(l)}</li>`).join("")}</ul></div>` : ""}</section>`;
 }
 
 function seoAuditCoverage(a) {
@@ -438,7 +452,8 @@ function seoAuditDetail(a) {
     ) +
     seoAuditStateTrack(a) +
     `<div class="v-audit-command"><div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
-      ${action ? `<button class="v-primary" data-seo-transition="${action.next}">${action.label}</button>` : ""}
+      ${a.state === "en_ejecucion" ? `<button class="v-primary" data-seo-run ${seoAuditRunning ? "disabled" : ""}>${seoAuditRunning ? "Analizando la web…" : "Ejecutar análisis real"}</button>` : ""}
+      ${action ? `<button class="${a.state === "en_ejecucion" ? "" : "v-primary"}" data-seo-transition="${action.next}">${action.label}</button>` : ""}
       ${a.state === "control_calidad" ? "<button data-seo-return>Devolver con motivo</button>" : ""}
       ${!terminal && a.state !== "cancelado" ? "<button data-seo-cancel>Cancelar auditoría</button>" : ""}
     </div></div>
@@ -488,6 +503,36 @@ async function seoAuditTransition(audit, next, reason) {
   seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
 }
 
+let seoAuditRunning = false;
+
+async function seoAuditRunReal(audit) {
+  if (typeof window.valmeRunRealAudit !== "function") {
+    announce("El análisis real no está disponible en esta página.");
+    return;
+  }
+  seoAuditRunning = true;
+  seoAuditRender(`Analizando ${audit.domain}. Solo lectura, sin cambios en la web.`);
+  try {
+    const r = await window.valmeRunRealAudit(audit.domain, audit.services);
+    audit.evidence = r.evidence;
+    audit.findings = r.findings;
+    audit.coverage = r.coverage;
+    audit.limitations = r.limitations;
+    audit.events.push(
+      `${seoAuditNow()} · Análisis real de ${r.url}: ${r.findings.length} hallazgos, ${r.evidence.length} evidencias. Pendiente de revisión del Project Manager`,
+    );
+    await seoAuditPersist();
+    seoAuditRunning = false;
+    seoAuditTab = "Hallazgos";
+    seoAuditRender(`Análisis terminado: ${r.findings.length} hallazgos propuestos.`);
+  } catch (error) {
+    seoAuditRunning = false;
+    audit.events.push(`${seoAuditNow()} · Análisis real fallido: ${error.message}`);
+    await seoAuditPersist();
+    seoAuditRender(error.message);
+  }
+}
+
 root.addEventListener("click", async (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -524,6 +569,11 @@ root.addEventListener("click", async (event) => {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
       await seoAuditTransition(audit, "cancelado", "Cancelación simulada por Project Manager");
+  } else if (data.seoRun !== undefined) {
+    const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
+    if (audit && audit.state === "en_ejecucion" && !seoAuditRunning) {
+      await seoAuditRunReal(audit);
+    }
   } else if (data.seoReset !== undefined) {
     seoAudits = await seoAuditRepository.reset();
     seoAuditCurrent = null;

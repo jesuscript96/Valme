@@ -35,6 +35,9 @@ describe("SEO audit V2 workspace", () => {
       shell.indexOf("/v2/scripts/auditorias-repository.js") <
         shell.indexOf("/v2/scripts/auditorias.js"),
     );
+    assert.ok(
+      shell.indexOf("/v2/scripts/auditoria-real.js") < shell.indexOf("/v2/scripts/auditorias.js"),
+    );
     assert.match(shell, /<script src="\/v2\/scripts\/auditorias\.js"><\/script>/);
   });
 
@@ -72,12 +75,20 @@ describe("SEO audit V2 workspace", () => {
     assert.doesNotMatch(workspace, /service_role|anon_key|bearer\s+[a-z0-9]/i);
   });
 
+  it("persists real audit results before refreshing the workspace", () => {
+    const runReal = workspace.match(/async function seoAuditRunReal[\s\S]*?\n\}/)?.[0] ?? "";
+
+    assert.match(runReal, /await window\.valmeRunRealAudit/);
+    assert.equal(runReal.match(/await seoAuditPersist\(\)/g)?.length, 2);
+    assert.match(workspace, /await seoAuditRunReal\(audit\)/);
+  });
+
   it("uses reserved example domains in seeded records", () => {
     const seededDomains = [...workspace.matchAll(/domain:\s*["']([^"']+)["']/g)].map(
       (match) => match[1],
     );
     assert.ok(seededDomains.length >= 3);
-    assert.ok(seededDomains.every((domain) => domain.endsWith(".example")));
+    assert.ok(seededDomains.every((domain) => domain?.endsWith(".example") === true));
   });
 
   it("keeps validated and cancelled audits read-only", () => {
