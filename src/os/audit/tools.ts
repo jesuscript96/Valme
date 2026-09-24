@@ -73,7 +73,7 @@ export const HERRAMIENTAS: Record<Herramienta["clave"], Herramienta> = {
     descripcion:
       "Velocidad real, conversión y circuito del lead: qué pasa desde que alguien entra " +
       "hasta que sus datos llegan a algún sitio.",
-    colectores: ["psi"],
+    colectores: ["web"],
   },
 };
 

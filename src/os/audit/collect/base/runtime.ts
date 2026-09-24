@@ -1,4 +1,4 @@
-import { chromium, type Browser } from "playwright-core";
+import { chromium, type Browser, type Page } from "playwright-core";
 import { FIRMAS, type Deteccion } from "../../signatures";
 import { señal, type Señal } from "../../types";
 
@@ -51,16 +51,37 @@ async function abrir(): Promise<Browser> {
   }
 }
 
+/**
+ * AÑADIDO · trabajo extra de una herramienta sobre la MISMA carga de página.
+ *
+ * Sin esto, la auditoría Web necesitaría volver a cargar la página para cada cosa que
+ * mira: accesibilidad, imágenes, estilos, formulario, capturas. Seis cargas por página y
+ * cuatro páginas son dos minutos de espera y seis ocasiones de que algo falle.
+ *
+ * Un añadido recibe la página ya cargada y devuelve señales. Si uno falla, los demás
+ * siguen: se registra el fallo y no se pierde la auditoría entera.
+ */
+export type Añadido = {
+  nombre: string;
+  ejecutar: (page: Page, url: string) => Promise<Señal[]>;
+};
+
 export type Runtime = {
   señales: Señal[];
   detecciones: Deteccion[];
   /** HTML ya renderizado, para las comprobaciones de contenido. */
   html: string;
   titulo: string;
+  /** Añadidos que han fallado, con su motivo. Van a la portada del informe. */
+  fallos: { fuente: string; motivo: string }[];
 };
 
-export async function recogerRuntime(url: string): Promise<Runtime> {
+export async function recogerRuntime(
+  url: string,
+  opciones: { añadidos?: Añadido[] } = {},
+): Promise<Runtime> {
   const out: Señal[] = [];
+  const fallos: { fuente: string; motivo: string }[] = [];
   const navegador = await abrir();
 
   try {
@@ -248,8 +269,20 @@ export async function recogerRuntime(url: string): Promise<Runtime> {
       }));
     }
 
+    // Los añadidos de la herramienta, sobre esta misma página ya cargada.
+    for (const a of opciones.añadidos ?? []) {
+      try {
+        out.push(...(await a.ejecutar(page, url)));
+      } catch (e) {
+        fallos.push({
+          fuente: a.nombre,
+          motivo: e instanceof Error ? e.message : String(e),
+        });
+      }
+    }
+
     await ctx.close();
-    return { señales: out, detecciones, html, titulo };
+    return { señales: out, detecciones, html, titulo, fallos };
   } finally {
     await navegador.close();
   }

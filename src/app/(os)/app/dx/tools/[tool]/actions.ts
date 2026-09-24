@@ -4,11 +4,13 @@ import { requireMember } from "@/os/auth/dal";
 import { auditar } from "@/os/audit/run";
 import { CLAVES, type Herramienta } from "@/os/audit/tools";
 import type { Auditoria } from "@/os/audit/types";
+import { evaluarComprobaciones } from "@/os/audit/web-checks";
+import type { Comprobacion, EstadoComprobacion } from "@/os/audit/web-checks";
 
 export type EstadoEjecucion =
   | { fase: "vacio" }
   | { fase: "error"; mensaje: string }
-  | { fase: "hecho"; resultado: Auditoria };
+  | { fase: "hecho"; resultado: Auditoria; comprobaciones: (Comprobacion & { estado: EstadoComprobacion })[] };
 
 /**
  * Ejecuta la auditoría de verdad, en el servidor.
@@ -36,7 +38,12 @@ export async function ejecutar(
 
   try {
     const resultado = await auditar(dominio, [tool as Herramienta["clave"]]);
-    return { fase: "hecho", resultado };
+    // El catálogo cruzado con lo recogido: así la pantalla enseña qué se ha podido
+    // responder y qué no, en vez de dejar los huecos en silencio.
+    const comprobaciones = tool === "web"
+      ? evaluarComprobaciones(resultado.señales.map((s) => s.id))
+      : [];
+    return { fase: "hecho", resultado, comprobaciones };
   } catch (e) {
     return { fase: "error", mensaje: e instanceof Error ? e.message : "Fallo desconocido" };
   }

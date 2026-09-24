@@ -49,6 +49,24 @@ export type Señal = {
   limite?: string;
 };
 
+/**
+ * EL EMBUDO.
+ *
+ * Una auditoría web comercial no se ordena por categorías técnicas sino por dónde se
+ * pierde la gente entre el clic y el lead. Cada hallazgo cuelga del paso donde hace daño,
+ * y así el informe se lee solo: «llegan, entienden, confían, y en el paso cuatro tenéis un
+ * formulario de nueve campos».
+ */
+export const PASOS = {
+  llega:    { n: 1, titulo: "¿Llega?",          desc: "Carga, errores y móvil real" },
+  entiende: { n: 2, titulo: "¿Entiende?",       desc: "Qué ve en la primera pantalla" },
+  confia:   { n: 3, titulo: "¿Confía?",         desc: "Pruebas, legal y quién hay detrás" },
+  puede:    { n: 4, titulo: "¿Puede?",          desc: "Fricción, formulario y accesibilidad" },
+  registro: { n: 5, titulo: "¿Queda registro?", desc: "Medición y circuito del lead" },
+} as const;
+
+export type Paso = keyof typeof PASOS;
+
 export type Gravedad = "p0" | "p1" | "p2" | "p3";
 export type Confianza = "alta" | "media" | "baja";
 
@@ -68,6 +86,8 @@ export type Hallazgo = {
   evidencia: string[];
   /** Verdadero cuando es algo que funciona bien. Se reconoce antes de proponer nada. */
   positivo?: boolean;
+  /** Paso del embudo donde ocurre. Lo usa la auditoría Web para ordenar el informe. */
+  paso?: Paso;
 };
 
 export type Cobertura = {

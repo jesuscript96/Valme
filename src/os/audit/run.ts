@@ -2,6 +2,14 @@ import { recogerDns } from "./collect/base/dns";
 import { recogerHttp } from "./collect/base/http";
 import { recogerAnuncios, resolverPagina } from "./collect/tools/adlib";
 import { rastrear } from "./collect/tools/crawl";
+import { imagenes } from "./collect/web/imagenes";
+import { estilos } from "./collect/web/estilos";
+import { formulario } from "./collect/web/formulario";
+import { accesibilidad } from "./collect/web/accesibilidad";
+import { movil } from "./collect/web/movil";
+import { confianza } from "./collect/web/confianza";
+import { recogerPsi } from "./collect/web/psi";
+import type { Añadido } from "./collect/base/runtime";
 import { aplicar, cobertura } from "./rules";
 import { CLAVES, colectoresDe, funcionesDe, HERRAMIENTAS, type Herramienta } from "./tools";
 import type { Auditoria, Señal } from "./types";
@@ -59,6 +67,12 @@ export async function auditar(
   ]);
   señales.push(...dns, ...http.señales);
 
+  // Los añadidos de la herramienta de Web corren dentro de la MISMA carga de página.
+  // Seis comprobaciones en seis cargas serían dos minutos y seis ocasiones de fallar.
+  const añadidos: Añadido[] = pedidos.includes("web")
+    ? [imagenes, estilos, formulario, accesibilidad, movil, confianza]
+    : [];
+
   let social: string[] = [];
   if (!hayNavegador()) {
     // Se declara y se sigue. Las demás fuentes no dependen del navegador, así que la
@@ -71,8 +85,9 @@ export async function auditar(
       // carga de módulo ocurre antes de cualquier try/catch normal. Importándolo solo
       // cuando se va a usar, el fallo se puede capturar.
       const { recogerRuntime } = await import("./collect/base/runtime");
-      const rt = await recogerRuntime(http.urlFinal);
+      const rt = await recogerRuntime(http.urlFinal, { añadidos });
       señales.push(...rt.señales);
+      fuentesNoDisponibles.push(...rt.fallos);
       social = (rt.señales.find((s) => s.id === "social.perfiles")?.valor as string[] | null) ?? [];
     } catch (e) {
       fuentesNoDisponibles.push({
@@ -123,11 +138,22 @@ export async function auditar(
     }
   }
 
-  if (pedidos.includes("psi") && !process.env.PAGESPEED_API_KEY) {
-    fuentesNoDisponibles.push({
-      fuente: "PageSpeed y CrUX",
-      motivo: "Falta PAGESPEED_API_KEY. Sin clave, la cuota anónima compartida está siempre agotada.",
-    });
+  if (pedidos.includes("web")) {
+    if (!process.env.PAGESPEED_API_KEY) {
+      fuentesNoDisponibles.push({
+        fuente: "PageSpeed y CrUX",
+        motivo: "Falta PAGESPEED_API_KEY. Sin ella no hay datos de velocidad de usuarios reales, que es el dato más sólido del informe. La clave es gratis y se saca en cinco minutos en Google Cloud.",
+      });
+    } else {
+      try {
+        señales.push(...(await recogerPsi(http.urlFinal)));
+      } catch (e) {
+        fuentesNoDisponibles.push({
+          fuente: "PageSpeed y CrUX",
+          motivo: e instanceof Error ? e.message : String(e),
+        });
+      }
+    }
   }
 
   // --- Solo lo que cubren las herramientas pedidas --------------------------

@@ -7,6 +7,9 @@ import { Badge, Button, Card, CardHeader, cx, Input } from "@/os/ui/primitives";
 import { FUNCIONES, type Auditoria, type Gravedad } from "@/os/audit/types";
 import type { Herramienta } from "@/os/audit/tools";
 import { ejecutar, type EstadoEjecucion } from "./actions";
+import { Embudo } from "./Embudo";
+import { COMPROBACIONES } from "@/os/audit/web-checks";
+import { PASOS, type Paso } from "@/os/audit/types";
 
 const TONO: Record<Gravedad, "accent" | "warn" | "neutral"> = {
   p0: "accent", p1: "accent", p2: "warn", p3: "neutral",
@@ -88,7 +91,15 @@ export function RunTool({
         </Card>
       ) : null}
 
-      {estado.fase === "hecho" ? <Resultado a={estado.resultado} /> : null}
+      {estado.fase === "hecho"
+        ? tool === "web"
+          ? <Embudo a={estado.resultado} comprobaciones={estado.comprobaciones} />
+          : <Resultado a={estado.resultado} />
+        : null}
+
+      {/* Antes de ejecutar, el alcance. Delante de un cliente, enseñar lo que se va a
+          mirar cambia la conversación: se discute lo mirado, no si se miró poco. */}
+      {estado.fase !== "hecho" && tool === "web" ? <Alcance /> : null}
     </div>
   );
 }
@@ -201,5 +212,48 @@ function Resultado({ a }: { a: Auditoria }) {
         </Card>
       </div>
     </div>
+  );
+}
+
+/** Las 52 comprobaciones de la auditoría Web, agrupadas por paso del embudo. */
+function Alcance() {
+  return (
+    <Card>
+      <CardHeader
+        title="Qué se audita"
+        action={<span className="text-[12px] text-os-faint">{COMPROBACIONES.length} comprobaciones</span>}
+      />
+      <div className="divide-y divide-os-border">
+        {(Object.keys(PASOS) as Paso[]).map((clave) => {
+          const del = COMPROBACIONES.filter((c) => c.paso === clave);
+          const p = PASOS[clave];
+          return (
+            <div key={clave} className="px-4 py-3">
+              <p className="mb-2 flex items-baseline gap-2">
+                <span className="os-num text-[12px] font-semibold text-os-accent">{p.n}</span>
+                <span className="text-[13px] font-semibold text-os-text">{p.titulo}</span>
+                <span className="text-[12px] text-os-muted">{p.desc}</span>
+                <span className="os-num ml-auto text-[11px] text-os-faint">{del.length}</span>
+              </p>
+              <ul className="grid gap-x-6 gap-y-1 sm:grid-cols-2">
+                {del.map((c) => (
+                  <li key={c.señal} className="flex items-start gap-2 text-[12px] text-os-muted">
+                    <span className="mt-1.5 size-1 shrink-0 rounded-full bg-os-border-strong" />
+                    <span>
+                      {c.que}
+                      {c.necesita ? (
+                        <span className="ml-1.5 font-mono text-[10px] text-os-warn">
+                          necesita {c.necesita}
+                        </span>
+                      ) : null}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
   );
 }

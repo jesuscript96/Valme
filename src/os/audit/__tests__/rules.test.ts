@@ -41,12 +41,13 @@ test("los positivos se reconocen y van los primeros", () => {
 });
 
 test("los negativos se ordenan por gravedad", () => {
-  const h = aplicar([
-    s("seo.llmstxt", false),        // p3
-    s("datos.herramientas", []),    // p0
-    s("web.formularios", 0),        // p1
-  ]).filter((x) => !x.positivo);
-  assert.deepEqual(h.map((x) => x.gravedad), ["p0", "p1", "p3"]);
+  // Se dispara todo lo posible y se comprueba el ORDEN, sin depender de qué reglas
+  // existan hoy: el conjunto crece y esta prueba no debería romperse por eso.
+  const todas: Señal[] = REGLAS.flatMap((r) => r.necesita.map((id) => s(id, 0, "verificado")));
+  const orden = { p0: 0, p1: 1, p2: 2, p3: 3 } as const;
+  const g = aplicar(todas).filter((x) => !x.positivo).map((x) => orden[x.gravedad]);
+  assert.deepEqual(g, [...g].sort((a, b) => a - b), "los hallazgos no vienen por gravedad");
+  assert.ok(g.length > 3, "deberían dispararse varias reglas");
 });
 
 test("un DMARC en quarantine es positivo y en none es hallazgo", () => {

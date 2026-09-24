@@ -1,4 +1,4 @@
-import type { Confianza, Funcion, Gravedad, Hallazgo } from "../types";
+import type { Confianza, Funcion, Gravedad, Hallazgo, Paso } from "../types";
 
 /**
  * INFRAESTRUCTURA DE REGLAS. Esto no se toca al añadir comprobaciones.
@@ -42,3 +42,9 @@ export const H = (
   confianza: Confianza = "alta",
   positivo = false,
 ) => ({ titulo, situacion, consecuencia, solucion, gravedad, confianza, positivo });
+
+/**
+ * Como `H`, pero colgando el hallazgo de un paso del embudo. Lo usa la auditoría Web para
+ * que el informe se lea como un recorrido y no como una lista por categorías.
+ */
+export const HP = (paso: Paso, ...args: Parameters<typeof H>) => ({ ...H(...args), paso });
