@@ -1,7 +1,7 @@
-# Guía para el equipo
+# Guía para el equipo · detalle
 
-Para las personas que llevan cada área de marketing. **No hace falta saber programar.**
-Sí hace falta seguir tres reglas.
+Referencia con el detalle de cómo se escriben las reglas. Para empezar de cero, lee antes
+[`empezar.md`](./empezar.md), que es más corto.
 
 ---
 
