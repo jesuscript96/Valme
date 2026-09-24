@@ -1,6 +1,6 @@
 import { chromium, type Browser } from "playwright-core";
-import { FIRMAS, type Deteccion } from "../signatures";
-import { señal, type Señal } from "../types";
+import { FIRMAS, type Deteccion } from "../../signatures";
+import { señal, type Señal } from "../../types";
 
 /**
  * CAPA DE RUNTIME. Es la autoridad sobre qué hay instalado.

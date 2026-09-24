@@ -54,23 +54,35 @@ Y abre `http://localhost:3000/login`. Las credenciales de desarrollo están en `
 
 ---
 
-## Tu fichero
+## Las tres herramientas
 
-Cada área tiene el suyo. **Solo tocas el tuyo.**
+Hay tres informes y cada uno tiene un dueño:
 
-| Área | Fichero |
+| Herramienta | Tus ficheros |
 | --- | --- |
-| 01 Dirección y estrategia | `src/os/audit/rules/01-estrategia.ts` |
-| 02 Paid media | `src/os/audit/rules/02-paid.ts` |
-| 03 SEO, contenido y GEO | `src/os/audit/rules/03-seo.ts` |
-| 04 Social orgánico | `src/os/audit/rules/04-social.ts` |
-| 05 Creatividad, diseño y vídeo | `src/os/audit/rules/05-creatividad.ts` |
-| 06 Mensaje y copy | `src/os/audit/rules/06-copy.ts` |
-| 07 Web, landings y CRO | `src/os/audit/rules/07-web.ts` |
-| 08 Datos, CRM y leads | `src/os/audit/rules/08-datos.ts` |
+| **Auditoría de Paid** | `rules/02-paid.ts` · `collect/tools/adlib.ts` |
+| **Auditoría de SEO** | `rules/03-seo.ts` · `collect/tools/crawl.ts` |
+| **Auditoría Web** | `rules/07-web.ts` · `rules/08-datos.ts` |
 
-Está configurado para que GitHub te pida a ti la revisión de tu fichero y a nadie más. Como
-cada uno trabaja en el suyo, los cambios no chocan nunca.
+Todo dentro de `src/os/audit/`. GitHub te pide a ti la revisión de tus ficheros y a nadie
+más, así que los cambios no chocan.
+
+Mientras desarrollas, corre solo la tuya:
+
+```bash
+npm run audit -- undominio.com --tool paid
+```
+
+### Por qué la recolección es compartida
+
+La carga de la página con navegador tarda veinte segundos y alimenta a las tres a la vez:
+el píxel es de Paid, el canonical es de SEO y el formulario es de Web, y salen todos de la
+misma carga. Por eso `collect/base/` es del CTO y no se toca.
+
+Lo que sí es tuyo es `collect/tools/`: los colectores caros que solo interesan a tu
+herramienta. La biblioteca de anuncios solo la necesita Paid; el rastreo de cuarenta
+páginas, solo SEO. Si necesitas uno nuevo, ahí es donde va, y avisa al CTO porque suma
+tiempo a cada auditoría.
 
 ---
 
@@ -125,7 +137,7 @@ Las de tu área están listadas en la cabecera de tu fichero. Para verlas todas 
 valores reales de un dominio:
 
 ```bash
-npm run audit -- undominio.com --json señales.json
+npm run audit -- undominio.com --tool paid --json señales.json
 ```
 
 Abre `señales.json` y mira el array `señales`. Cada una tiene su `id`, su `valor` y su

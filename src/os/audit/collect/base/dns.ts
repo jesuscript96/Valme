@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { señal, type Señal } from "../types";
+import { señal, type Señal } from "../../types";
 
 const run = promisify(execFile);
 

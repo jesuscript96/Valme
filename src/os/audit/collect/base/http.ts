@@ -1,4 +1,4 @@
-import { señal, type Señal } from "../types";
+import { señal, type Señal } from "../../types";
 
 /**
  * Comprobaciones sobre HTTP puro: cadena de redirecciones, ficheros de raíz y 404.

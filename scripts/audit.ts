@@ -1,16 +1,35 @@
 import { writeFileSync } from "node:fs";
 import { auditar } from "../src/os/audit/run";
+import { CLAVES, HERRAMIENTAS, type Herramienta } from "../src/os/audit/tools";
 import { FUNCIONES } from "../src/os/audit/types";
 
-/** CLI: `npm run audit -- <dominio> [--json salida.json]` */
+/**
+ * CLI del auditor.
+ *
+ *   npm run audit -- <dominio>                     las tres herramientas
+ *   npm run audit -- <dominio> --tool paid         solo la tuya, mientras desarrollas
+ *   npm run audit -- <dominio> --tool seo,web      varias
+ *   npm run audit -- <dominio> --json salida.json  todas las señales en bruto
+ */
 
 const args = process.argv.slice(2);
-const dominio = args.find((a) => !a.startsWith("--"));
+const dominio = args.find((a, i) => !a.startsWith("--") && args[i - 1] !== "--tool" && args[i - 1] !== "--json");
 if (!dominio) {
-  console.error("Uso: npm run audit -- <dominio> [--json salida.json]");
+  console.error(`Uso: npm run audit -- <dominio> [--tool ${CLAVES.join("|")}] [--json salida.json]`);
   process.exit(1);
 }
 const jsonPath = args.includes("--json") ? args[args.indexOf("--json") + 1] : null;
+
+const pedidas = args.includes("--tool")
+  ? (args[args.indexOf("--tool") + 1] ?? "").split(",").map((t) => t.trim())
+  : CLAVES;
+
+const invalidas = pedidas.filter((t) => !CLAVES.includes(t as Herramienta["clave"]));
+if (invalidas.length) {
+  console.error(`Herramienta desconocida: ${invalidas.join(", ")}. Hay: ${CLAVES.join(", ")}`);
+  process.exit(1);
+}
+const herramientas = pedidas as Herramienta["clave"][];
 
 const C = {
   dim: (s: string) => `\x1b[2m${s}\x1b[0m`,
@@ -22,9 +41,10 @@ const C = {
 };
 const COLOR = { p0: C.rojo, p1: C.rojo, p2: C.ambar, p3: C.gris };
 
-console.log(C.dim(`\nAuditando ${dominio}…\n`));
+const nombres = herramientas.map((h) => HERRAMIENTAS[h].nombre).join(" · ");
+console.log(C.dim(`\nAuditando ${dominio}\n${nombres}\n`));
 
-auditar(dominio).then((a) => {
+auditar(dominio, herramientas).then((a) => {
   console.log(C.b(`AUDITORÍA · ${a.dominio}`));
   console.log(C.dim(`${a.urlFinal} · ${a.señales.length} señales en ${(a.duracionMs / 1000).toFixed(1)} s\n`));
 

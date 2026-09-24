@@ -1,4 +1,4 @@
-import { señal, type Señal } from "../types";
+import { señal, type Señal } from "../../types";
 
 /**
  * BIBLIOTECA DE ANUNCIOS DE META.

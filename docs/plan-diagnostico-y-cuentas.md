@@ -1,4 +1,9 @@
-# CRM y Cuentas: la división de la aplicación
+# Diagnóstico y Cuentas: la división de la aplicación
+
+> **Revisado.** La primera versión de este documento proponía un CRM con embudo,
+> oportunidades y actividad. No es lo que hace falta ahora. La mitad de antes de firmar
+> es **un registro de leads más tres herramientas de auditoría**, y nada más. Todo lo
+> demás, cuando haga falta y no antes.
 
 Propuesta para partir Valme OS en dos mitades antes de que el equipo empiece a desarrollar.
 
@@ -9,7 +14,7 @@ Propuesta para partir Valme OS en dos mitades antes de que el equipo empiece a d
 La división que planteas coincide con algo que ya estaba pidiendo el código: **las dos
 mitades tienen modelos de acceso incompatibles.**
 
-| | **CRM** | **Cuentas** |
+| | **Diagnóstico** | **Cuentas** |
 | --- | --- | --- |
 | De quién son los datos | De Valme | Del cliente |
 | Unidad | El prospecto | El cliente |
@@ -24,10 +29,10 @@ el comercial vea su embudo, o el comercial no ve su embudo.
 
 No hay una tercera. Por eso son dos mitades y no dos menús.
 
-> **Corrección a lo que propuse la semana pasada.** Dije de añadir `prospect` al estado del
-> cliente para poder auditar antes de firmar. Con esta división, eso está mal: un prospecto
-> y un cliente son dos entidades distintas que se enlazan al ganar, no la misma en dos
-> estados. Un prospecto perdido tampoco es un cliente pausado.
+> **Corrección a lo que propuse antes.** Dije de añadir `prospect` al estado del cliente
+> para poder auditar antes de firmar. Con esta división eso está mal: un lead y un cliente
+> son dos entidades distintas que se enlazan al ganar, no la misma en dos estados. Un lead
+> perdido tampoco es un cliente pausado.
 
 ---
 
@@ -37,20 +42,26 @@ No hay una tercera. Por eso son dos mitades y no dos menús.
 
 ```
 /app
-  /crm                        ← LADO CRM · datos de Valme
-    /pipeline                 el embudo, por etapas
-    /prospects                prospectos
-    /prospects/[id]           ficha: web, contactos, actividad, auditorías
-    /prospects/[id]/audit     la auditoría (usa el recolector que ya existe)
-    /inbox                    leads que entran a Valme
-    /deals/[id]               oportunidad: propuesta, importe, etapa
+  /dx                         ← DIAGNÓSTICO · datos de Valme
+    /leads                    lo que entra por el formulario
+    /leads/[id]               el registro del lead y sus auditorías
+    /tools                    las tres herramientas
+    /tools/paid               auditoría de Paid
+    /tools/seo                auditoría de SEO
+    /tools/web                auditoría Web
 
-  /clients                    ← LADO CUENTAS · puerta
+  /clients                    ← CUENTAS · puerta
   /c/[cliente]/…              todo lo que ya existe, sin tocar
 ```
 
-En la interfaz: **CRM** y **Cuentas**. Un conmutador arriba del todo, no un elemento más de
-la navegación lateral: son dos contextos, no dos secciones.
+En la interfaz: **Diagnóstico** y **Cuentas**. Un conmutador arriba del todo, no un
+elemento más de la navegación lateral: son dos contextos, no dos secciones.
+
+**Las herramientas funcionan con o sin lead.** Pegas un dominio y sale el informe, sin
+crear nada. Esto importa más de lo que parece: el especialista que está desarrollando su
+herramienta necesita probarla contra veinte dominios seguidos, y obligarle a dar de alta un
+lead falso cada vez es la forma más rápida de que deje de probarla. Cuando la auditoría se
+lanza desde un lead, se guarda enganchada a él; cuando se lanza suelta, no se guarda.
 
 ### Código
 
@@ -58,13 +69,13 @@ la navegación lateral: son dos contextos, no dos secciones.
 src/os/
   core/        sesión, UI, proveedores, coste de IA · del CTO, nadie más lo toca
   audit/       el recolector y las reglas · COMPARTIDO por las dos mitades
-  crm/         prospectos, embudo, oportunidades, actividad
+  dx/          leads y las pantallas de las tres herramientas
   accounts/    brand kit, ofertas, creatividades, landings, leads del cliente
 ```
 
 Cuatro carpetas y una regla:
 
-> **`crm/` y `accounts/` no se importan nunca entre sí.** Lo que necesiten compartir sube a
+> **`dx/` y `accounts/` no se importan nunca entre sí.** Lo que necesiten compartir sube a
 > `core/`.
 
 Esa regla se puede comprobar sola. Se añade a la configuración de ESLint y el CI rechaza el
@@ -78,11 +89,11 @@ Es la pregunta interesante, porque la respuesta no es obvia: **en ninguna de las
 
 La auditoría la usan las dos mitades y para cosas distintas:
 
-- **En CRM**, sobre un prospecto: es la herramienta de venta.
+- **En Diagnóstico**, sobre un lead o sobre un dominio suelto: es la herramienta de venta.
 - **En Cuentas**, sobre un cliente: es el control periódico de lo que llevamos.
 
-Si se mete en `crm/`, el día que Cuentas la necesite habrá que sacarla de allí, y para
-entonces tendrá dependencias del embudo. Va en `audit/`, como capacidad compartida, y cada
+Si se mete en `dx/`, el día que Cuentas la necesite habrá que sacarla de allí, y para
+entonces tendrá dependencias de los leads. Va en `audit/`, como capacidad compartida, y cada
 mitad la invoca con lo suyo.
 
 Mismo criterio para los proveedores (Firecrawl, Claude, Higgsfield, Meta): van en `core/`.
@@ -94,7 +105,7 @@ Mismo criterio para los proveedores (Firecrawl, Claude, Higgsfield, Meta): van e
 Es la única costura entre las dos mitades, y conviene que sea una sola función:
 
 ```ts
-convertirProspecto(prospectoId) → slug del cliente
+convertirLead(leadId) → slug del cliente
 ```
 
 Qué hace:
@@ -104,37 +115,36 @@ Qué hace:
    podrá comparar cómo estaba el día que firmó.
 3. **Siembra el Brand Kit** con lo que la auditoría ya rastreó: identidad visual, mensaje,
    páginas. El cliente entra con el kit medio hecho, sin repetir el rastreo.
-4. Marca el prospecto como ganado y lo enlaza al cliente. No lo borra: el histórico
-   comercial se queda en CRM.
+4. Marca el lead como ganado y lo enlaza al cliente. No lo borra: el histórico se queda
+   en Diagnóstico.
 
 Esa función es del CTO. Es donde se cruzan los dos modelos de permisos y es el sitio más
 fácil de estropear.
 
 ---
 
-## 5. Qué hay que construir en cada lado
+## 5. Qué hay que construir
 
-**CRM**, que hoy no existe:
+**Diagnóstico**, y nada más que esto:
 
 | | |
 | --- | --- |
-| `prospects` | empresa, web, sector, tamaño, origen, propietario |
-| `contacts` | personas del prospecto |
-| `deals` | oportunidad: etapa, importe, oferta, fecha prevista |
-| `activities` | llamadas, correos, notas, con fecha y autor |
-| `inbound_leads` | lo que entra por la web de Valme |
-| `audits` | enlazadas al prospecto |
+| `leads` | lo que llega del formulario: empresa, web, contacto, mensaje, origen |
+| `audits` | una ejecución de una herramienta sobre un dominio, con sus señales y hallazgos |
 
-Etapas propuestas, calcadas de cómo vendéis: **Nuevo → Auditado → Reunión → Propuesta →
-Ganado / Perdido**. La auditoría es una etapa porque en vuestro proceso la auditoría *es* la
-venta. Confirmadlo vosotros: las etapas las define quien vende, no quien programa.
+Dos tablas. Sin etapas, sin oportunidades, sin actividad, sin propietario. Todo eso se
+añade el día que haga falta, y ese día se sabrá qué forma tiene que tener porque habrá
+leads reales dentro.
 
-Un detalle que va antes que todo lo demás: **la web de Valme no tiene formulario**, así que
-hoy no hay nada que entre a `inbound_leads`. Lo detectó la propia auditoría al ejecutarla
-contra vuestro dominio. Montar el CRM sin arreglar eso es construir una bandeja de entrada
-sin buzón.
+**Las tres herramientas** ya están montadas y funcionando por línea de comandos. Lo que
+falta es la pantalla.
 
 **Cuentas**, que ya existe: se queda igual. Solo cambia de carpeta.
+
+Un detalle que va antes que todo lo demás: **la web de Valme no tiene formulario**, así que
+hoy no hay nada que pueda entrar a `leads`. Lo detectó la propia auditoría al ejecutarla
+contra vuestro dominio. Montar la bandeja de entrada sin arreglar eso es poner un buzón sin
+ranura.
 
 ---
 
@@ -153,7 +163,7 @@ como datos, el CTO aporta la máquina.**
 | Dónde | Qué aporta el especialista | Forma |
 | --- | --- | --- |
 | `audit/rules/` | Qué se comprueba y qué significa | Un fichero por área. Ya montado. |
-| `crm/scoring/` | Qué hace bueno a un lead y qué lo descarta | Mismo patrón: reglas con señales del prospecto |
+| `audit/collect/tools/` | Los datos propios que necesita tu herramienta | Un colector por herramienta |
 | `accounts/playbooks/` | Qué se entrega en los 90 días de cada área | Listas de acciones con responsable y semana |
 
 Las tres son ficheros de criterio, se prueban con `npm run check` y no tocan infraestructura.
@@ -176,7 +186,8 @@ El orden:
 
 1. Mover `accounts/` y `core/` a su sitio, sin cambiar nada por dentro.
 2. Añadir la regla de ESLint que impide que las mitades se importen.
-3. Crear `crm/` vacío con su guardia de permisos y su primera pantalla.
+3. Crear `dx/` con su guardia de permisos, el registro de leads y las tres pantallas de
+   herramienta.
 4. Actualizar CODEOWNERS y la guía del equipo con la nueva estructura.
 
 Y una comprobación que no me saltaría: que la web comercial y el área siguen funcionando
@@ -186,9 +197,10 @@ igual después de mover. Es un refactor mecánico, pero mecánico no quiere deci
 
 ## 8. Lo que hay que decidir antes de tocar nada
 
-1. **Las etapas del embudo.** Las de arriba son una propuesta leyendo vuestro one-pager.
-2. **Quién ve qué en CRM.** ¿Todo el equipo comercial ve todo el embudo, o cada uno lo suyo?
-   Cambia la guardia de permisos, y cambiarla después es peor.
-3. **Si el CRM sustituye a algo que ya usáis.** Si hoy el embudo vive en una hoja de cálculo
-   o en otra herramienta, hay que decidir si esto la reemplaza o convive. Convivir sin
-   decidirlo es acabar con dos embudos y ninguno fiable.
+1. **Cómo se llama la mitad de la izquierda.** Propongo **Diagnóstico**, porque es lo que
+   se hace ahí y no promete un CRM que no hay. Otras opciones razonables: Prospección,
+   Entrada.
+2. **Quién ve qué.** ¿Todo el equipo ve todos los leads, o cada uno los suyos? Cambia la
+   guardia de permisos, y cambiarla después es peor que decidirla hoy.
+3. **Qué campos trae el formulario.** Define la tabla `leads` y hay que ponerlo en la web
+   antes de que llegue el primero.
