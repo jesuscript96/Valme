@@ -25,8 +25,18 @@ function Inicio() {
     });
   }, [navigate]);
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background font-mono text-sm text-muted-foreground">
-      Comprobando sesión…
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
+      <div className="max-w-xl space-y-4 text-center">
+        <h1 className="text-2xl font-semibold text-foreground">
+          VALME Search OS — Centro de mando para agencias SEO, AEO y GEO
+        </h1>
+        <p className="text-muted-foreground">
+          Plataforma interna de VALME donde los agentes ejecutan auditorías, diagnósticos y planes
+          de posicionamiento en buscadores y motores de respuesta, y el Project Manager revisa y
+          aprueba cada paso. Acceso solo por invitación.
+        </p>
+        <p className="font-mono text-sm text-muted-foreground">Comprobando sesión…</p>
+      </div>
     </main>
   );
 }
