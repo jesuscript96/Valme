@@ -13,11 +13,11 @@ El PR 9 incorpora al panel V2 una superficie operativa para preparar y revisar a
 - transiciones guiadas por los diez estados del dominio;
 - devolución desde control de calidad, cancelación y reautorización;
 - expedientes `validado` y `cancelado` en modo de solo lectura;
-- datos ficticios guardados en `localStorage` para poder probar el flujo en Lovable.
+- datos ficticios gestionados por un repositorio local versionado para poder probar el flujo en Lovable.
 
 ## Límite deliberado
 
-La interfaz no consulta Supabase, no ejecuta rastreos y no modifica clientes reales. Los cambios solo afectan a la demostración del navegador y pueden borrarse con **Restablecer demo**.
+La interfaz no consulta Supabase, no ejecuta rastreos y no modifica clientes reales. Los cambios solo afectan a la demostración del navegador y pueden borrarse con **Restablecer demo**. El adaptador y las condiciones de activación remota se describen en [Repositorio de auditorías SEO](seo-audit-repository.md).
 
 La persistencia multi-tenant, sus políticas RLS y la sincronización de membresías siguen definidas en `0005_seo_audit_persistence.sql`. La conexión de esta interfaz a esas tablas debe realizarse en una entrega posterior, una vez aplicada y verificada la migración en un entorno separado de producción.
 
