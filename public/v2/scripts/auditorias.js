@@ -450,7 +450,8 @@ function seoAuditDetail(a) {
     ) +
     seoAuditStateTrack(a) +
     `<div class="v-audit-command"><div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
-      ${action ? `<button class="v-primary" data-seo-transition="${action.next}">${action.label}</button>` : ""}
+      ${a.state === "en_ejecucion" ? `<button class="v-primary" data-seo-run ${seoAuditRunning ? "disabled" : ""}>${seoAuditRunning ? "Analizando la web…" : "Ejecutar análisis real"}</button>` : ""}
+      ${action ? `<button class="${a.state === "en_ejecucion" ? "" : "v-primary"}" data-seo-transition="${action.next}">${action.label}</button>` : ""}
       ${a.state === "control_calidad" ? "<button data-seo-return>Devolver con motivo</button>" : ""}
       ${!terminal && a.state !== "cancelado" ? "<button data-seo-cancel>Cancelar auditoría</button>" : ""}
     </div></div>
@@ -493,6 +494,36 @@ function seoAuditTransition(audit, next, reason) {
   seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
 }
 
+let seoAuditRunning = false;
+
+async function seoAuditRunReal(audit) {
+  if (typeof window.valmeRunRealAudit !== "function") {
+    announce("El análisis real no está disponible en esta página.");
+    return;
+  }
+  seoAuditRunning = true;
+  seoAuditRender(`Analizando ${audit.domain}. Solo lectura, sin cambios en la web.`);
+  try {
+    const r = await window.valmeRunRealAudit(audit.domain, audit.services);
+    audit.evidence = r.evidence;
+    audit.findings = r.findings;
+    audit.coverage = r.coverage;
+    audit.limitations = r.limitations;
+    audit.events.push(
+      `${seoAuditNow()} · Análisis real de ${r.url}: ${r.findings.length} hallazgos, ${r.evidence.length} evidencias. Pendiente de revisión del Project Manager`,
+    );
+    seoAuditPersist();
+    seoAuditRunning = false;
+    seoAuditTab = "Hallazgos";
+    seoAuditRender(`Análisis terminado: ${r.findings.length} hallazgos propuestos.`);
+  } catch (error) {
+    seoAuditRunning = false;
+    audit.events.push(`${seoAuditNow()} · Análisis real fallido: ${error.message}`);
+    seoAuditPersist();
+    seoAuditRender(error.message);
+  }
+}
+
 root.addEventListener("click", (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -524,6 +555,9 @@ root.addEventListener("click", (event) => {
   } else if (data.seoCancel !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit) seoAuditTransition(audit, "cancelado", "Cancelación simulada por Project Manager");
+  } else if (data.seoRun !== undefined) {
+    const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
+    if (audit && audit.state === "en_ejecucion" && !seoAuditRunning) seoAuditRunReal(audit);
   } else if (data.seoReset !== undefined) {
     seoAudits = seoAuditClone(SEO_AUDIT_SEED);
     seoAuditCurrent = null;
