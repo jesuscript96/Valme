@@ -289,3 +289,145 @@ dice en portada. No haber podido mirar algo no es lo mismo que que esté bien.
 
 Con los pasos 1, 2 y 4 ya tienes una herramienta que aguanta una reunión. Lo demás la hace
 mejor.
+
+---
+
+## 9. Estilos, stack, herramientas e imágenes
+
+Todo eso se puede, y tres de las cuatro cosas valen mucho. Pero **no las metería como
+apartados nuevos**: si el informe crece a nueve categorías vuelve a ser una lista técnica y
+se pierde lo que lo hacía legible. Cada una entra en el paso del embudo donde hace daño.
+
+### Imágenes · paso 1
+
+**Lo primero que construiría de esta tanda.** Es lo más medible, casi siempre está mal, y
+suele ser la causa directa del problema de velocidad que ya vas a señalar.
+
+Todo sale de la misma carga de página, sin herramientas nuevas:
+
+| Qué se mide | Cómo | Por qué importa |
+| --- | --- | --- |
+| Peso total de imágenes y cuántas son | Cabeceras de las peticiones | El titular: «vuestra home pesa 8,4 MB y 7,1 MB son imágenes» |
+| Formato: JPEG y PNG frente a WebP y AVIF | Tipo de contenido | Convertir suele quitar el 60 % del peso sin tocar nada más |
+| Tamaño servido frente al mostrado | `naturalWidth` frente a `clientWidth` | Una foto de 4000 px en un hueco de 380 px es el desperdicio más común |
+| Peso de la imagen del hero | Es casi siempre el elemento del LCP | Conecta con el dato de campo: explica el porqué del número |
+| `loading="lazy"` por debajo del pliegue | Atributo | Gratis y nadie lo pone |
+| `width` y `height` declarados | Atributos | Su ausencia es la causa habitual del CLS |
+| Texto alternativo | Atributo | Accesibilidad y SEO a la vez |
+| Propias o de banco de imágenes | Modelo con visión | Las de banco cuestan confianza en B2B |
+
+El hallazgo se escribe solo y se puede cuantificar sin inventar nada: peso actual, peso
+estimado tras convertir y redimensionar, y qué imagen concreta es la culpable.
+
+### Estilos · pasos 2 y 3
+
+Aquí la clave es **qué se cuenta**. «Usan azul y una tipografía sans» no es un hallazgo. Lo
+que sí lo es:
+
+> Cuántos valores distintos hay de cada cosa.
+
+Se recorren los estilos aplicados de la página y se cuentan colores únicos, familias
+tipográficas, tamaños de letra, radios de borde y sombras. Una web con catorce tamaños de
+letra y cuarenta grises **no tiene sistema de diseño**: tiene decisiones acumuladas de gente
+distinta a lo largo de los años. Y eso significa que cualquier cosa nueva que se añada va a
+desentonar, lo cual es exactamente el problema que resuelve lo que vendemos.
+
+Además:
+
+- **Coherencia entre páginas.** ¿La página de servicio se parece a la home, o parece de otra
+  empresa? Se compara la paleta y la tipografía de las cuatro páginas auditadas.
+- **Coherencia entre el anuncio y la landing.** Esta es la buena, y hay que cruzarla con la
+  herramienta de Paid: si el anuncio es naranja y desenfadado y la landing es azul marino y
+  corporativa, el clic rebota. Es un hallazgo que ninguna de las dos herramientas puede
+  producir sola.
+- **Tipografías web.** Cuántas familias y pesos se cargan, y de dónde. Si vienen del CDN de
+  Google hay un riesgo conocido: una sentencia alemana de 2022 consideró que servirlas desde
+  Google sin consentimiento vulnera el RGPD por la transferencia de IP. No es jurisprudencia
+  española y no lo presentaría como ilegal, pero es un riesgo real y arreglarlo es alojar el
+  fichero. Conviene señalarlo con ese matiz. *Nota: valmesolutions.com las carga así.*
+
+Firecrawl, que ya está integrado, devuelve en su formato `branding` el logo, la paleta, las
+tipografías, el espaciado y el estilo de los botones en JSON. Sirve de punto de partida y
+ahorra la mitad del trabajo.
+
+### Herramientas · paso 5
+
+El catálogo ya existe en `signatures.ts` y detecta diecisiete. Ampliarlo es añadir entradas.
+
+Pero **un inventario no es un diagnóstico**. Lo que convierte esto en hallazgo son tres
+cosas:
+
+**Contradicciones.** Tienen Hotjar instalado desde hace dos años y el formulario sigue con
+nueve campos: se paga por mirar y no se actúa. Tienen un CRM cargado y el formulario va a un
+`mailto:`. Eso no es una lista, es una historia.
+
+**Huecos.** Hay formulario de newsletter y no hay ninguna herramienta de email. ¿Dónde van
+esos correos?
+
+**Redundancia.** Dos analíticas, tres chats, dos gestores de etiquetas. Significa que nadie
+es dueño de esto y que cada uno instaló lo suyo.
+
+Lo que **no** haría es estimar lo que pagan. Es tentador y suena muy bien, pero los precios
+dependen del plan y no los sabemos. Se enumera lo detectado y se pregunta en la reunión: la
+cifra la pone el cliente y entonces sí es suya.
+
+### Stack tecnológico · contexto, no hallazgo
+
+Aquí discrepo un poco. Saber que es WordPress con Elementor, o Webflow, o Shopify, **casi
+nunca es un hallazgo por sí mismo**. A nadie le sirve que le digas en qué está hecha su web.
+
+Sirve para otras dos cosas, las dos importantes:
+
+1. **Predice lo que vas a encontrar.** Un Elementor con veinte plugins ya te dice dónde va a
+   estar el problema de velocidad antes de medirlo.
+2. **Dice qué se puede hacer y a qué coste.** Si es Webflow, podemos tocar las landings
+   nosotros. Si es un desarrollo a medida de hace ocho años, cada cambio pasa por su
+   programador y eso cambia el plan de 90 días entero.
+
+Por eso va en el bloque de contexto del informe, junto con el sector y el ticket, y no en la
+lista de hallazgos. **Sí pasa a ser hallazgo** cuando causa un problema concreto: versiones
+sin soporte, sin CDN con un TTFB malo, o un constructor que es demostrablemente el culpable
+del LCP.
+
+Se detecta de las cabeceras, las rutas de los recursos y las huellas del HTML. No hace falta
+ninguna herramienta externa.
+
+---
+
+## 10. Y lo que no has preguntado
+
+Cuatro más que yo metería, por orden de lo que rinden:
+
+**Cómo se ve al compartir el enlace.** Etiquetas Open Graph: título, descripción e imagen.
+Si un comercial pega su URL en LinkedIn y sale un cuadro gris sin texto, eso es una fuga en
+el canal donde más se mueve el B2B. Se comprueba en dos líneas y no lo audita nadie.
+
+**Enlaces rotos internos.** Se recorren los enlaces de las cuatro páginas y se comprueba que
+respondan. Es vergonzoso, es indiscutible y se arregla en una tarde.
+
+**El sitemap frente a la realidad.** URLs declaradas en el sitemap que devuelven 404 o
+redirigen. Señal clarísima de que nadie mantiene el sitio.
+
+**Vídeo incrustado.** Un YouTube empotrado carga cientos de kilobytes y pone cookies antes
+de que nadie le dé al play. Hay alternativas con carga diferida que cuestan una hora.
+
+Y una que **no** metería aunque se puede: análisis de seguridad más allá de las cabeceras
+básicas. Detectar versiones vulnerables de plugins es fácil y es un campo de minas: o suena
+a amenaza, o te comprometes a algo que no vendemos. Las cabeceras sí, porque son higiene y
+se explican en una línea.
+
+---
+
+## 11. Si tuviera que elegir
+
+Con todo lo de arriba sobre la mesa, lo que más rinde por hora invertida:
+
+1. **Imágenes.** Medible, casi siempre mal, explica el problema de velocidad y se arregla
+   barato.
+2. **Formulario campo a campo.** Es donde se pierde el lead.
+3. **Contradicciones de herramientas.** Cuenta una historia, y las historias se recuerdan.
+4. **Recuento de estilos.** Un número que demuestra que no hay sistema.
+5. **Open Graph y enlaces rotos.** Baratos y embarazosos, en el buen sentido.
+
+El stack lo recogería desde el principio porque sale gratis de lo que ya cargas, pero lo
+dejaría en el contexto hasta que pruebe que causa algo.
