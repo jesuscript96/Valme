@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getRequestHeader } from "@tanstack/react-start/server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { AccessDenied, requireClientAccess } from "@/lib/auth/guards.server";
 
@@ -18,6 +17,7 @@ export type MyAccess =
 
 /** Invalida en servidor todas las sesiones del usuario que hace la petición. */
 async function revokeSession(admin: { auth: { admin: { signOut: (jwt: string, scope?: "global" | "local" | "others") => Promise<unknown> } } }) {
+  const { getRequestHeader } = await import("@tanstack/react-start/server");
   const auth = getRequestHeader("authorization") ?? "";
   const jwt = auth.replace(/^Bearer\s+/i, "");
   if (!jwt) return;
