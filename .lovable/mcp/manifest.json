@@ -81,6 +81,42 @@
         },
         "inputSchema": null,
         "outputSchema": null
+      },
+      {
+        "name": "list_seo_capabilities",
+        "title": "Listar capacidades SEO/AEO/GEO",
+        "description": "Devuelve el catalogo nativo de capacidades SEO/AEO/GEO de VALME y su relacion con Claude SEO. Consulta sin ejecucion externa.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      },
+      {
+        "name": "explain_seo_audit_contract",
+        "title": "Explicar contrato de auditoria SEO",
+        "description": "Explica el contrato nativo de auditoria SEO de VALME, sus limites de autorizacion y su separacion de la ejecucion de planes.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
+      },
+      {
+        "name": "list_seo_audit_states",
+        "title": "Listar estados de auditoria SEO",
+        "description": "Devuelve la maquina de estados nativa de auditoria SEO y sus transiciones permitidas. Consulta sin efectos.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": null,
+        "outputSchema": null
       }
     ]
   }
