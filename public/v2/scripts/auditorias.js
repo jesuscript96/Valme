@@ -216,39 +216,37 @@ const SEO_AUDIT_SEED = [
   },
 ];
 
-let seoAudits = seoAuditLoad();
+const seoAuditRepository = ValmeSeoAuditRepository.create({
+  mode: ValmeSeoAuditRepository.LOCAL_MODE,
+  key: SEO_AUDIT_STORAGE,
+  seed: SEO_AUDIT_SEED,
+  storageFactory: () => window.localStorage,
+});
+let seoAudits = seoAuditClone(SEO_AUDIT_SEED);
 let seoAuditCurrent = null;
 let seoAuditTab = "Resumen";
 let seoAuditQuery = "";
 let seoAuditStateFilter = "Todos";
 let seoAuditClientFilter = "Todos";
 let seoAuditCreating = false;
-let seoAuditStorageOk = true;
+let seoAuditStorageOk = seoAuditRepository.status().writable;
+let seoAuditRepositoryLoading = true;
+
+seoAuditRepository.load().then((records) => {
+  seoAudits = records;
+  seoAuditRepositoryLoading = false;
+  seoAuditStorageOk = seoAuditRepository.status().writable;
+  if (current === "Auditorías") seoAuditRender("Persistencia local preparada.");
+});
 
 function seoAuditClone(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function seoAuditLoad() {
-  try {
-    const stored = localStorage.getItem(SEO_AUDIT_STORAGE);
-    if (!stored) return seoAuditClone(SEO_AUDIT_SEED);
-    const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : seoAuditClone(SEO_AUDIT_SEED);
-  } catch {
-    return seoAuditClone(SEO_AUDIT_SEED);
-  }
-}
-
-function seoAuditPersist() {
-  try {
-    localStorage.setItem(SEO_AUDIT_STORAGE, JSON.stringify(seoAudits));
-    seoAuditStorageOk = true;
-    return true;
-  } catch {
-    seoAuditStorageOk = false;
-    return false;
-  }
+async function seoAuditPersist() {
+  const saved = await seoAuditRepository.save(seoAudits);
+  seoAuditStorageOk = seoAuditRepository.status().writable;
+  return saved;
 }
 
 function seoAuditTone(state) {
@@ -322,6 +320,7 @@ function seoAuditRows() {
 
 function seoAuditList() {
   const clientsList = ["Todos", ...new Set(seoAudits.map((a) => a.client))];
+  const repositoryStatus = seoAuditRepository.status();
   return (
     heading(
       "AUDITORÍA SEO / DEMOSTRACIÓN",
@@ -336,6 +335,7 @@ function seoAuditList() {
       <label>Cliente<br><select id="v-seo-client">${clientsList.map((v) => `<option ${v === seoAuditClientFilter ? "selected" : ""}>${safe(v)}</option>`).join("")}</select></label>
       <button data-seo-reset aria-label="Restablecer auditorías de demostración">Restablecer demo</button>
     </div>${seoAuditRows()}</section>
+    <p class="v-small v-muted v-audit-storage-state">Persistencia: ${safe(repositoryStatus.label)} · esquema local ${repositoryStatus.schemaVersion}</p>
     ${seoAuditStorageOk ? "" : '<div class="v-notice v-audit-storage"><strong>No se pudo guardar en este navegador.</strong><p>Los cambios durarán solamente durante esta sesión.</p></div>'}`
   );
 }
@@ -403,7 +403,9 @@ function seoAuditEvidence(a) {
 function seoAuditFindings(a) {
   const rows = a.findings
     .map(
-      (f) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong>
+      (
+        f,
+      ) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong>
       <p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p>
       ${f.description ? `<p class="v-small">${safe(f.description)}</p>` : ""}
       ${f.impact ? `<p class="v-small v-muted"><b>Impacto:</b> ${safe(f.impact)}</p>` : ""}
@@ -468,6 +470,13 @@ function seoAuditDetail(a) {
 }
 
 function auditsWorkspace() {
+  if (seoAuditRepositoryLoading) {
+    return heading(
+      "AUDITORÍA SEO / DEMOSTRACIÓN",
+      "Auditorías",
+      "Preparando el repositorio local.",
+    );
+  }
   if (seoAuditCreating) return seoAuditNew();
   const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
   return audit ? seoAuditDetail(audit) : seoAuditList();
@@ -480,7 +489,7 @@ function seoAuditRender(message) {
   if (message) announce(message);
 }
 
-function seoAuditTransition(audit, next, reason) {
+async function seoAuditTransition(audit, next, reason) {
   if (!SEO_AUDIT_NEXT[audit.state].includes(next)) {
     announce(`Transición no permitida: ${seoAuditLabel(audit.state)} → ${seoAuditLabel(next)}.`);
     return;
@@ -490,7 +499,7 @@ function seoAuditTransition(audit, next, reason) {
   audit.events.push(
     `${seoAuditNow()} · ${seoAuditLabel(previous)} → ${seoAuditLabel(next)} · ${reason}`,
   );
-  seoAuditPersist();
+  await seoAuditPersist();
   seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
 }
 
@@ -512,19 +521,19 @@ async function seoAuditRunReal(audit) {
     audit.events.push(
       `${seoAuditNow()} · Análisis real de ${r.url}: ${r.findings.length} hallazgos, ${r.evidence.length} evidencias. Pendiente de revisión del Project Manager`,
     );
-    seoAuditPersist();
+    await seoAuditPersist();
     seoAuditRunning = false;
     seoAuditTab = "Hallazgos";
     seoAuditRender(`Análisis terminado: ${r.findings.length} hallazgos propuestos.`);
   } catch (error) {
     seoAuditRunning = false;
     audit.events.push(`${seoAuditNow()} · Análisis real fallido: ${error.message}`);
-    seoAuditPersist();
+    await seoAuditPersist();
     seoAuditRender(error.message);
   }
 }
 
-root.addEventListener("click", (event) => {
+root.addEventListener("click", async (event) => {
   const button = event.target.closest("button");
   if (!button) return;
   const data = button.dataset;
@@ -547,24 +556,31 @@ root.addEventListener("click", (event) => {
   } else if (data.seoTransition) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
-      seoAuditTransition(audit, data.seoTransition, "Decisión simulada del Project Manager");
+      await seoAuditTransition(audit, data.seoTransition, "Decisión simulada del Project Manager");
   } else if (data.seoReturn !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
-      seoAuditTransition(audit, "devuelto", "Control de calidad solicita completar evidencias");
+      await seoAuditTransition(
+        audit,
+        "devuelto",
+        "Control de calidad solicita completar evidencias",
+      );
   } else if (data.seoCancel !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
-    if (audit) seoAuditTransition(audit, "cancelado", "Cancelación simulada por Project Manager");
+    if (audit)
+      await seoAuditTransition(audit, "cancelado", "Cancelación simulada por Project Manager");
   } else if (data.seoRun !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
-    if (audit && audit.state === "en_ejecucion" && !seoAuditRunning) seoAuditRunReal(audit);
+    if (audit && audit.state === "en_ejecucion" && !seoAuditRunning) {
+      await seoAuditRunReal(audit);
+    }
   } else if (data.seoReset !== undefined) {
-    seoAudits = seoAuditClone(SEO_AUDIT_SEED);
+    seoAudits = await seoAuditRepository.reset();
     seoAuditCurrent = null;
     seoAuditQuery = "";
     seoAuditStateFilter = "Todos";
     seoAuditClientFilter = "Todos";
-    seoAuditPersist();
+    seoAuditStorageOk = seoAuditRepository.status().writable;
     seoAuditRender("Auditorías de demostración restablecidas.");
   }
 });
@@ -587,7 +603,7 @@ root.addEventListener("input", (event) => {
   decorate();
 });
 
-root.addEventListener("submit", (event) => {
+root.addEventListener("submit", async (event) => {
   if (event.target.id !== "v-seo-form") return;
   event.preventDefault();
   const form = new FormData(event.target);
@@ -628,7 +644,7 @@ root.addEventListener("submit", (event) => {
     events: [`${seoAuditNow()} · Borrador creado por Project Manager`],
   };
   seoAudits.unshift(audit);
-  seoAuditPersist();
+  await seoAuditPersist();
   seoAuditCreating = false;
   seoAuditCurrent = id;
   seoAuditTab = "Resumen";

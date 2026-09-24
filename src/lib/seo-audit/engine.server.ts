@@ -136,7 +136,10 @@ function tags(html: string, tagName: string): string[] {
 
 function textOf(html: string, tagName: string): string {
   const match = html.match(new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)</${tagName}>`, "i"));
-  return (match?.[1] ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return (match?.[1] ?? "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function metaContent(html: string, nameOrProperty: string): string {
@@ -236,7 +239,8 @@ export async function runSeoAudit(
       confidence: "alta",
       description: `La dirección auditada responde con código ${page.status}.`,
       impact: "Una página de entrada con error no se indexa y pierde todo el tráfico orgánico.",
-      recommendation: "Restablecer la respuesta 200 en la página principal antes de cualquier otra acción.",
+      recommendation:
+        "Restablecer la respuesta 200 en la página principal antes de cualquier otra acción.",
       evidenceIds: [httpEvidence],
     });
   }
@@ -248,7 +252,8 @@ export async function runSeoAudit(
       priority: "Alta",
       confidence: "alta",
       description: `La respuesta final se entregó en ${page.finalUrl}, sin HTTPS.`,
-      impact: "HTTPS es requisito básico de confianza y afecta a la clasificación y a la conversión.",
+      impact:
+        "HTTPS es requisito básico de confianza y afecta a la clasificación y a la conversión.",
       recommendation: "Instalar certificado y redirigir todo el tráfico de http a https con 301.",
       evidenceIds: [httpEvidence],
     });
@@ -273,8 +278,8 @@ export async function runSeoAudit(
     .filter((tag) => attr(tag, "rel").toLowerCase() === "canonical")
     .map((tag) => attr(tag, "href"));
   const viewport = metaContent(html, "viewport");
-  const hreflang = tags(html, "link").filter((tag) =>
-    attr(tag, "rel").toLowerCase().includes("alternate") && attr(tag, "hreflang"),
+  const hreflang = tags(html, "link").filter(
+    (tag) => attr(tag, "rel").toLowerCase().includes("alternate") && attr(tag, "hreflang"),
   );
   const lang = attr(html.match(/<html\b[^>]*>/i)?.[0] ?? "", "lang");
 
@@ -306,7 +311,8 @@ export async function runSeoAudit(
       priority: "Alta",
       confidence: "alta",
       description: "No se encontró la etiqueta <title> o está vacía.",
-      impact: "El título es el principal elemento de relevancia y el texto del enlace en resultados.",
+      impact:
+        "El título es el principal elemento de relevancia y el texto del enlace en resultados.",
       recommendation: "Escribir un título único de 45 a 60 caracteres con la propuesta de valor.",
       evidenceIds: [metaEvidence],
     });
@@ -379,7 +385,8 @@ export async function runSeoAudit(
       confidence: "alta",
       description: "No se encontró meta viewport.",
       impact: "Sin viewport la web no se adapta al móvil, que es el índice principal.",
-      recommendation: 'Añadir <meta name="viewport" content="width=device-width, initial-scale=1">.',
+      recommendation:
+        'Añadir <meta name="viewport" content="width=device-width, initial-scale=1">.',
       evidenceIds: [metaEvidence],
     });
   }
@@ -392,7 +399,7 @@ export async function runSeoAudit(
       confidence: "alta",
       description: "El elemento html no tiene atributo lang.",
       impact: "Afecta a la accesibilidad y a la segmentación por idioma.",
-      recommendation: "Declarar el idioma en el elemento html, por ejemplo lang=\"es\".",
+      recommendation: 'Declarar el idioma en el elemento html, por ejemplo lang="es".',
       evidenceIds: [metaEvidence],
     });
   }
@@ -442,7 +449,8 @@ export async function runSeoAudit(
       confidence: "alta",
       description: "Hay imágenes sin atributo alt.",
       impact: "Se pierde accesibilidad y visibilidad en búsqueda de imágenes.",
-      recommendation: "Describir cada imagen con contenido informativo; dejar alt vacío solo en decorativas.",
+      recommendation:
+        "Describir cada imagen con contenido informativo; dejar alt vacío solo en decorativas.",
       evidenceIds: [structureEvidence],
     });
   }
@@ -472,7 +480,9 @@ export async function runSeoAudit(
       recommendation: "Ampliar con propuesta de valor, servicios, pruebas y preguntas frecuentes.",
       evidenceIds: [contentEvidence],
     });
-    limitations.push("El recuento de palabras es una estimación sobre el HTML inicial, sin ejecutar scripts.");
+    limitations.push(
+      "El recuento de palabras es una estimación sobre el HTML inicial, sin ejecutar scripts.",
+    );
   }
 
   // 4. Datos estructurados
@@ -490,7 +500,8 @@ export async function runSeoAudit(
           const record = node as Record<string, unknown>;
           const type = record["@type"];
           if (typeof type === "string") schemaTypes.push(type);
-          if (Array.isArray(type)) type.forEach((t) => typeof t === "string" && schemaTypes.push(t));
+          if (Array.isArray(type))
+            type.forEach((t) => typeof t === "string" && schemaTypes.push(t));
           if (Array.isArray(record["@graph"])) collect(record["@graph"]);
         }
       };
@@ -514,7 +525,8 @@ export async function runSeoAudit(
       priority: "Media",
       confidence: "alta",
       description: "No se encontró ningún bloque JSON-LD en la página.",
-      impact: "Sin datos estructurados se pierden resultados enriquecidos y contexto para asistentes de IA.",
+      impact:
+        "Sin datos estructurados se pierden resultados enriquecidos y contexto para asistentes de IA.",
       recommendation: "Publicar al menos Organization y WebSite, y el tipo propio del negocio.",
       evidenceIds: [schemaEvidence],
     });
@@ -541,8 +553,10 @@ export async function runSeoAudit(
         priority: "Baja",
         confidence: "alta",
         description: `Tipos presentes: ${schemaTypes.join(", ") || "ninguno"}.`,
-        impact: "Sin entidad de marca y de sitio se debilita el reconocimiento por parte de buscadores e IA.",
-        recommendation: "Añadir Organization con logo y perfiles, y WebSite con el buscador interno.",
+        impact:
+          "Sin entidad de marca y de sitio se debilita el reconocimiento por parte de buscadores e IA.",
+        recommendation:
+          "Añadir Organization con logo y perfiles, y WebSite con el buscador interno.",
         evidenceIds: [schemaEvidence],
       });
     }
@@ -598,9 +612,18 @@ export async function runSeoAudit(
       });
     }
     // AEO/GEO: acceso de agentes de IA
-    const aiAgents = ["GPTBot", "ClaudeBot", "OAI-SearchBot", "PerplexityBot", "CCBot", "Google-Extended"];
+    const aiAgents = [
+      "GPTBot",
+      "ClaudeBot",
+      "OAI-SearchBot",
+      "PerplexityBot",
+      "CCBot",
+      "Google-Extended",
+    ];
     const blockedAgents = aiAgents.filter((agent) => {
-      const block = robotsBody.match(new RegExp(`user-agent:\\s*${agent}[\\s\\S]*?(?=user-agent:|$)`, "i"));
+      const block = robotsBody.match(
+        new RegExp(`user-agent:\\s*${agent}[\\s\\S]*?(?=user-agent:|$)`, "i"),
+      );
       return block ? /disallow:\s*\/\s*(\n|$)/i.test(block[0]) : false;
     });
     const aiEvidence = addEvidence(
@@ -616,7 +639,8 @@ export async function runSeoAudit(
         category: "aeo_geo_citabilidad",
         priority: "Media",
         confidence: "alta",
-        description: "Las reglas impiden el acceso de rastreadores de buscadores y asistentes de IA.",
+        description:
+          "Las reglas impiden el acceso de rastreadores de buscadores y asistentes de IA.",
         impact: "La marca no puede ser citada en respuestas generativas ni en resúmenes de IA.",
         recommendation:
           "Decidir con el cliente qué agentes autorizar; si se busca citabilidad, permitir los de búsqueda.",
@@ -626,7 +650,9 @@ export async function runSeoAudit(
   }
 
   const sitemapCandidates = [
-    ...(robotsBody.match(/sitemap:\s*(\S+)/gi) ?? []).map((line) => line.split(/:\s*/).slice(1).join(":").trim()),
+    ...(robotsBody.match(/sitemap:\s*(\S+)/gi) ?? []).map((line) =>
+      line.split(/:\s*/).slice(1).join(":").trim(),
+    ),
     `${origin}/sitemap.xml`,
   ];
   const sitemapUrl = sitemapCandidates[0] ?? `${origin}/sitemap.xml`;
@@ -649,7 +675,8 @@ export async function runSeoAudit(
       confidence: "alta",
       description: `La petición a ${sitemapUrl} devolvió ${sitemap.status || "sin respuesta"} con ${urlCount} direcciones.`,
       impact: "Sin sitemap el descubrimiento de contenido nuevo es más lento e incompleto.",
-      recommendation: "Generar un sitemap con las direcciones canónicas indexables y mantenerlo actualizado.",
+      recommendation:
+        "Generar un sitemap con las direcciones canónicas indexables y mantenerlo actualizado.",
       evidenceIds: [sitemapEvidence],
     });
   }
@@ -711,7 +738,8 @@ export async function runSeoAudit(
           confidence: "alta",
           description: "El LCP medido está por encima de 2,5 segundos.",
           impact: "El usuario percibe la página como lenta desde el primer instante.",
-          recommendation: "Optimizar la imagen o el texto principal, precargarlo y servirlo comprimido.",
+          recommendation:
+            "Optimizar la imagen o el texto principal, precargarlo y servirlo comprimido.",
           evidenceIds: [perfEvidence],
         });
       }
@@ -728,7 +756,9 @@ export async function runSeoAudit(
         });
       }
     } else {
-      limitations.push("No se pudieron obtener métricas de rendimiento públicas en esta ejecución.");
+      limitations.push(
+        "No se pudieron obtener métricas de rendimiento públicas en esta ejecución.",
+      );
     }
   } catch {
     limitations.push("No se pudieron obtener métricas de rendimiento públicas en esta ejecución.");
@@ -780,9 +810,13 @@ export async function runSeoAudit(
   limitations.push(
     "Solo lectura: no se han realizado cambios en la web del cliente ni comunicaciones externas.",
   );
-  limitations.push("Muestra: página principal, robots.txt y sitemap; no es un rastreo completo del sitio.");
+  limitations.push(
+    "Muestra: página principal, robots.txt y sitemap; no es un rastreo completo del sitio.",
+  );
   if (!has(["search_console", "ga4"])) {
-    limitations.push("Sin accesos de Search Console ni Analytics no hay datos de rendimiento real de búsqueda.");
+    limitations.push(
+      "Sin accesos de Search Console ni Analytics no hay datos de rendimiento real de búsqueda.",
+    );
   }
 
   return {

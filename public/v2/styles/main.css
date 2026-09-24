@@ -105,6 +105,7 @@ html,body{background:#E9E6E0}
 #valme-v2 .v-audit-metrics b{color:var(--v-ink)}
 #valme-v2 .v-audit-empty{padding:28px;text-align:center;color:var(--v-muted)}
 #valme-v2 .v-audit-empty p{margin-top:5px}
+#valme-v2 .v-audit-storage-state{margin-top:10px;text-align:right}
 #valme-v2 .v-audit-form{border-top:1px solid var(--v-line)}
 #valme-v2 .v-audit-form-section{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr);gap:28px;padding:24px 0;border-bottom:1px solid var(--v-line)}
 #valme-v2 .v-audit-form-section h2{margin-top:6px;font-size:18px}
