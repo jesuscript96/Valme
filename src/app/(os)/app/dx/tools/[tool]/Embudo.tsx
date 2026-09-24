@@ -33,7 +33,11 @@ export function Embudo({
     const hechas = comps.filter((c) => c.estado === "respondida").length;
     // Nota por paso: se parte de 100 y se descuenta por gravedad. Explicable en voz alta.
     const nota = Math.max(0, 100 - del.reduce((t, h) => t + PESO[h.gravedad], 0));
-    return { clave, ...PASOS[clave], hallazgos: del, comps, hechas, nota };
+    // Si no se ha podido comprobar nada de este paso, NO está bien: no se sabe. Decir
+    // «sin problemas» con cero comprobaciones hechas es la peor mentira que puede contar
+    // un informe, porque suena a aprobado.
+    const sinDatos = hechas === 0;
+    return { clave, ...PASOS[clave], hallazgos: del, comps, hechas, nota, sinDatos };
   });
 
   const sinPaso = problemas.filter((h) => !h.paso);
@@ -72,12 +76,19 @@ export function Embudo({
               <span className="block text-[12px] text-os-muted">{p.desc}</span>
             </span>
             <span className="os-num text-[12px] text-os-faint">{p.hechas}/{p.comps.length} comprobado</span>
-            {p.hallazgos.length === 0
-              ? <Badge tone="ok">sin problemas</Badge>
-              : <Badge tone={TONO[p.hallazgos[0].gravedad]}>{p.hallazgos.length}</Badge>}
+            {p.sinDatos
+              ? <Badge tone="neutral">sin datos</Badge>
+              : p.hallazgos.length === 0
+                ? <Badge tone="ok">sin problemas</Badge>
+                : <Badge tone={TONO[p.hallazgos[0].gravedad]}>{p.hallazgos.length}</Badge>}
           </div>
 
-          {p.hallazgos.length === 0 ? (
+          {p.sinDatos ? (
+            <p className="px-4 py-5 text-[13px] text-os-warn">
+              No se ha podido comprobar nada de este paso. Mira abajo qué fuente ha
+              fallado: esto no significa que esté bien, significa que no se sabe.
+            </p>
+          ) : p.hallazgos.length === 0 ? (
             <p className="px-4 py-5 text-[13px] text-os-muted">
               Nada que señalar con lo que se ha podido comprobar en este paso.
             </p>
@@ -127,7 +138,7 @@ export function Embudo({
 function ResumenEmbudo({
   pasos,
 }: {
-  pasos: { clave: Paso; n: number; titulo: string; nota: number; hallazgos: Hallazgo[] }[];
+  pasos: { clave: Paso; n: number; titulo: string; nota: number; hallazgos: Hallazgo[]; sinDatos: boolean }[];
 }) {
   return (
     <Card className="p-4">
@@ -137,7 +148,9 @@ function ResumenEmbudo({
       <div className="flex gap-1.5">
         {pasos.map((p) => {
           const graves = p.hallazgos.filter((h) => h.gravedad === "p0" || h.gravedad === "p1").length;
-          const color = graves > 0 ? "bg-os-accent" : p.hallazgos.length > 0 ? "bg-os-warn" : "bg-os-ok";
+          const color = p.sinDatos ? "bg-os-border-strong"
+            : graves > 0 ? "bg-os-accent"
+            : p.hallazgos.length > 0 ? "bg-os-warn" : "bg-os-ok";
           return (
             <a
               key={p.clave}
@@ -146,10 +159,14 @@ function ResumenEmbudo({
             >
               <span className="block truncate text-[12px] font-medium text-os-text">{p.titulo}</span>
               <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-os-sunken">
-                <span className={cx("block h-full", color)} style={{ width: `${p.nota}%` }} />
+                <span className={cx("block h-full", color)} style={{ width: `${p.sinDatos ? 100 : p.nota}%` }} />
               </span>
               <span className="os-num mt-1.5 block text-[11px] text-os-muted">
-                {p.hallazgos.length === 0 ? "sin problemas" : `${p.hallazgos.length} hallazgo${p.hallazgos.length > 1 ? "s" : ""}`}
+                {p.sinDatos
+                  ? "sin datos"
+                  : p.hallazgos.length === 0
+                    ? "sin problemas"
+                    : `${p.hallazgos.length} hallazgo${p.hallazgos.length > 1 ? "s" : ""}`}
               </span>
             </a>
           );

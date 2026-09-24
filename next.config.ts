@@ -16,6 +16,16 @@ const nextConfig: NextConfig = {
   // fallan al cargar en la función con un "cannot find module". Se dejan fuera para que
   // se resuelvan en tiempo de ejecución desde node_modules.
   serverExternalPackages: ['playwright-core', '@sparticuz/chromium'],
+
+  // `playwright-core` lee `browsers.json` en tiempo de ejecución, y el trazador de
+  // ficheros no sigue esa lectura porque no es un require: la función se desplegaba sin
+  // él y fallaba con "cannot find module". Igual con el binario de Chromium.
+  outputFileTracingIncludes: {
+    '/app/dx/tools/[tool]': [
+      './node_modules/playwright-core/browsers.json',
+      './node_modules/@sparticuz/chromium/**',
+    ],
+  },
 };
 
 export default nextConfig;
