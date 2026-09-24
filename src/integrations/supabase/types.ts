@@ -56,6 +56,36 @@ export type Database = {
           },
         ]
       }
+      activity_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           calidad: number
@@ -295,6 +325,90 @@ export type Database = {
           },
         ]
       }
+      user_access: {
+        Row: {
+          email: string
+          full_name: string | null
+          full_portfolio: boolean
+          invited_at: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["valme_role"]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email: string
+          full_name?: string | null
+          full_portfolio?: boolean
+          invited_at?: string
+          invited_by?: string | null
+          role: Database["public"]["Enums"]["valme_role"]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email?: string
+          full_name?: string | null
+          full_portfolio?: boolean
+          invited_at?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["valme_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_client_access: {
+        Row: {
+          client_id: string
+          created_at: string
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["valme_role"]
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["valme_role"]
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["valme_role"]
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_client_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_client_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_access"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -321,6 +435,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage_clients: { Args: never; Returns: boolean }
+      current_valme_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["valme_role"]
+      }
+      has_client_access: { Args: { _client_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -329,9 +449,12 @@ export type Database = {
         Returns: boolean
       }
       is_equipo: { Args: never; Returns: boolean }
+      is_internal: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "equipo"
+      valme_role: "super_admin" | "project_manager" | "equipo" | "cliente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -460,6 +583,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "equipo"],
+      valme_role: ["super_admin", "project_manager", "equipo", "cliente"],
     },
   },
 } as const

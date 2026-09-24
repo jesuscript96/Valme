@@ -29,6 +29,13 @@
       "when": 1790105583193,
       "tag": "0003_restrict_rls_to_team_roles",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790240372120,
+      "tag": "0004_fase1_acceso_por_cliente",
+      "breakpoints": true
     }
   ]
 }
