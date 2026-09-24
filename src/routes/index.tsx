@@ -1,73 +1,31 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-// La app es la interfaz V2 importada desde GitHub (prototipo estático con
-// datos ficticios). Se sirve como HTML completo; sus recursos viven en /v2/*.
-const html = `<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#14161a" />
-    <meta name="description" content="VALME Search OS — centro de mando de demostración para una agencia SEO, AEO y GEO supervisada." />
-    <meta property="og:title" content="VALME Search OS · V2" />
-    <meta property="og:description" content="Centro de mando de demostración para una agencia SEO, AEO y GEO supervisada por un Project Manager." />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
-    <title>VALME Search OS · V2</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/v2/styles/main.css" />
-  </head>
-  <body>
-    <a class="skip-link" href="#v-page">Saltar al contenido principal</a>
-    <div id="valme-v2">
-      <div class="v-shell">
-        <aside class="v-side" aria-label="Navegación de VALME Search OS">
-          <div>
-            <div class="v-logo v-logo-stacked">
-              <img alt="VALME" src="/v2/assets/valme-wordmark.svg" />
-              <span>SOLUTIONS</span>
-            </div>
-            <p>Search OS <span class="v-mono">/ V2</span></p>
-          </div>
-          <nav aria-label="Secciones principales"></nav>
-          <div class="v-person">
-            <span class="v-demo-label v-mono">DATOS FICTICIOS</span>
-            <strong>Project Manager</strong>
-            Los agentes ejecutan.<br />Tú diriges.
-          </div>
-        </aside>
-        <div class="v-main">
-          <header class="v-top">
-            <span class="v-mobile-brand"><img alt="" src="/v2/assets/valme-monogram.svg" /><span class="v-mono">AGENCIA / OPERACIONES</span></span>
-            <span class="v-cycle">18 SEP 2026 · 09:42 CEST</span>
-            <span class="v-tag dark">● Demostración</span>
-            <div class="v-mobile-nav">
-              <label><span class="v-sr-only">Sección</span><select id="v-mobile-select" aria-label="Cambiar de sección"></select></label>
-              <button data-go="Supervisión" aria-label="Abrir supervisión">Supervisión <span class="v-nav-count v-count">18</span></button>
-            </div>
-          </header>
-          <div class="v-live" role="status" aria-live="polite" aria-atomic="true"></div>
-          <main class="v-content" id="v-page"></main>
-          <footer class="v-bottom"><span>1 cliente de demostración + 1 alta de prueba · 8 especialidades · agentes simulados</span><span>Sin conexiones reales · entorno de demostración</span></footer>
-        </div>
-      </div>
-    </div>
-    <script src="/v2/scripts/app.js"></script>
-    <script src="/v2/scripts/onboarding.js"></script>
-    <script src="/v2/scripts/diagnostico.js"></script>
-  </body>
-</html>
-`;
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
-  server: {
-    handlers: {
-      GET: () =>
-        new Response(html, {
-          headers: { "content-type": "text/html; charset=utf-8" },
-        }),
-    },
-  },
+  head: () => ({
+    meta: [
+      { title: "VALME Search OS" },
+      { name: "description", content: "Centro de mando interno de VALME para una agencia SEO, AEO y GEO supervisada. Acceso solo por invitación." },
+      { property: "og:title", content: "VALME Search OS" },
+      { property: "og:description", content: "Los agentes ejecutan. El Project Manager dirige. Acceso solo por invitación." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: Inicio,
 });
+
+function Inicio() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      navigate({ to: data.session ? "/panel" : "/auth", replace: true });
+    });
+  }, [navigate]);
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-background font-mono text-sm text-muted-foreground">
+      Comprobando sesión…
+    </main>
+  );
+}
