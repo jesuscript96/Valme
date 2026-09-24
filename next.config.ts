@@ -21,10 +21,11 @@ const nextConfig: NextConfig = {
   // ficheros no sigue esa lectura porque no es un require: la función se desplegaba sin
   // él y fallaba con "cannot find module". Igual con el binario de Chromium.
   outputFileTracingIncludes: {
-    '/app/dx/tools/[tool]': [
-      './node_modules/playwright-core/browsers.json',
-      './node_modules/@sparticuz/chromium/**',
-    ],
+    // `browsers.json` pesa unos pocos KB, así que se incluye en todas las rutas: acotarlo
+    // por glob de ruta no casaba con la función real que ejecuta la acción de servidor.
+    '/**': ['./node_modules/playwright-core/browsers.json'],
+    // El binario de Chromium son 66 MB, así que ese sí va solo donde se usa.
+    '/app/dx/tools/**': ['./node_modules/@sparticuz/chromium/**'],
   },
 };
 
