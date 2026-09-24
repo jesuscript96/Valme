@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AuthShell, Notice, inputCls, primaryBtn } from "@/components/valme-auth-shell";
 
 export const Route = createFileRoute("/reset-password")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Nueva contraseña · VALME Search OS" },

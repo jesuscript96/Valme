@@ -8,6 +8,7 @@ import { runSeoAudit } from "@/lib/seo-audit/engine.server";
  * Requiere sesión válida y rol interno; el navegador nunca decide el permiso.
  */
 export const Route = createFileRoute("/api/audit-run")({
+  staticData: { sitemap: false },
   server: {
     handlers: {
       POST: async ({ request }) => {

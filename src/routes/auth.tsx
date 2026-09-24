@@ -8,6 +8,7 @@ import { getMyAccess, logSessionEvent } from "@/lib/access.functions";
 import { AuthShell, Notice, inputCls, primaryBtn, secondaryBtn } from "@/components/valme-auth-shell";
 
 export const Route = createFileRoute("/auth")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Iniciar sesión · VALME Search OS" },

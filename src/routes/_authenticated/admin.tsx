@@ -9,6 +9,7 @@ import { DeniedBody } from "@/routes/acceso-denegado";
 import { inputCls } from "@/components/valme-auth-shell";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Administración · VALME Search OS" },
