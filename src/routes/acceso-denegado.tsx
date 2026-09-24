@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AuthShell } from "@/components/valme-auth-shell";
 
 export const Route = createFileRoute("/acceso-denegado")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Acceso denegado · VALME Search OS" },
