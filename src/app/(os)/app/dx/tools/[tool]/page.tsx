@@ -7,6 +7,16 @@ import { Badge, PageHeader } from "@/os/ui/primitives";
 import { FUNCIONES } from "@/os/audit/types";
 import { RunTool } from "./RunTool";
 
+/**
+ * Cargar una página con navegador tarda entre veinte y cuarenta segundos, muy por encima
+ * del límite por defecto de una función serverless. Sesenta es el techo del plan Pro de
+ * Vercel; en Hobby se recorta a diez y la auditoría no cabe.
+ *
+ * Va aquí y no en `actions.ts` porque es configuración de segmento de ruta: un fichero
+ * "use server" solo puede exportar funciones asíncronas.
+ */
+export const maxDuration = 60;
+
 export async function generateMetadata({ params }: { params: Promise<{ tool: string }> }) {
   const { tool } = await params;
   const h = HERRAMIENTAS[tool as Herramienta["clave"]];

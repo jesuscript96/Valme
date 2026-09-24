@@ -17,15 +17,38 @@ import { señal, type Señal } from "../../types";
 
 const CHROME_MAC = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
+/**
+ * Error con nombre propio para el caso «no hay navegador».
+ *
+ * Importa distinguirlo de un fallo de red: si no hay navegador, la auditoría no es
+ * incompleta por culpa del sitio auditado, sino por culpa de dónde está corriendo. El
+ * informe tiene que decir eso y no insinuar que el dominio tiene un problema.
+ */
+export class SinNavegadorError extends Error {
+  constructor() {
+    super(
+      "No hay navegador disponible en este entorno. El recolector de runtime necesita " +
+      "Chrome instalado. En local basta con tenerlo; en servidor hace falta un Chromium " +
+      "empaquetado para funciones (por ejemplo @sparticuz/chromium) o un navegador remoto.",
+    );
+    this.name = "SinNavegadorError";
+  }
+}
+
 async function abrir(): Promise<Browser> {
-  // playwright-core no descarga navegadores: usa el Chrome que ya está instalado.
+  // playwright-core no descarga navegadores: usa el Chrome que ya esté instalado.
+  // En Vercel no hay ninguno, así que esto falla a propósito y con un mensaje claro.
   const rutas = [process.env.CHROME_PATH, CHROME_MAC, "/usr/bin/google-chrome", "/usr/bin/chromium"];
   for (const executablePath of rutas.filter(Boolean) as string[]) {
     try {
       return await chromium.launch({ executablePath, headless: true });
     } catch { /* siguiente candidato */ }
   }
-  return chromium.launch({ headless: true, channel: "chrome" });
+  try {
+    return await chromium.launch({ headless: true, channel: "chrome" });
+  } catch {
+    throw new SinNavegadorError();
+  }
 }
 
 export type Runtime = {
