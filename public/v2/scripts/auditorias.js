@@ -401,8 +401,20 @@ function seoAuditEvidence(a) {
 }
 
 function seoAuditFindings(a) {
+  const rows = a.findings
+    .map(
+      (f) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong>
+      <p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p>
+      ${f.description ? `<p class="v-small">${safe(f.description)}</p>` : ""}
+      ${f.impact ? `<p class="v-small v-muted"><b>Impacto:</b> ${safe(f.impact)}</p>` : ""}
+      ${f.recommendation ? `<p class="v-small v-muted"><b>Recomendación:</b> ${safe(f.recommendation)}</p>` : ""}
+      ${Array.isArray(f.evidenceIds) && f.evidenceIds.length ? `<p class="v-small v-mono v-muted">Evidencia: ${safe(f.evidenceIds.join(", "))}</p>` : '<p class="v-small v-muted">Evidencia incompleta</p>'}
+      </div><span class="v-mono">${safe(f.id)}</span></div>`,
+    )
+    .join("");
   return `<section><div class="v-section-head"><h2>Hallazgos</h2><span class="v-mono">${a.findings.length} REGISTROS</span></div>
-    <div class="v-audit-plain-list">${a.findings.map((f) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong><p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p></div><span class="v-mono">${safe(f.id)}</span></div>`).join("") || '<div class="v-audit-empty"><strong>Sin hallazgos.</strong><p>El borrador aún no contiene resultados.</p></div>'}</div></section>`;
+    <div class="v-audit-plain-list">${rows || '<div class="v-audit-empty"><strong>Sin hallazgos.</strong><p>El borrador aún no contiene resultados.</p></div>'}</div>
+    ${Array.isArray(a.limitations) && a.limitations.length ? `<div class="v-notice"><strong>Límites de esta ejecución</strong><ul>${a.limitations.map((l) => `<li>${safe(l)}</li>`).join("")}</ul></div>` : ""}</section>`;
 }
 
 function seoAuditCoverage(a) {

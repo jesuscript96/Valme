@@ -18,6 +18,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedPanelRouteImport } from './routes/_authenticated/panel'
+import { Route as ApiAuditRunRouteImport } from './routes/api/audit-run'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +66,11 @@ const AuthenticatedPanelRoute = AuthenticatedPanelRouteImport.update({
   path: '/panel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiAuditRunRoute = ApiAuditRunRouteImport.update({
+  id: '/api/audit-run',
+  path: '/api/audit-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedClientesClientIdRoute =
   AuthenticatedClientesClientIdRouteImport.update({
     id: '/clientes/$clientId',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/api/audit-run': typeof ApiAuditRunRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
 }
 export interface FileRoutesByTo {
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/panel': typeof AuthenticatedPanelRoute
+  '/api/audit-run': typeof ApiAuditRunRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
 }
 export interface FileRoutesById {
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/panel': typeof AuthenticatedPanelRoute
+  '/api/audit-run': typeof ApiAuditRunRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
 }
 export interface FileRouteTypes {
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/panel'
+    | '/api/audit-run'
     | '/clientes/$clientId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/panel'
+    | '/api/audit-run'
     | '/clientes/$clientId'
   id:
     | '__root__'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/panel'
+    | '/api/audit-run'
     | '/_authenticated/clientes/$clientId'
   fileRoutesById: FileRoutesById
 }
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  ApiAuditRunRoute: typeof ApiAuditRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPanelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/audit-run': {
+      id: '/api/audit-run'
+      path: '/api/audit-run'
+      fullPath: '/api/audit-run'
+      preLoaderRoute: typeof ApiAuditRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/clientes/$clientId': {
       id: '/_authenticated/clientes/$clientId'
       path: '/clientes/$clientId'
@@ -253,6 +273,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  ApiAuditRunRoute: ApiAuditRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
