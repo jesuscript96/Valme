@@ -15,6 +15,19 @@ export type MyAccess =
       aal: string | null;
     };
 
+/** Invalida en servidor todas las sesiones del usuario que hace la petición. */
+async function revokeSession(admin: { auth: { admin: { signOut: (jwt: string, scope?: "global" | "local" | "others") => Promise<unknown> } } }) {
+  const { getRequestHeader } = await import("@tanstack/react-start/server");
+  const auth = getRequestHeader("authorization") ?? "";
+  const jwt = auth.replace(/^Bearer\s+/i, "");
+  if (!jwt) return;
+  try {
+    await admin.auth.admin.signOut(jwt, "global");
+  } catch {
+    /* el cliente también cierra la sesión */
+  }
+}
+
 /**
  * Autorización VALME tras cualquier inicio de sesión (email o Google).
  * Google verifica quién eres; esta función decide si puedes entrar.
@@ -33,17 +46,25 @@ export const getMyAccess = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     if (!data) {
-      // Cuenta sin invitación previa: se registra el rechazo y se elimina la cuenta.
+      // Cuenta sin invitación previa: denegar, registrar y cerrar sesión.
+      // Nunca se elimina la cuenta automáticamente: la limpieza de cuentas
+      // huérfanas es una acción administrativa explícita de Super Admin.
       await supabaseAdmin.from("activity_events").insert({
         actor_id: userId,
         action: "acceso_rechazado_sin_invitacion",
         metadata: { provider: (claims as { app_metadata?: { provider?: string } })?.app_metadata?.provider ?? null },
       });
-      await supabaseAdmin.auth.admin.deleteUser(userId);
+      await revokeSession(supabaseAdmin);
       return { allowed: false, reason: "sin_invitacion" };
     }
-    if (data.status === "desactivado") return { allowed: false, reason: "desactivado" };
-    if (!data.role) return { allowed: false, reason: "sin_rol" };
+    if (data.status === "desactivado") {
+      await revokeSession(supabaseAdmin);
+      return { allowed: false, reason: "desactivado" };
+    }
+    if (!data.role) {
+      await revokeSession(supabaseAdmin);
+      return { allowed: false, reason: "sin_rol" };
+    }
 
     if (data.status === "invitado") {
       await supabaseAdmin.from("user_access").update({ status: "activo" }).eq("user_id", userId);
