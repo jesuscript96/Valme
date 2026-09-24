@@ -1,0 +1,22 @@
+# Quién revisa qué. GitHub pide la revisión sola al abrir un PR.
+# Sustituid los marcadores por los usuarios reales de GitHub.
+
+# Infraestructura: la revisa siempre el CTO.
+/src/os/audit/types.ts          @cto
+/src/os/audit/run.ts            @cto
+/src/os/audit/rules/tipos.ts    @cto
+/src/os/audit/rules/index.ts    @cto
+/src/os/audit/collect/          @cto
+/src/app/                       @cto
+/src/os/auth/                   @cto
+/src/os/repo/                   @cto
+
+# Áreas: cada especialista es dueño de su fichero de reglas.
+/src/os/audit/rules/01-estrategia.ts   @estrategia
+/src/os/audit/rules/02-paid.ts         @paid
+/src/os/audit/rules/03-seo.ts          @seo
+/src/os/audit/rules/04-social.ts       @social
+/src/os/audit/rules/05-creatividad.ts  @creatividad
+/src/os/audit/rules/06-copy.ts         @copy
+/src/os/audit/rules/07-web.ts          @web
+/src/os/audit/rules/08-datos.ts        @datos

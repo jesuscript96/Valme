@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test \"src/os/**/__tests__/*.test.ts\"",
-    "audit": "tsx scripts/audit.ts"
+    "audit": "tsx scripts/audit.ts",
+    "check": "tsc --noEmit && npm run lint:os && npm test",
+    "lint:os": "eslint src/os scripts \"src/app/(os)\" src/app/api src/proxy.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",

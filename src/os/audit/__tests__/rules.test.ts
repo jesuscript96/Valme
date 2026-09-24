@@ -81,3 +81,39 @@ test("la cobertura baja cuando hay pendientes", () => {
   ]);
   assert.equal(c.find((x) => x.funcion === 3)!.pct, 50);
 });
+
+// --- Invariantes de la estructura por áreas -------------------------------
+// Estas pruebas protegen el modelo de trabajo del equipo: cada especialista
+// añade reglas a su fichero y estas comprueban que no rompe a los demás.
+
+test("cada regla vive en el fichero de su función", async () => {
+  const mods: [number, string][] = [
+    [1, "01-estrategia"], [2, "02-paid"], [3, "03-seo"], [4, "04-social"],
+    [5, "05-creatividad"], [6, "06-copy"], [7, "07-web"], [8, "08-datos"],
+  ];
+  for (const [funcion, fichero] of mods) {
+    const m = await import(`../rules/${fichero}`);
+    for (const r of m.REGLAS) {
+      assert.equal(r.funcion, funcion, `la regla ${r.id} está en ${fichero} pero declara función ${r.funcion}`);
+    }
+  }
+});
+
+test("toda regla produce hallazgos con los cuatro campos del método", () => {
+  // Se inventan señales con valores extremos para forzar que disparen.
+  const extremos: Señal[] = REGLAS.flatMap((r) =>
+    r.necesita.map((id) => s(id, 0, "verificado")));
+  for (const h of aplicar(extremos)) {
+    for (const campo of ["titulo", "situacion", "consecuencia", "solucion"] as const) {
+      assert.ok(h[campo] && h[campo].length > 10, `${h.id} no tiene ${campo} útil`);
+    }
+  }
+});
+
+test("ningún texto usa guiones largos", () => {
+  const extremos: Señal[] = REGLAS.flatMap((r) => r.necesita.map((id) => s(id, 0, "verificado")));
+  for (const h of aplicar(extremos)) {
+    const todo = `${h.titulo} ${h.situacion} ${h.consecuencia} ${h.solucion}`;
+    assert.ok(!todo.includes("—"), `${h.id} usa un guion largo`);
+  }
+});
