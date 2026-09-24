@@ -15,9 +15,23 @@ import type { Funcion } from "./types";
  * anuncios solo interesa a Paid, y el rastreo de cien páginas solo a SEO.
  */
 
+/**
+ * En qué punto está cada herramienta.
+ *
+ * `en_desarrollo` significa que corre, pero que su especialista todavía no la da por
+ * buena. El atajo de «Ejecutar diagnóstico» de la tabla de leads solo lanza las que
+ * están `listo`, así que **la herramienta se enchufa sola el día que su dueño cambia
+ * esta línea**. Nadie tiene que tocar la tabla de leads para eso.
+ *
+ * Cambiar a `listo` es la definición de terminado: significa que se ha probado contra
+ * clientes reales y que lo que dice se puede llevar a una reunión.
+ */
+export type EstadoHerramienta = "listo" | "en_desarrollo";
+
 export type Herramienta = {
   clave: "paid" | "seo" | "web";
   nombre: string;
+  estado: EstadoHerramienta;
   /** Qué áreas del reparto cubre su informe. */
   funciones: Funcion[];
   /** Quién la lleva en el equipo. Aparece en el informe y en CODEOWNERS. */
@@ -31,6 +45,7 @@ export const HERRAMIENTAS: Record<Herramienta["clave"], Herramienta> = {
   paid: {
     clave: "paid",
     nombre: "Auditoría de Paid",
+    estado: "en_desarrollo",
     funciones: [2],
     dueño: "paid",
     descripcion:
@@ -41,6 +56,7 @@ export const HERRAMIENTAS: Record<Herramienta["clave"], Herramienta> = {
   seo: {
     clave: "seo",
     nombre: "Auditoría de SEO",
+    estado: "en_desarrollo",
     funciones: [3],
     dueño: "seo",
     descripcion:
@@ -51,6 +67,7 @@ export const HERRAMIENTAS: Record<Herramienta["clave"], Herramienta> = {
   web: {
     clave: "web",
     nombre: "Auditoría Web",
+    estado: "en_desarrollo",
     funciones: [7, 8],
     dueño: "web",
     descripcion:
@@ -71,3 +88,12 @@ export function funcionesDe(claves: Herramienta["clave"][]): Funcion[] {
 export function colectoresDe(claves: Herramienta["clave"][]): string[] {
   return [...new Set(claves.flatMap((c) => HERRAMIENTAS[c].colectores))];
 }
+
+/** Las que su dueño ya da por buenas. Son las que lanza el diagnóstico completo. */
+export const listas = (): Herramienta["clave"][] =>
+  CLAVES.filter((c) => HERRAMIENTAS[c].estado === "listo");
+
+export const ESTADO_LABEL: Record<EstadoHerramienta, string> = {
+  listo: "Lista",
+  en_desarrollo: "En desarrollo",
+};

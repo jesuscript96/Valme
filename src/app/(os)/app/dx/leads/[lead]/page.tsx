@@ -95,20 +95,23 @@ export default async function LeadDetail({
             ) : (
               <ul className="divide-y divide-os-border">
                 {auditorias.map((a) => {
-                  const graves = a.hallazgos.p0 + a.hallazgos.p1;
+                  const graves = a.resumen.p0 + a.resumen.p1;
                   return (
                     <li key={a.id} className="flex items-center gap-3 px-4 py-3">
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] font-medium text-os-text">
+                        <Link
+                          href={`/app/dx/leads/${lead.id}/informes/${a.id}`}
+                          className="block text-[13px] font-medium text-os-text hover:underline"
+                        >
                           {HERRAMIENTAS[a.herramienta].nombre}
-                        </span>
+                        </Link>
                         <span className="os-num block text-[11px] text-os-faint">
                           {fmtDateTime(a.ejecutadaEn)} · {a.señales} señales · {(a.duracionMs / 1000).toFixed(0)} s
                         </span>
                       </span>
                       {graves > 0 ? <Badge tone="accent">{graves} graves</Badge> : null}
-                      {a.hallazgos.positivos > 0 ? (
-                        <Badge tone="ok">{a.hallazgos.positivos} bien</Badge>
+                      {a.resumen.positivos > 0 ? (
+                        <Badge tone="ok">{a.resumen.positivos} bien</Badge>
                       ) : null}
                     </li>
                   );

@@ -9,6 +9,7 @@
  */
 
 import type { Herramienta } from "@/os/audit/tools";
+import type { Hallazgo } from "@/os/audit/types";
 
 export type EstadoLead = "nuevo" | "auditado" | "contactado" | "ganado" | "perdido";
 
@@ -35,7 +36,12 @@ export type EjecucionAuditoria = {
   ejecutadaEn: string;
   duracionMs: number;
   señales: number;
-  hallazgos: { p0: number; p1: number; p2: number; p3: number; positivos: number };
+  /** Recuento por gravedad, para la tabla. */
+  resumen: { p0: number; p1: number; p2: number; p3: number; positivos: number };
+  /** El informe entero. Lo que se lleva a la reunión. */
+  hallazgos: Hallazgo[];
+  /** Lo que no se pudo consultar. Va en la portada del informe. */
+  fuentesNoDisponibles: { fuente: string; motivo: string }[];
 };
 
 export const ESTADO_LABEL: Record<EstadoLead, string> = {
