@@ -90,3 +90,55 @@ html,body{background:#E9E6E0}
 #valme-v2 .v-row-error{border-left:3px solid var(--v-amber)}
 #valme-v2 button[aria-disabled=true]{opacity:.55;text-decoration:line-through}
 #valme-v2 textarea[aria-invalid=true]{border-color:var(--v-danger);outline:2px solid #f8e7e3}
+
+/* Espacio de auditorías SEO */
+#valme-v2 .v-audit-stats{margin:24px 0}
+#valme-v2 .v-audit-tools{display:grid;grid-template-columns:minmax(220px,1fr) repeat(2,minmax(150px,210px)) auto;align-items:end;gap:10px;margin-bottom:14px}
+#valme-v2 .v-audit-tools label{min-width:0;font-size:12px;color:var(--v-muted)}
+#valme-v2 .v-audit-tools input,#valme-v2 .v-audit-tools select{width:100%;margin-top:5px}
+#valme-v2 .v-audit-list{border:1px solid var(--v-line);background:var(--v-white)}
+#valme-v2 .v-audit-row{display:grid;grid-template-columns:minmax(230px,1fr) minmax(250px,.8fr) auto;align-items:center;gap:20px;padding:17px 18px;border-bottom:1px solid var(--v-line-soft)}
+#valme-v2 .v-audit-row:last-child{border-bottom:0}
+#valme-v2 .v-audit-main strong,#valme-v2 .v-audit-main p{display:block;margin-top:7px}
+#valme-v2 .v-audit-metrics{display:grid;grid-template-columns:repeat(2,minmax(90px,1fr));gap:5px 14px;font-size:12px;color:var(--v-muted)}
+#valme-v2 .v-audit-metrics span:last-child{grid-column:1/-1;overflow-wrap:anywhere}
+#valme-v2 .v-audit-metrics b{color:var(--v-ink)}
+#valme-v2 .v-audit-empty{padding:28px;text-align:center;color:var(--v-muted)}
+#valme-v2 .v-audit-empty p{margin-top:5px}
+#valme-v2 .v-audit-form{border-top:1px solid var(--v-line)}
+#valme-v2 .v-audit-form-section{display:grid;grid-template-columns:minmax(170px,220px) minmax(0,1fr);gap:28px;padding:24px 0;border-bottom:1px solid var(--v-line)}
+#valme-v2 .v-audit-form-section h2{margin-top:6px;font-size:18px}
+#valme-v2 .v-audit-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#valme-v2 .v-audit-fields label,#valme-v2 .v-audit-wide{display:grid;gap:6px;font-size:12px;color:var(--v-muted)}
+#valme-v2 .v-audit-fields input,#valme-v2 .v-audit-fields select{width:100%}
+#valme-v2 .v-audit-wide{grid-column:1/-1}
+#valme-v2 .v-audit-checks{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:10px}
+#valme-v2 .v-audit-checks label{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid var(--v-line);background:var(--v-white)}
+#valme-v2 .v-audit-checks input{width:18px;height:18px;min-height:18px}
+#valme-v2 .v-audit-form>.v-flex{padding-top:20px}
+#valme-v2 .v-audit-state-track{display:grid;grid-template-columns:repeat(10,minmax(92px,1fr));gap:0;margin:20px 0 24px;overflow-x:auto;padding-bottom:8px}
+#valme-v2 .v-audit-state-track span{position:relative;min-width:92px;border-top:2px solid var(--v-line);padding:13px 8px 0 0;font:10px/1.35 'IBM Plex Mono',monospace;color:var(--v-muted)}
+#valme-v2 .v-audit-state-track i{position:absolute;top:-6px;left:0;width:10px;height:10px;border:2px solid var(--v-line);background:var(--v-paper)}
+#valme-v2 .v-audit-state-track .done{border-color:var(--v-ink);color:var(--v-ink)}
+#valme-v2 .v-audit-state-track .done i{border-color:var(--v-ink);background:var(--v-ink)}
+#valme-v2 .v-audit-state-track .current{border-color:var(--v-accent);color:var(--v-ink);font-weight:600}
+#valme-v2 .v-audit-state-track .current i{border-color:var(--v-accent);background:var(--v-accent)}
+#valme-v2 .v-audit-command{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;border-top:1px solid var(--v-line);border-bottom:1px solid var(--v-line)}
+#valme-v2 .v-audit-command strong{display:block;margin:5px 0;font-size:18px}
+#valme-v2 .v-audit-tabs{margin-top:24px}
+#valme-v2 .v-audit-detail{min-height:280px;padding:24px 0}
+#valme-v2 .v-audit-detail-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(190px,.7fr);gap:28px}
+#valme-v2 .v-audit-detail-grid aside{border-left:1px solid var(--v-line);padding-left:24px}
+#valme-v2 .v-audit-score{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--v-line-soft)}
+#valme-v2 .v-audit-score strong{font:500 25px/1 'IBM Plex Mono',monospace}
+#valme-v2 .v-audit-score span{font-size:12px;color:var(--v-muted);text-align:right}
+#valme-v2 .v-audit-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}
+#valme-v2 .v-audit-plain-list,#valme-v2 .v-audit-coverage{border-top:1px solid var(--v-line);margin-top:12px}
+#valme-v2 .v-audit-plain-list>div,#valme-v2 .v-audit-coverage>div{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid var(--v-line-soft)}
+#valme-v2 .v-audit-plain-list strong,#valme-v2 .v-audit-coverage strong{display:block;margin:5px 0}
+#valme-v2 .v-audit-plain-list p,#valme-v2 .v-audit-coverage p{color:var(--v-muted)}
+#valme-v2 .v-audit-history{margin:18px 0 0;padding:0;list-style:none;border-top:1px solid var(--v-line)}
+#valme-v2 .v-audit-history li{position:relative;padding:14px 10px 14px 25px;border-bottom:1px solid var(--v-line-soft);font-size:13px}
+#valme-v2 .v-audit-history li:before{content:'';position:absolute;left:5px;top:20px;width:7px;height:7px;background:var(--v-accent)}
+@media (max-width:900px){#valme-v2 .v-audit-tools{grid-template-columns:repeat(2,minmax(0,1fr))}#valme-v2 .v-audit-tools .v-search{grid-column:1/-1}#valme-v2 .v-audit-row{grid-template-columns:minmax(0,1fr) auto}#valme-v2 .v-audit-metrics{grid-column:1;grid-row:2}#valme-v2 .v-audit-row>button{grid-column:2;grid-row:1 / span 2}}
+@media (max-width:600px){#valme-v2 .v-audit-tools,#valme-v2 .v-audit-row,#valme-v2 .v-audit-form-section,#valme-v2 .v-audit-detail-grid{grid-template-columns:1fr}#valme-v2 .v-audit-tools .v-search,#valme-v2 .v-audit-metrics,#valme-v2 .v-audit-row>button{grid-column:auto;grid-row:auto}#valme-v2 .v-audit-row>button{justify-self:start}#valme-v2 .v-audit-fields,#valme-v2 .v-audit-checks{grid-template-columns:1fr}#valme-v2 .v-audit-command{align-items:flex-start;flex-direction:column}#valme-v2 .v-audit-detail-grid aside{border-left:0;border-top:1px solid var(--v-line);padding:18px 0 0}#valme-v2 .v-audit-plain-list>div,#valme-v2 .v-audit-coverage>div{align-items:flex-start}}
