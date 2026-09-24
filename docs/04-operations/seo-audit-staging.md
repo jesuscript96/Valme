@@ -6,6 +6,16 @@ Este procedimiento aplica y verifica `0005_seo_audit_persistence.sql` exclusivam
 
 El ejecutor usa `postgres.js`, ya incluido en el proyecto. No requiere `psql`, Docker ni Supabase CLI.
 
+## Topologia de entornos
+
+| Entorno    | Proposito                       | Datos                           | Despliegue         |
+| ---------- | ------------------------------- | ------------------------------- | ------------------ |
+| local-demo | Interfaz y desarrollo cotidiano | Fixtures ficticios en navegador | Manual             |
+| staging    | Migraciones, RLS e integracion  | Fixtures sinteticos             | GitHub Environment |
+| produccion | Usuarios y clientes reales      | Datos reales                    | Fuera de este PR   |
+
+Staging es un proyecto Supabase independiente. Sus credenciales no se comparten con produccion y no se copian datos reales. Esta separacion funciona en todos los planes y permite incorporar despues ramas persistentes o previews aisladas por PR sin cambiar el contrato de seguridad.
+
 ## Protecciones
 
 El script `scripts/staging/seo-audit-staging.mjs` falla antes de conectarse cuando:
@@ -55,6 +65,18 @@ npm run staging:seo-audit:verify
 
 Para un proyecto que ya tiene la Fase 1 preparada se pueden ejecutar los tres pasos seguidos con `npm run staging:seo-audit:all`.
 
+## Ejecucion desde GitHub
+
+Crear en GitHub un Environment llamado `staging` con:
+
+- secret `STAGING_DB_URL`;
+- variable `STAGING_SUPABASE_PROJECT_REF`;
+- revisores requeridos antes de desplegar, cuando el plan de GitHub lo permita.
+
+El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manual. Solicita escribir `APPLY-0005-STAGING`, serializa las ejecuciones y realiza pruebas, preflight, migracion y verificacion. No contiene disparadores por `push`, credenciales de produccion ni permisos de escritura sobre el repositorio.
+
+Para ejecutarlo: GitHub > Actions > **SEO audit staging migration** > **Run workflow**. La migracion solo comienza despues de superar las protecciones del Environment.
+
 ## Criterio de exito
 
 La ejecucion es valida solo cuando:
@@ -66,3 +88,7 @@ La ejecucion es valida solo cuando:
 - el ejecutor confirma que el fixture termino en `ROLLBACK`.
 
 Después se regeneran los tipos desde ese mismo proyecto con Supabase CLI y se revisa el diff en un PR separado. Hasta entonces, `local-demo` sigue siendo el unico repositorio habilitado.
+
+## Evolucion
+
+Cuando el volumen de cambios lo justifique y el plan de Supabase lo permita, se pueden añadir previews efimeras por PR y una rama persistente de QA. Deben seguir usando datos sinteticos, credenciales propias y el mismo verificador. Staging permanece como puerta de aceptacion antes de cualquier migracion de produccion.

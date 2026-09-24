@@ -12,6 +12,10 @@ import {
 
 const production = "rkejzxlpfkciwsuevmxv";
 const staging = "abcdefghijklmnopqrst";
+const workflow = readFileSync(
+  new URL("../../../.github/workflows/seo-audit-staging.yml", import.meta.url),
+  "utf8",
+);
 
 describe("SEO audit staging runner", () => {
   it("reads the production project ref from the tracked Supabase config", async () => {
@@ -120,5 +124,16 @@ describe("SEO audit staging runner", () => {
 
   it("fails closed on unsupported psql metacommands", () => {
     assert.throws(() => prepareVerifierSql("\\include otro.sql"), /metacomando psql/);
+  });
+
+  it("keeps the staging workflow manual, serialized and environment-protected", () => {
+    assert.match(workflow, /workflow_dispatch:/);
+    assert.doesNotMatch(workflow, /^\s*(push|pull_request|schedule):/m);
+    assert.match(workflow, /environment: staging/);
+    assert.match(workflow, /cancel-in-progress: false/);
+    assert.match(workflow, /secrets\.STAGING_DB_URL/);
+    assert.match(workflow, /vars\.STAGING_SUPABASE_PROJECT_REF/);
+    assert.match(workflow, /APPLY-0005-STAGING/);
+    assert.doesNotMatch(workflow, /PRODUCTION_DB|SUPABASE_ACCESS_TOKEN|service_role/i);
   });
 });

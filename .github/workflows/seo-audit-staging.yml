@@ -1,0 +1,54 @@
+name: SEO audit staging migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Escribe APPLY-0005-STAGING para continuar
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-audit-staging-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate-and-verify:
+    name: Apply 0005 and verify RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      STAGING_DB_URL: ${{ secrets.STAGING_DB_URL }}
+      STAGING_SUPABASE_PROJECT_REF: ${{ vars.STAGING_SUPABASE_PROJECT_REF }}
+      STAGING_APPLY_CONFIRM: apply-0005-to-${{ vars.STAGING_SUPABASE_PROJECT_REF }}
+    steps:
+      - name: Validate operator confirmation
+        env:
+          OPERATOR_CONFIRMATION: ${{ inputs.confirmation }}
+        run: test "$OPERATOR_CONFIRMATION" = "APPLY-0005-STAGING"
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run project tests
+        run: npm test
+
+      - name: Validate staging target
+        run: npm run staging:seo-audit:preflight
+
+      - name: Apply migration 0005
+        run: npm run staging:seo-audit:apply
+
+      - name: Verify tenant isolation and RLS
+        run: npm run staging:seo-audit:verify
