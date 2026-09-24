@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity, FileText, Home, Image as ImageIcon, Inbox, Layers, Rocket, Settings, Users,
+  Activity, FileText, Home, Image as ImageIcon, Inbox, Layers, Rocket, Search,
+  Settings, Users, Wrench,
 } from "lucide-react";
 import { cx } from "./primitives";
 
 const ICONS = {
   home: Home, kit: FileText, offers: Layers, studio: ImageIcon,
   launch: Rocket, landings: Activity, leads: Inbox, settings: Settings, clients: Users,
+  tools: Wrench, audit: Search,
 } as const;
 
 export type NavItem = {

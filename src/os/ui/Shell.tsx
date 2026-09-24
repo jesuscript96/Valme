@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ClientSwitcher, type SwitcherClient } from "./ClientSwitcher";
+import { ContextSwitcher } from "./ContextSwitcher";
 import { Nav, type NavItem } from "./Nav";
 import { UserMenu } from "./UserMenu";
 import { ROLE_LABEL } from "@/os/data/members";
@@ -13,13 +14,15 @@ import type { Role } from "@/os/auth/session";
  * los dos únicos sitios donde se sabe si hay cliente activo o no.
  */
 export function Shell({
-  user, clients, current, nav, children,
+  user, clients, current, nav, children, contexto = "cuentas",
 }: {
   user: { name: string; email: string; role: Role };
   clients: SwitcherClient[];
   current: SwitcherClient | null;
   nav: NavItem[];
   children: ReactNode;
+  /** Qué mitad de la aplicación se está mirando. */
+  contexto?: "dx" | "cuentas";
 }) {
   const isAdmin = user.role === "admin";
 
@@ -30,7 +33,9 @@ export function Shell({
           Valme <span className="text-os-accent">OS</span>
         </Link>
 
-        {current ? (
+        <ContextSwitcher />
+
+        {contexto === "dx" ? null : current ? (
           <ClientSwitcher clients={clients} current={current} canCreate={isAdmin} />
         ) : (
           <p className="rounded-md border border-dashed border-os-border px-2.5 py-2 text-[11px] text-os-faint">
@@ -42,7 +47,7 @@ export function Shell({
           <Nav items={nav} />
         </div>
 
-        {current ? (
+        {contexto === "cuentas" && current ? (
           <Link
             href="/app/clients"
             className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] text-os-muted hover:text-os-text"
