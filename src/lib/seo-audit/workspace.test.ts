@@ -66,7 +66,7 @@ describe("SEO audit V2 workspace", () => {
       (match) => match[1],
     );
     assert.ok(seededDomains.length >= 3);
-    assert.ok(seededDomains.every((domain) => domain.endsWith(".example")));
+    assert.ok(seededDomains.every((domain) => domain?.endsWith(".example") === true));
   });
 
   it("keeps validated and cancelled audits read-only", () => {
