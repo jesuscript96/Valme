@@ -16,6 +16,10 @@ const workflow = readFileSync(
   new URL("../../../.github/workflows/seo-audit-staging.yml", import.meta.url),
   "utf8",
 );
+const ciWorkflow = readFileSync(
+  new URL("../../../.github/workflows/ci.yml", import.meta.url),
+  "utf8",
+);
 
 describe("SEO audit staging runner", () => {
   it("reads the production project ref from the tracked Supabase config", async () => {
@@ -135,5 +139,16 @@ describe("SEO audit staging runner", () => {
     assert.match(workflow, /vars\.STAGING_SUPABASE_PROJECT_REF/);
     assert.match(workflow, /APPLY-0005-STAGING/);
     assert.doesNotMatch(workflow, /PRODUCTION_DB|SUPABASE_ACCESS_TOKEN|service_role/i);
+  });
+
+  it("runs tests and a production build for pull requests and main", () => {
+    assert.match(ciWorkflow, /pull_request:/);
+    assert.match(ciWorkflow, /branches:\s*\n\s*- main/);
+    assert.match(ciWorkflow, /permissions:\s*\n\s*contents: read/);
+    assert.match(ciWorkflow, /cancel-in-progress: true/);
+    assert.match(ciWorkflow, /run: npm ci/);
+    assert.match(ciWorkflow, /run: npm test/);
+    assert.match(ciWorkflow, /run: npm run build/);
+    assert.doesNotMatch(ciWorkflow, /secrets\.|STAGING_DB_URL|PRODUCTION_DB/i);
   });
 });

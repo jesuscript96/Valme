@@ -77,6 +77,8 @@ El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manu
 
 Para ejecutarlo: GitHub > Actions > **SEO audit staging migration** > **Run workflow**. La migracion solo comienza despues de superar las protecciones del Environment.
 
+El workflow independiente `.github/workflows/ci.yml` ejecuta pruebas y build en cada pull request y en cada cambio de `main`. No recibe secretos y cancela ejecuciones antiguas de la misma rama, por lo que el control de calidad escala sin multiplicar trabajo innecesario.
+
 ## Criterio de exito
 
 La ejecucion es valida solo cuando:
