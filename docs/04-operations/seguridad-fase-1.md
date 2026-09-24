@@ -15,7 +15,7 @@ Principio: **Google verifica quién eres. VALME decide a qué puedes acceder.**
 ## Autorización (independiente de la autenticación)
 - `user_access`: única fuente de «usuario autorizado» (rol `valme_role`, estado `invitado | activo | desactivado`, cartera completa para PM).
 - `user_client_access`: usuario ↔ cliente (varios a varios), estado `activo | retirado`.
-- Tras cualquier inicio de sesión, `getMyAccess` (servidor) comprueba sesión, usuario, estado y rol. Si no hay invitación: se registra el rechazo, se elimina la cuenta y se cierra la sesión. Si está desactivado: se cierra la sesión.
+- Tras cualquier inicio de sesión, `getMyAccess` (servidor) comprueba sesión, usuario, estado y rol. Si no hay invitación: **denegar → registrar `acceso_rechazado_sin_invitacion` → cerrar e invalidar la sesión en servidor**. La cuenta **no se elimina** automáticamente; la limpieza de cuentas huérfanas será una acción administrativa explícita de Super Admin. Si está desactivado o sin rol: denegar e invalidar la sesión.
 - Una sesión válida no abre datos: todas las funciones de acceso (`current_valme_role`, `is_internal`, `has_client_access`) exigen `status = 'activo'`.
 - Nunca se infiere nada del dominio del email ni del perfil de Google. Nunca se asigna rol automáticamente. `super_admin` solo desde Administración.
 
@@ -47,5 +47,28 @@ Ninguna credencial en el repositorio. Google usa las credenciales gestionadas; s
 
 ## Limitaciones conocidas
 - El cliente web guarda el token de sesión en el almacenamiento del navegador (mecanismo estándar de la plataforma).
-- Los archivos estáticos de la V2 (`/v2/*`) siguen siendo públicos: solo contienen la demostración con datos ficticios y nunca deben contener datos reales.
-- Lovable Cloud no permite disparadores sobre las cuentas; la protección frente a cuentas Google no invitadas es: registro desactivado + comprobación de servidor + eliminación de la cuenta.
+- Los recursos estáticos `/v2/scripts`, `/v2/styles` y `/v2/assets` siguen siendo públicos (el navegador debe poder cargarlos). Sin la estructura del panel no forman una aplicación navegable. Nunca deben contener datos reales.
+- Lovable Cloud no permite disparadores sobre las cuentas; la protección frente a cuentas Google no invitadas es: registro desactivado + comprobación de servidor + cierre de sesión. Las cuentas rechazadas quedan como huérfanas hasta que un Super Admin las limpie (acción aún no implementada).
+- Doble factor preparado, no exigido.
+
+## Protección de la V2
+- Ya no existe `public/v2/index.html`. La estructura del centro de mando vive en `src/lib/v2/shell.html` (solo servidor).
+- `/panel` (ruta autenticada) pide la estructura a `getV2Shell`, función de servidor que exige sesión válida y rol interno activo (`super_admin`, `project_manager`, `equipo`). El rol `cliente` no la recibe.
+- El panel la monta en un marco (`srcdoc`). Abrir `/v2/index.html` o `/v2/` directamente ya no muestra ningún dashboard.
+- La protección depende del servidor, no de JavaScript del navegador.
+
+## Bootstrap del primer Super Admin
+Operación administrativa única, fuera de la interfaz pública. No existe endpoint, contraseña maestra, email ni secreto en el repositorio.
+1. El PM indica el email por el canal de trabajo con el operador de Lovable Cloud.
+2. El operador comprueba en la base de datos: `select count(*) from public.user_access where role = 'super_admin'` → debe ser `0`. Si no, se detiene: los usuarios se gestionan desde Administración.
+3. Invitación con la API de administración de Lovable Cloud (`inviteUserByEmail`, `redirectTo` = `<origen>/reset-password`).
+4. Alta en `user_access` con `role = 'super_admin'`, `status = 'invitado'`, `full_portfolio = true`.
+5. Evento `bootstrap_super_admin` en `activity_events` (actor nulo, `target_user_id` = la cuenta nueva, metadatos sin secretos).
+6. Al primer acceso válido, `status` pasa a `activo`. A partir de aquí, todo alta, rol o permiso se hace solo desde Administración.
+
+## Mínimo privilegio: Project Manager (pendiente de aprobación del PM)
+Políticas actuales:
+- Crear clientes: permitido (`can_manage_clients()`), sin limitación por cartera.
+- Modificar clientes: permitido solo en los clientes a los que tiene acceso.
+- Modificar agentes: permitido sobre **todos** los agentes, sin limitación por cliente.
+Ninguno de estos permisos se ha ampliado ni reducido. Usuarios, roles, asignaciones y permisos: solo Super Admin.
