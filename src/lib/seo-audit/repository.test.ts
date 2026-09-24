@@ -40,7 +40,7 @@ type RepositoryApi = {
 function loadApi(): RepositoryApi {
   const context: Record<string, unknown> = {};
   runInNewContext(source, context);
-  return context.ValmeSeoAuditRepository as RepositoryApi;
+  return context["ValmeSeoAuditRepository"] as RepositoryApi;
 }
 
 // Values created inside the vm context carry its own prototypes; normalise before deep comparison.

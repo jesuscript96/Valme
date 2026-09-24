@@ -6,6 +6,7 @@ import { getClientSecure } from "@/lib/access.functions";
 import { DeniedBody } from "@/routes/acceso-denegado";
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Cliente · VALME Search OS" },

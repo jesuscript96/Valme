@@ -5,6 +5,7 @@ import { AccessGate } from "@/components/valme-access-gate";
 import { getV2Shell } from "@/lib/v2-shell.functions";
 
 export const Route = createFileRoute("/_authenticated/panel")({
+  staticData: { sitemap: false },
   head: () => ({
     meta: [
       { title: "Centro de mando · VALME Search OS" },
