@@ -14,26 +14,6 @@ import { aplicar, cobertura } from "./rules";
 import { CLAVES, colectoresDe, funcionesDe, HERRAMIENTAS, type Herramienta } from "./tools";
 import type { Auditoria, Señal } from "./types";
 
-const MOTIVO_SIN_NAVEGADOR =
-  "Este entorno no tiene navegador. La detección de píxeles y el análisis del DOM se " +
-  "hacen cargando la página de verdad, y eso necesita Chrome. En local funciona con el " +
-  "Chrome instalado; en servidor haría falta un Chromium empaquetado para funciones o un " +
-  "navegador remoto. Mientras tanto, las auditorías completas se lanzan desde el CLI: " +
-  "npm run audit -- <dominio>";
-
-/**
- * ¿Se puede abrir un navegador aquí?
- *
- * En una función serverless no hay ninguno, y `playwright-core` ni siquiera se deja
- * importar. Se comprueba ANTES de importarlo para que el fallo sea un aviso en el
- * informe y no un error 500.
- */
-function hayNavegador(): boolean {
-  if (process.env.CHROME_PATH) return true;
-  // Vercel, AWS Lambda y similares.
-  return !process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME;
-}
-
 /**
  * ORQUESTADOR.
  *
@@ -74,11 +54,7 @@ export async function auditar(
     : [];
 
   let social: string[] = [];
-  if (!hayNavegador()) {
-    // Se declara y se sigue. Las demás fuentes no dependen del navegador, así que la
-    // auditoría sigue siendo útil: queda incompleta, y lo dice.
-    fuentesNoDisponibles.push({ fuente: "Navegador", motivo: MOTIVO_SIN_NAVEGADOR });
-  } else {
+  {
     try {
       // Importación DINÁMICA a propósito. `playwright-core` falla al cargarse en una
       // función serverless (le falta browsers.json en el paquete trazado), y un fallo de

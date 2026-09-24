@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { CLAVES, HERRAMIENTAS, type Herramienta } from "@/os/audit/tools";
 import { requireMember } from "@/os/auth/dal";
-import { isConfigured, missingEnv } from "@/os/providers/config";
 import { Badge, PageHeader } from "@/os/ui/primitives";
 import { FUNCIONES } from "@/os/audit/types";
 import { RunTool } from "./RunTool";
@@ -37,15 +36,15 @@ export default async function ToolPage({
   if (!CLAVES.includes(tool as Herramienta["clave"])) notFound();
   const h = HERRAMIENTAS[tool as Herramienta["clave"]];
 
-  // Qué le falta a ESTA herramienta, no a todas.
+  // Qué le falta a ESTA herramienta, no a todas. Las tres son deterministas y no usan
+  // modelo de lenguaje, así que pedir la clave del LLM aquí sería desinformar.
   const faltan: string[] = [];
   if (h.colectores.includes("adlib") && !process.env.META_ADLIB_TOKEN) {
     faltan.push("META_ADLIB_TOKEN");
   }
-  if (h.colectores.includes("psi") && !process.env.PAGESPEED_API_KEY) {
+  if (h.colectores.includes("web") && !process.env.PAGESPEED_API_KEY) {
     faltan.push("PAGESPEED_API_KEY");
   }
-  if (!isConfigured("anthropic")) faltan.push(...missingEnv("anthropic"));
 
   return (
     <>

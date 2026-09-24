@@ -35,9 +35,24 @@ export class SinNavegadorError extends Error {
   }
 }
 
+/** ¿Estamos en una función sin sistema operativo completo? */
+const enServerless = () =>
+  Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 async function abrir(): Promise<Browser> {
+  // En una función serverless no hay navegador instalado. `@sparticuz/chromium` empaqueta
+  // un Chromium recortado que sí arranca ahí, y se carga con importación dinámica para
+  // que en local no pese nada: en local usamos el Chrome de verdad, que es más fiel.
+  if (enServerless()) {
+    const { default: chromiumServerless } = await import("@sparticuz/chromium");
+    return chromium.launch({
+      args: chromiumServerless.args,
+      executablePath: await chromiumServerless.executablePath(),
+      headless: true,
+    });
+  }
+
   // playwright-core no descarga navegadores: usa el Chrome que ya esté instalado.
-  // En Vercel no hay ninguno, así que esto falla a propósito y con un mensaje claro.
   const rutas = [process.env.CHROME_PATH, CHROME_MAC, "/usr/bin/google-chrome", "/usr/bin/chromium"];
   for (const executablePath of rutas.filter(Boolean) as string[]) {
     try {

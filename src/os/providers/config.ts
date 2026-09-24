@@ -11,7 +11,7 @@ export type ProviderKey = "firecrawl" | "anthropic" | "higgsfield" | "resend" | 
 
 export const PROVIDER_ENV: Record<ProviderKey, string[]> = {
   firecrawl: ["FIRECRAWL_API_KEY"],
-  anthropic: ["ANTHROPIC_API_KEY"],
+  anthropic: ["OS_LLM_API_KEY"],
   higgsfield: ["HF_API_KEY_ID", "HF_API_KEY_SECRET"],
   resend: ["RESEND_API_KEY"],
   meta: ["META_APP_ID", "META_APP_SECRET"],
@@ -19,13 +19,17 @@ export const PROVIDER_ENV: Record<ProviderKey, string[]> = {
 
 export const PROVIDER_LABEL: Record<ProviderKey, string> = {
   firecrawl: "Firecrawl",
-  anthropic: "Claude (Anthropic)",
+  anthropic: "Modelo de lenguaje",
   higgsfield: "Higgsfield",
   resend: "Resend",
   meta: "Meta Marketing API",
 };
 
 export function isConfigured(p: ProviderKey): boolean {
+  // El proveedor de LLM admite también el nombre estándar del SDK, por comodidad.
+  if (p === "anthropic") {
+    return Boolean(process.env.OS_LLM_API_KEY || process.env.ANTHROPIC_API_KEY);
+  }
   return PROVIDER_ENV[p].every((k) => Boolean(process.env[k]));
 }
 

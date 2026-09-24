@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{protocol: 'https', hostname: 'cdn.sanity.io'}],
   },
+
+  // El auditor carga las webs con un navegador de verdad. Estos dos paquetes llevan
+  // binarios y ficheros que el empaquetador no sabe seguir: si los mete en el bundle,
+  // fallan al cargar en la función con un "cannot find module". Se dejan fuera para que
+  // se resuelvan en tiempo de ejecución desde node_modules.
+  serverExternalPackages: ['playwright-core', '@sparticuz/chromium'],
 };
 
 export default nextConfig;
