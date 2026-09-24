@@ -19,6 +19,8 @@ Esta carpeta es el mapa de decisión del proyecto. La numeración indica el orde
 ## Capacidades externas
 
 - [Integración aislada de Claude SEO](claude-seo-integration.md): inventario, correspondencia con los ocho Agent Pods, límites y actualización del snapshot. Capacidades conservadas, todavía sin activar.
+- [Núcleo nativo de auditoría SEO](03-architecture/seo-audit-foundation.md): contratos, estados, hallazgos, evidencias, cobertura, capacidades MCP y límites de la primera base.
+- [Persistencia de auditorías SEO](03-architecture/seo-audit-persistence.md): modelo multi-tenant, RLS, trazabilidad y despliegue seguro.
 
 ## Regla de trabajo
 
