@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   assertApplyConfirmation,
   assertStagingTarget,
+  extractPrivilegesBlock,
   prepareVerifierSql,
   projectRefsFromDatabaseUrl,
   readProductionProjectRef,
@@ -11,6 +12,10 @@ import {
 } from "../../../scripts/staging/seo-audit-staging.mjs";
 
 const production = "rkejzxlpfkciwsuevmxv";
+const migration = readFileSync(
+  new URL("../../../drizzle/migrations/0005_seo_audit_persistence.sql", import.meta.url),
+  "utf8",
+);
 const staging = "abcdefghijklmnopqrst";
 const workflow = readFileSync(
   new URL("../../../.github/workflows/seo-audit-staging.yml", import.meta.url),
@@ -128,6 +133,24 @@ describe("SEO audit staging runner", () => {
 
   it("fails closed on unsupported psql metacommands", () => {
     assert.throws(() => prepareVerifierSql("\\include otro.sql"), /metacomando psql/);
+  });
+
+  it("reconciles 0005 privileges from a single idempotent block", () => {
+    const block = extractPrivilegesBlock(migration);
+    assert.match(
+      block,
+      /^REVOKE ALL ON public\.tenants,[\s\S]*?FROM PUBLIC, anon, authenticated;/m,
+    );
+    assert.ok(
+      block.indexOf("REVOKE ALL ON public.tenants") <
+        block.indexOf("GRANT SELECT ON public.tenants"),
+      "El REVOKE debe preceder a los GRANT",
+    );
+    assert.doesNotMatch(block, /CREATE|DROP|ALTER|INSERT INTO|UPDATE public|DELETE FROM/i);
+    assert.throws(
+      () => extractPrivilegesBlock("GRANT SELECT ON x TO authenticated;"),
+      /bloque de privilegios/,
+    );
   });
 
   it("keeps the staging workflow manual, serialized and environment-protected", () => {

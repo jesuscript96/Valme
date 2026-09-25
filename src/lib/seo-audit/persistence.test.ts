@@ -64,6 +64,28 @@ describe("SEO audit persistence migration", () => {
     assert.match(accessTableBody, /^\s*access_ref text NOT NULL,/m);
   });
 
+  it("revokes Supabase default privileges before granting the minimum", () => {
+    const tables = [
+      "tenants",
+      "tenant_memberships",
+      "projects",
+      "seo_audits",
+      "seo_audit_access_refs",
+      "seo_audit_evidence",
+      "seo_audit_findings",
+      "seo_finding_evidence",
+      "seo_service_coverage",
+      "seo_audit_state_events",
+    ];
+    const revoke = migration.match(
+      /REVOKE ALL ON (public\.[\s\S]*?)FROM PUBLIC, anon, authenticated;/,
+    );
+    assert.ok(revoke?.[1], "Falta REVOKE ALL ... FROM PUBLIC, anon, authenticated");
+    for (const table of tables) assert.match(revoke[1], new RegExp(`public\\.${table}\\b`));
+    assert.ok(migration.indexOf(revoke[0]) < migration.indexOf("GRANT SELECT ON public.tenants"));
+    assert.doesNotMatch(migration, /GRANT[^;]*TO[^;]*\banon\b/gi);
+  });
+
   it("does not grant DELETE to authenticated users", () => {
     assert.doesNotMatch(migration, /GRANT[^;]*DELETE[^;]*TO authenticated/gi);
   });

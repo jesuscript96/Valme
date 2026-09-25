@@ -175,12 +175,24 @@ async function preflight(sql, stagingProjectRef) {
   return state;
 }
 
+export function extractPrivilegesBlock(migration) {
+  const match = migration.match(/^-- @privileges:begin\r?\n([\s\S]*?)^-- @privileges:end\r?$/m);
+  if (!match?.[1] || !/^REVOKE ALL ON /m.test(match[1])) {
+    throw new Error("0005 no contiene un bloque de privilegios reconocible.");
+  }
+  return match[1];
+}
+
 async function applyMigration(sql, state) {
+  const migration = await readFile(MIGRATION, "utf8");
   if (state.missingAuditTables.length === 0) {
-    console.log("[staging] 0005 ya estaba aplicada; no se ha repetido la migracion.");
+    const privileges = extractPrivilegesBlock(migration);
+    await sql.begin((transaction) => transaction.unsafe(privileges));
+    console.log(
+      "[staging] 0005 ya estaba aplicada; privilegios reconciliados con la version actual de la migracion.",
+    );
     return;
   }
-  const migration = await readFile(MIGRATION, "utf8");
   await sql.begin((transaction) => transaction.unsafe(migration));
   const after = await inspectDatabase(sql);
   assertDatabaseState(after);
