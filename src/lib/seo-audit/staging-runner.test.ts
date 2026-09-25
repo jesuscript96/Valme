@@ -165,6 +165,10 @@ describe("SEO audit staging runner", () => {
     assert.match(workflow, /run: bun install --frozen-lockfile/);
     assert.match(workflow, /run: bun test/);
     assert.match(workflow, /run: bun run staging:seo-audit:preflight/);
+    assert.match(workflow, /supabase@2\.118\.0 gen types typescript/);
+    assert.match(workflow, /uses: actions\/upload-artifact@v4/);
+    assert.match(workflow, /name: supabase-types-staging/);
+    assert.match(workflow, /retention-days: 1/);
     assert.doesNotMatch(workflow, /PRODUCTION_DB|SUPABASE_ACCESS_TOKEN|service_role/i);
   });
 

@@ -33,4 +33,6 @@ Solicitar cualquier modo distinto de `local-demo` activa un repositorio cerrado:
 
 Hasta completar estos puntos, la aplicación no consulta las tablas de auditoría ni modifica producción.
 
+Los pasos 1 a 3 quedaron completados contra staging: `0005` está aplicada, los doce escenarios RLS pasan y `src/integrations/supabase/types.ts` se regeneró mediante el workflow protegido. Los pasos 4 a 6 continúan pendientes, por lo que el modo remoto permanece bloqueado.
+
 El procedimiento operativo y el ejecutor protegido para los tres primeros pasos se documentan en `docs/04-operations/seo-audit-staging.md`.
