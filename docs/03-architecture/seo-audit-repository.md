@@ -22,6 +22,21 @@ Todas las operaciones son asíncronas para que una futura implementación remota
 
 Solicitar cualquier modo distinto de `local-demo` activa un repositorio cerrado: permite mostrar los datos iniciales, pero rechaza escrituras con `remote-not-ready`. No existe conmutación automática a Supabase, ni llamadas HTTP, credenciales o clientes de red en el adaptador.
 
+La capa de servidor también falla cerrada. `listSeoAudits`, `createSeoAuditDraft` y `transitionSeoAudit` exigen una sesión Supabase válida y, además, la variable **exclusivamente de servidor** `SEO_AUDIT_REMOTE_ENABLED=true`. Este PR no define esa variable en ningún entorno ni conecta las funciones con la interfaz V2.
+
+## Frontera de confianza del servidor
+
+Las funciones viven en `src/lib/seo-audit/repository.functions.ts` y delegan en `repository.server.ts`:
+
+- usan el cliente Supabase autenticado con el token de la persona; nunca importan el cliente administrador ni `service_role`;
+- listar devuelve solo las filas que RLS permite leer;
+- crear recibe `projectId`, resuelve en servidor el `tenant_id` y `client_id` del proyecto visible y fija `requested_by` al usuario autenticado;
+- una auditoría nueva siempre se inserta como `borrador`, sin campos de autorización;
+- transicionar valida la máquina de estados en aplicación y vuelve a someter la operación a las políticas y triggers de PostgreSQL;
+- la actualización incluye el estado anterior esperado, por lo que una transición concurrente no sobrescribe silenciosamente otra;
+- proyectos y auditorías no visibles se tratan como ausentes, sin confirmar si existen en otro tenant;
+- un fallo de red o base de datos se propaga; nunca cae automáticamente a datos locales que pudieran aparentar persistencia remota.
+
 ## Condiciones para habilitar Supabase
 
 1. Aplicar `0005_seo_audit_persistence.sql` en un proyecto de staging separado.
@@ -33,6 +48,6 @@ Solicitar cualquier modo distinto de `local-demo` activa un repositorio cerrado:
 
 Hasta completar estos puntos, la aplicación no consulta las tablas de auditoría ni modifica producción.
 
-Los pasos 1 a 3 quedaron completados contra staging: `0005` está aplicada, los doce escenarios RLS pasan y `src/integrations/supabase/types.ts` se regeneró mediante el workflow protegido. Los pasos 4 a 6 continúan pendientes, por lo que el modo remoto permanece bloqueado.
+Los pasos 1 a 4 quedaron completados: `0005` está aplicada en staging, los doce escenarios RLS pasan, los tipos se regeneraron mediante el workflow protegido y las funciones autenticadas de servidor están implementadas. Los pasos 5 y 6 continúan pendientes, por lo que el modo remoto permanece bloqueado tanto por configuración como por la interfaz.
 
 El procedimiento operativo y el ejecutor protegido para los tres primeros pasos se documentan en `docs/04-operations/seo-audit-staging.md`.
