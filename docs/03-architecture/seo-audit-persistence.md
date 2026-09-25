@@ -103,7 +103,7 @@ SQLSTATE usados: `42501` para falta de GRANT (`permission denied for table ...`)
 - `11`: inmutabilidad terminal: `validado` y `cancelado` conservan lectura, pero rechazan todos los INSERT/UPDATE de sus cinco tipos de artefactos hijos y mantienen los datos originales.
 - `12`: limite del rol efectivo: un `project_manager` global con membresia `member` no crea ni actualiza clientes; tras elevar la membresia a `manager`, ambas operaciones se permiten.
 
-Ejecucion: `psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f scripts/staging/verify_seo_audit_rls.sql`. Termina con `VERIFICACION COMPLETA`; cualquier fallo aborta con `FALLO: ...`.
+Ejecucion recomendada: `npm run staging:seo-audit:verify`, despues del preflight y de aplicar `0005` mediante el procedimiento protegido de `docs/04-operations/seo-audit-staging.md`. El SQL tambien admite `psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f scripts/staging/verify_seo_audit_rls.sql`. Termina con `VERIFICACION COMPLETA`; cualquier fallo aborta con `FALLO: ...`.
 
 Las pruebas de `persistence.test.ts` solo comprueban el texto de la migracion y del guion; no sustituyen su ejecucion en PostgreSQL.
 

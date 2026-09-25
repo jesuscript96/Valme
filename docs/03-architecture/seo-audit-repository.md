@@ -32,3 +32,5 @@ Solicitar cualquier modo distinto de `local-demo` activa un repositorio cerrado:
 6. Activar el modo remoto mediante una configuración explícita y reversible, manteniendo `local-demo` para las vistas de demostración.
 
 Hasta completar estos puntos, la aplicación no consulta las tablas de auditoría ni modifica producción.
+
+El procedimiento operativo y el ejecutor protegido para los tres primeros pasos se documentan en `docs/04-operations/seo-audit-staging.md`.

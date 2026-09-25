@@ -835,6 +835,16 @@ CREATE POLICY "Colaboradores actualizan cobertura" ON public.seo_service_coverag
 CREATE POLICY "Miembros leen eventos de auditoria" ON public.seo_audit_state_events
   FOR SELECT TO authenticated USING (public.is_internal() AND public.can_read_seo_audit(tenant_id, audit_id));
 
+-- @privileges:begin
+-- Bloque idempotente: el runner de staging lo reaplica cuando 0005 ya existe.
+-- Supabase concede por defecto ALL sobre las tablas nuevas de public a anon y
+-- authenticated; se parte de cero y se concede solo lo imprescindible.
+REVOKE ALL ON public.tenants, public.tenant_memberships, public.projects, public.seo_audits,
+  public.seo_audit_access_refs, public.seo_audit_evidence, public.seo_audit_findings,
+  public.seo_finding_evidence, public.seo_service_coverage, public.seo_audit_state_events
+  FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON SEQUENCE public.seo_audit_state_events_id_seq FROM PUBLIC, anon, authenticated;
+
 GRANT SELECT ON public.tenants, public.tenant_memberships TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.projects TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON public.seo_audits TO authenticated;
@@ -851,3 +861,4 @@ GRANT ALL ON public.seo_audit_evidence, public.seo_audit_findings TO service_rol
 GRANT ALL ON public.seo_finding_evidence, public.seo_service_coverage TO service_role;
 GRANT ALL ON public.seo_audit_state_events TO service_role;
 GRANT USAGE, SELECT ON SEQUENCE public.seo_audit_state_events_id_seq TO service_role;
+-- @privileges:end

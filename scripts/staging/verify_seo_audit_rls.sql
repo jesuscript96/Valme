@@ -608,7 +608,8 @@ DO $$ BEGIN
 END $$;
 
 -- ---------- 10. DELETE denegado en las 10 tablas nuevas ----------
--- 10a. Catalogo: authenticated no tiene DELETE ni TRUNCATE, y no hay politicas DELETE/ALL.
+-- 10a. Catalogo: anon no tiene ningun privilegio; authenticated no tiene DELETE, TRUNCATE,
+--      REFERENCES ni TRIGGER; y no hay politicas DELETE/ALL.
 RESET ROLE;
 DO $$
 DECLARE tbl text;
@@ -618,8 +619,10 @@ BEGIN
   LOOP
     IF has_table_privilege('authenticated', 'public.' || tbl, 'DELETE') THEN
       RAISE EXCEPTION 'FALLO: authenticated tiene privilegio DELETE en %', tbl; END IF;
-    IF has_table_privilege('authenticated', 'public.' || tbl, 'TRUNCATE') THEN
-      RAISE EXCEPTION 'FALLO: authenticated tiene privilegio TRUNCATE en %', tbl; END IF;
+    IF has_table_privilege('authenticated', 'public.' || tbl, 'TRUNCATE, REFERENCES, TRIGGER') THEN
+      RAISE EXCEPTION 'FALLO: authenticated tiene TRUNCATE, REFERENCES o TRIGGER en %', tbl; END IF;
+    IF has_table_privilege('anon', 'public.' || tbl, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') THEN
+      RAISE EXCEPTION 'FALLO: anon tiene algun privilegio en %', tbl; END IF;
     IF EXISTS (SELECT 1 FROM pg_policies WHERE schemaname = 'public' AND tablename = tbl AND cmd IN ('DELETE', 'ALL')) THEN
       RAISE EXCEPTION 'FALLO: existe una politica DELETE/ALL en %', tbl; END IF;
   END LOOP;
@@ -648,7 +651,7 @@ BEGIN
       '42501', 'permission denied for table ' || tbl);
     PERFORM pg_temp.ve(format('SELECT 1 FROM public.%I WHERE %s', tbl, cond), 'fila visible en ' || tbl || ' despues de DELETE');
   END LOOP;
-  RAISE NOTICE 'OK 10: DELETE denegado en las 10 tablas (sin privilegio ni politica; DELETE real sobre filas visibles rechazado con 42501)';
+  RAISE NOTICE 'OK 10: DELETE denegado en las 10 tablas (sin privilegio ni politica; DELETE real sobre filas visibles rechazado con 42501); anon sin privilegios';
 END $$;
 
 -- ---------- 11. Artefactos inmutables tras validado o cancelado ----------

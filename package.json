@@ -9,6 +9,10 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "test": "node --test --import tsx src/lib/seo-audit/*.test.ts",
+    "staging:seo-audit:preflight": "node scripts/staging/seo-audit-staging.mjs preflight",
+    "staging:seo-audit:apply": "node scripts/staging/seo-audit-staging.mjs apply",
+    "staging:seo-audit:verify": "node scripts/staging/seo-audit-staging.mjs verify",
+    "staging:seo-audit:all": "node scripts/staging/seo-audit-staging.mjs all",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
