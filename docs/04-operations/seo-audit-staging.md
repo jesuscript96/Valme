@@ -73,7 +73,7 @@ Crear en GitHub un Environment llamado `staging` con:
 - variable `STAGING_SUPABASE_PROJECT_REF`;
 - revisores requeridos antes de desplegar, cuando el plan de GitHub lo permita.
 
-El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manual. Solicita escribir `APPLY-0005-STAGING`, serializa las ejecuciones y realiza pruebas, preflight, migracion y verificacion. No contiene disparadores por `push`, credenciales de produccion ni permisos de escritura sobre el repositorio.
+El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manual. Solicita escribir `APPLY-0005-STAGING`, serializa las ejecuciones y realiza pruebas, preflight, migracion, verificacion y generacion de tipos. Publica `src/integrations/supabase/types.ts` como el artefacto temporal `supabase-types-staging`, con un dia de retencion. No contiene disparadores por `push`, credenciales de produccion ni permisos de escritura sobre el repositorio.
 
 Para ejecutarlo: GitHub > Actions > **SEO audit staging migration** > **Run workflow**. La migracion solo comienza despues de superar las protecciones del Environment.
 
@@ -89,7 +89,7 @@ La ejecucion es valida solo cuando:
 - aparece `VERIFICACION COMPLETA`;
 - el ejecutor confirma que el fixture termino en `ROLLBACK`.
 
-Después se regeneran los tipos desde ese mismo proyecto con Supabase CLI y se revisa el diff en un PR separado. Hasta entonces, `local-demo` sigue siendo el unico repositorio habilitado.
+Los tipos se regeneran desde ese mismo proyecto con Supabase CLI fijado en el workflow y se revisa el artefacto resultante en un PR separado. La prueba `supabase-types.test.ts` exige las diez tablas de auditoria, los enums gobernados y las funciones de tenant, y rechaza identificadores de proyecto o material de conexion. Hasta habilitar expresamente el adaptador remoto, `local-demo` sigue siendo el unico repositorio activo.
 
 ## Evolucion
 
