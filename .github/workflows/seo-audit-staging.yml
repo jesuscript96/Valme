@@ -33,22 +33,21 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
-          cache: npm
+          bun-version: 1.3.5
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install --frozen-lockfile
 
       - name: Run project tests
-        run: npm test
+        run: bun test
 
       - name: Validate staging target
-        run: npm run staging:seo-audit:preflight
+        run: bun run staging:seo-audit:preflight
 
       - name: Apply migration 0005
-        run: npm run staging:seo-audit:apply
+        run: bun run staging:seo-audit:apply
 
       - name: Verify tenant isolation and RLS
-        run: npm run staging:seo-audit:verify
+        run: bun run staging:seo-audit:verify

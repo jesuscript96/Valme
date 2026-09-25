@@ -161,6 +161,10 @@ describe("SEO audit staging runner", () => {
     assert.match(workflow, /secrets\.STAGING_DB_URL/);
     assert.match(workflow, /vars\.STAGING_SUPABASE_PROJECT_REF/);
     assert.match(workflow, /APPLY-0005-STAGING/);
+    assert.match(workflow, /uses: oven-sh\/setup-bun@v2/);
+    assert.match(workflow, /run: bun install --frozen-lockfile/);
+    assert.match(workflow, /run: bun test/);
+    assert.match(workflow, /run: bun run staging:seo-audit:preflight/);
     assert.doesNotMatch(workflow, /PRODUCTION_DB|SUPABASE_ACCESS_TOKEN|service_role/i);
   });
 
@@ -169,9 +173,10 @@ describe("SEO audit staging runner", () => {
     assert.match(ciWorkflow, /branches:\s*\n\s*- main/);
     assert.match(ciWorkflow, /permissions:\s*\n\s*contents: read/);
     assert.match(ciWorkflow, /cancel-in-progress: true/);
-    assert.match(ciWorkflow, /run: npm ci/);
-    assert.match(ciWorkflow, /run: npm test/);
-    assert.match(ciWorkflow, /run: npm run build/);
+    assert.match(ciWorkflow, /uses: oven-sh\/setup-bun@v2/);
+    assert.match(ciWorkflow, /run: bun install --frozen-lockfile/);
+    assert.match(ciWorkflow, /run: bun test/);
+    assert.match(ciWorkflow, /run: bun run build/);
     assert.doesNotMatch(ciWorkflow, /secrets\.|STAGING_DB_URL|PRODUCTION_DB/i);
   });
 });
