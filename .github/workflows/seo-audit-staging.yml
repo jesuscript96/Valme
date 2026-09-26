@@ -53,12 +53,12 @@ jobs:
         run: bun run staging:seo-audit:verify
 
       - name: Generate Supabase types from staging
-        run: npx --yes supabase@2.118.0 gen types typescript --db-url "$STAGING_DB_URL" --schema public > src/integrations/supabase/types.ts
+        run: npx --yes supabase@2.118.0 gen types typescript --db-url "$STAGING_DB_URL" --schema public > src/integrations/supabase/seo-audit-staging.types.ts
 
       - name: Upload generated Supabase types
         uses: actions/upload-artifact@v4
         with:
           name: supabase-types-staging
-          path: src/integrations/supabase/types.ts
+          path: src/integrations/supabase/seo-audit-staging.types.ts
           if-no-files-found: error
           retention-days: 1

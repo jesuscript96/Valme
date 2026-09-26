@@ -73,7 +73,7 @@ Crear en GitHub un Environment llamado `staging` con:
 - variable `STAGING_SUPABASE_PROJECT_REF`;
 - revisores requeridos antes de desplegar, cuando el plan de GitHub lo permita.
 
-El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manual. Solicita escribir `APPLY-0005-STAGING`, serializa las ejecuciones y realiza pruebas, preflight, migracion, verificacion y generacion de tipos. Publica `src/integrations/supabase/types.ts` como el artefacto temporal `supabase-types-staging`, con un dia de retencion. No contiene disparadores por `push`, credenciales de produccion ni permisos de escritura sobre el repositorio.
+El workflow `.github/workflows/seo-audit-staging.yml` solo admite ejecucion manual. Solicita escribir `APPLY-0005-STAGING`, serializa las ejecuciones y realiza pruebas, preflight, migracion, verificacion y generacion de tipos. Publica `src/integrations/supabase/seo-audit-staging.types.ts` como el artefacto temporal `supabase-types-staging`, con un dia de retencion. No contiene disparadores por `push`, credenciales de produccion ni permisos de escritura sobre el repositorio.
 
 Para ejecutarlo: GitHub > Actions > **SEO audit staging migration** > **Run workflow**. La migracion solo comienza despues de superar las protecciones del Environment.
 

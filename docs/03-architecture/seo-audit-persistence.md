@@ -74,7 +74,7 @@ El trigger `user_access_sync_demo_membership` mantiene esa correspondencia en al
 
 Evidencias, enlaces de evidencia, referencias de acceso e historial de estados exigen tambien `public.is_internal()`: un usuario cliente no los lee aunque figure como `reviewer`. Este tenant no es un valor por defecto: clientes y proyectos nuevos deben declarar su tenant.
 
-`drizzle/schema.ts` permanece intacto porque Lovable lo marca como autogenerado. La migracion SQL custom y el diario de Drizzle son la fuente versionada de esta entrega. Tras desplegarla, los tipos de Supabase deben regenerarse desde la base real; no se edita manualmente `src/integrations/supabase/types.ts`.
+`drizzle/schema.ts` permanece intacto porque Lovable lo marca como autogenerado. La migracion SQL custom y el diario de Drizzle son la fuente versionada de esta entrega. Los tipos de auditoria se regeneran desde staging en `src/integrations/supabase/seo-audit-staging.types.ts`; `src/integrations/supabase/types.ts` queda reservado para la sincronizacion automatica de Lovable Cloud.
 
 ## Verificacion en staging
 
