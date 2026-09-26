@@ -13,6 +13,11 @@ const repository = readFileSync(
 );
 const app = readFileSync(new URL("../../../public/v2/scripts/app.js", import.meta.url), "utf8");
 const shell = readFileSync(new URL("../v2/shell.html", import.meta.url), "utf8");
+const panel = readFileSync(
+  new URL("../../routes/_authenticated/panel.tsx", import.meta.url),
+  "utf8",
+);
+const shellFunction = readFileSync(new URL("../v2-shell.functions.ts", import.meta.url), "utf8");
 
 const states = [
   "borrador",
@@ -59,7 +64,7 @@ describe("SEO audit V2 workspace", () => {
   it("creates new work as a draft", () => {
     assert.match(workspace, /state:\s*["']borrador["']/);
     assert.match(workspace, /El encargo nace como borrador/);
-    assert.match(workspace, /class="v-primary" type="submit">Guardar borrador/);
+    assert.match(workspace, /class="v-primary" type="submit"[^>]*>Guardar borrador/);
     assert.match(app, /if\(!b\.hasAttribute\('type'\)\)b\.type='button'/);
     assert.doesNotMatch(workspace, /state:\s*form\.get/);
   });
@@ -73,6 +78,25 @@ describe("SEO audit V2 workspace", () => {
     assert.doesNotMatch(workspace, /\bfetch\s*\(/);
     assert.doesNotMatch(workspace, /supabase/i);
     assert.doesNotMatch(workspace, /service_role|anon_key|bearer\s+[a-z0-9]/i);
+  });
+
+  it("activates remote persistence only through the authenticated parent bridge", () => {
+    assert.match(panel, /event\.source !== frameRef\.current\?\.contentWindow/);
+    assert.match(panel, /event\.origin !== window\.location\.origin/);
+    assert.match(panel, /loadSeoAuditWorkspace/);
+    assert.match(panel, /createSeoAuditDraft/);
+    assert.match(panel, /transitionSeoAudit/);
+    assert.match(shellFunction, /isSeoAuditRemoteEnabled/);
+    assert.match(workspace, /event\.source !== window\.parent/);
+    assert.match(workspace, /event\.origin !== window\.location\.origin/);
+    assert.match(workspace, /createParentTransport/);
+    assert.doesNotMatch(workspace, /SEO_AUDIT_REMOTE_ENABLED|VITE_SEO_AUDIT_REMOTE_ENABLED/);
+  });
+
+  it("does not silently replace failed remote data with the local demo", () => {
+    assert.match(workspace, /No se muestran datos locales/);
+    assert.match(repository, /lastError = "remote-unavailable"/);
+    assert.match(repository, /throw error/);
   });
 
   it("persists real audit results before refreshing the workspace", () => {

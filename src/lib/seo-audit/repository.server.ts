@@ -8,6 +8,11 @@ import { auditLimitsSchema, authorizedScopeSchema } from "./schemas";
 type AuditRow = Database["public"]["Tables"]["seo_audits"]["Row"];
 type AuditInsert = Database["public"]["Tables"]["seo_audits"]["Insert"];
 type AuditUpdate = Database["public"]["Tables"]["seo_audits"]["Update"];
+type ClientSummary = Pick<Database["public"]["Tables"]["clients"]["Row"], "id" | "nombre">;
+type ProjectSummary = Pick<
+  Database["public"]["Tables"]["projects"]["Row"],
+  "id" | "client_id" | "nombre" | "primary_domain"
+>;
 type ProjectScope = Pick<
   Database["public"]["Tables"]["projects"]["Row"],
   "id" | "tenant_id" | "client_id" | "primary_domain"
@@ -43,6 +48,8 @@ export type TransitionSeoAuditInput = z.infer<typeof transitionSeoAuditInputSche
 
 export interface SeoAuditStore {
   listAudits(): Promise<AuditRow[]>;
+  listClients(): Promise<ClientSummary[]>;
+  listProjects(): Promise<ProjectSummary[]>;
   findProject(projectId: string): Promise<ProjectScope | null>;
   insertAudit(audit: AuditInsert): Promise<AuditRow>;
   findAudit(auditId: string): Promise<AuditRow | null>;
@@ -75,8 +82,29 @@ export class SeoAuditRepositoryError extends Error {
 export function assertSeoAuditRemoteEnabled(
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): void {
-  if (env["SEO_AUDIT_REMOTE_ENABLED"] !== "true") {
+  if (!isSeoAuditRemoteEnabled(env)) {
     throw new SeoAuditRemoteDisabledError();
+  }
+}
+
+export function isSeoAuditRemoteEnabled(
+  env: Readonly<Record<string, string | undefined>> = process.env,
+): boolean {
+  if (
+    env["SEO_AUDIT_REMOTE_ENABLED"] !== "true" ||
+    env["SEO_AUDIT_REMOTE_ENVIRONMENT"] !== "staging"
+  ) {
+    return false;
+  }
+
+  const projectRef = env["SEO_AUDIT_REMOTE_PROJECT_REF"];
+  const supabaseUrl = env["SUPABASE_URL"];
+  if (!projectRef || !supabaseUrl) return false;
+
+  try {
+    return new URL(supabaseUrl).hostname === `${projectRef}.supabase.co`;
+  } catch {
+    return false;
   }
 }
 
@@ -93,6 +121,22 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
         .select("*")
         .order("updated_at", { ascending: false });
       if (error) throwStoreError("listar auditorias", error);
+      return data;
+    },
+
+    async listClients() {
+      const { data, error } = await supabase.from("clients").select("id, nombre").order("nombre");
+      if (error) throwStoreError("listar clientes", error);
+      return data;
+    },
+
+    async listProjects() {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, client_id, nombre, primary_domain")
+        .eq("estado", "activo")
+        .order("nombre");
+      if (error) throwStoreError("listar proyectos", error);
       return data;
     },
 
@@ -139,6 +183,15 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
 export function createSeoAuditServerRepository(store: SeoAuditStore, userId: string) {
   return Object.freeze({
     list: () => store.listAudits(),
+
+    async workspace() {
+      const [audits, clients, projects] = await Promise.all([
+        store.listAudits(),
+        store.listClients(),
+        store.listProjects(),
+      ]);
+      return { audits, clients, projects };
+    },
 
     async createDraft(input: CreateSeoAuditDraftInput): Promise<AuditRow> {
       const project = await store.findProject(input.projectId);
