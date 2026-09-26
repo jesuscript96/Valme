@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 
 const types = readFileSync(
-  new URL("../../integrations/supabase/types.ts", import.meta.url),
+  new URL("../../integrations/supabase/seo-audit-staging.types.ts", import.meta.url),
   "utf8",
 );
 

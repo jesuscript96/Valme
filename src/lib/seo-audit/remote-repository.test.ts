@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import type { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/seo-audit-staging.types";
 import {
   SeoAuditRemoteDisabledError,
   SeoAuditRepositoryError,

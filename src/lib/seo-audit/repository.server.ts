@@ -1,11 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import type { Database, Json } from "@/integrations/supabase/types";
+import type { Database, Json } from "@/integrations/supabase/seo-audit-staging.types";
 import { assertAllowedTransition } from "./states";
 import { SEO_AUDIT_STATES, SEO_AUDIT_VERSION } from "./types";
 import { auditLimitsSchema, authorizedScopeSchema } from "./schemas";
 
 type AuditRow = Database["public"]["Tables"]["seo_audits"]["Row"];
+export type SeoAuditDatabase = Database;
 type AuditInsert = Database["public"]["Tables"]["seo_audits"]["Insert"];
 type AuditUpdate = Database["public"]["Tables"]["seo_audits"]["Update"];
 type ClientSummary = Pick<Database["public"]["Tables"]["clients"]["Row"], "id" | "nombre">;

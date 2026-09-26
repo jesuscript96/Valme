@@ -54,7 +54,7 @@ Las funciones viven en `src/lib/seo-audit/repository.functions.ts` y delegan en 
 
 1. Aplicar `0005_seo_audit_persistence.sql` en un proyecto de staging separado.
 2. Ejecutar `verify_seo_audit_rls.sql` y obtener los 12 escenarios correctos con `ROLLBACK`.
-3. Regenerar `src/integrations/supabase/types.ts` desde ese proyecto; no editarlo manualmente.
+3. Regenerar `src/integrations/supabase/seo-audit-staging.types.ts` desde ese proyecto; no editarlo manualmente. `src/integrations/supabase/types.ts` pertenece a la sincronizacion automatica de Lovable Cloud.
 4. Implementar funciones de servidor autenticadas que operen con el cliente del usuario y respeten RLS. El navegador no recibirá `service_role`.
 5. Probar lectura, creación de borradores, transiciones, aislamiento entre tenants y fallos de red.
 6. Activar el modo remoto mediante una configuración explícita y reversible, manteniendo `local-demo` para las vistas de demostración.
