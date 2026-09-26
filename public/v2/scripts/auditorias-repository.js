@@ -3,6 +3,8 @@
 
   const SCHEMA_VERSION = 1;
   const LOCAL_MODE = "local-demo";
+  const REMOTE_MODE = "supabase";
+  const BRIDGE_CHANNEL = "valme:seo-audit:v1";
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -116,9 +118,165 @@
     });
   }
 
+  function scopeLabel(scope) {
+    if (!scope || typeof scope !== "object") return "Alcance remoto registrado.";
+    const domains = Array.isArray(scope.includedDomains) ? scope.includedDomains.join(", ") : "";
+    const paths = Array.isArray(scope.includedPaths) ? scope.includedPaths.join(", ") : "";
+    return [domains && `Dominios: ${domains}`, paths && `Rutas: ${paths}`]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  function createRemoteRepository(options) {
+    const transport = options.transport;
+    let context = { clients: [], projects: [] };
+    let lastError = null;
+
+    function projectOptions() {
+      const clients = new Map(context.clients.map((client) => [client.id, client.nombre]));
+      return context.projects.map((project) => ({
+        id: project.id,
+        clientId: project.client_id,
+        client: clients.get(project.client_id) || "Cliente asignado",
+        project: project.nombre,
+        domain: project.primary_domain,
+      }));
+    }
+
+    function mapAudit(row) {
+      const project = projectOptions().find((item) => item.id === row.project_id);
+      return {
+        id: row.id,
+        projectId: row.project_id,
+        clientId: row.client_id,
+        client: project?.client || "Cliente asignado",
+        project: project?.project || "Proyecto asignado",
+        domain: row.primary_domain,
+        state: row.state,
+        services: row.service_ids,
+        capabilities: row.requested_capability_ids,
+        markets: row.markets,
+        languages: row.languages,
+        requestedBy: "Usuario autenticado",
+        createdAt: row.created_at,
+        limits: {
+          pages: row.max_pages,
+          minutes: row.max_duration_minutes,
+          cost: `${Number(row.max_cost_amount).toFixed(2)} ${row.currency}`,
+        },
+        scope: scopeLabel(row.authorized_scope),
+        authorizedScope: row.authorized_scope,
+        accesses: [],
+        evidence: [],
+        findings: [],
+        coverage: row.service_ids.map((service) => ({
+          service,
+          state: "pendiente_justificado",
+          reason: "Cobertura detallada pendiente de carga.",
+        })),
+        events: [
+          `${row.created_at} · Borrador registrado`,
+          ...(row.transition_reason ? [`${row.updated_at} · ${row.transition_reason}`] : []),
+        ],
+      };
+    }
+
+    async function load() {
+      try {
+        const workspace = await transport("load");
+        context = { clients: workspace.clients, projects: workspace.projects };
+        lastError = null;
+        return workspace.audits.map(mapAudit);
+      } catch (error) {
+        lastError = "remote-unavailable";
+        throw error;
+      }
+    }
+
+    async function createDraft(input) {
+      try {
+        const row = await transport("createDraft", input);
+        lastError = null;
+        return mapAudit(row);
+      } catch (error) {
+        lastError = "remote-write-failed";
+        throw error;
+      }
+    }
+
+    async function transition(input) {
+      try {
+        const row = await transport("transition", input);
+        lastError = null;
+        return mapAudit(row);
+      } catch (error) {
+        lastError = "remote-write-failed";
+        throw error;
+      }
+    }
+
+    return Object.freeze({
+      load,
+      createDraft,
+      transition,
+      projects: projectOptions,
+      save: async () => false,
+      reset: load,
+      status: () => ({
+        mode: REMOTE_MODE,
+        label: "Supabase · sesión autenticada",
+        writable: lastError === null,
+        source: "remote",
+        lastError,
+        schemaVersion: SCHEMA_VERSION,
+      }),
+    });
+  }
+
+  function createParentTransport(options = {}) {
+    const target = options.target || global.parent;
+    const timeoutMs = options.timeoutMs || 15000;
+    const pending = new Map();
+
+    global.addEventListener("message", (event) => {
+      const message = event.data;
+      if (
+        event.origin !== global.location.origin ||
+        event.source !== target ||
+        !message ||
+        message.channel !== BRIDGE_CHANNEL ||
+        message.kind !== "response"
+      )
+        return;
+      const request = pending.get(message.id);
+      if (!request) return;
+      pending.delete(message.id);
+      global.clearTimeout(request.timer);
+      if (message.ok) request.resolve(message.data);
+      else request.reject(new Error(message.error || "La operación remota ha fallado."));
+    });
+
+    return (action, payload) =>
+      new Promise((resolve, reject) => {
+        const id = global.crypto.randomUUID();
+        const timer = global.setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("La operación remota ha superado el tiempo de espera."));
+        }, timeoutMs);
+        pending.set(id, { resolve, reject, timer });
+        target.postMessage(
+          { channel: BRIDGE_CHANNEL, kind: "request", id, action, payload },
+          global.location.origin,
+        );
+      });
+  }
+
   function create(options) {
     if (!options || !validRecords(options.seed)) {
       throw new TypeError("El repositorio requiere una colección inicial válida.");
+    }
+    if (options.mode === REMOTE_MODE && typeof options.transport === "function") {
+      return createRemoteRepository(options);
     }
     if (options.mode !== LOCAL_MODE) return createDisabledRemoteRepository(options);
     if (typeof options.storageFactory !== "function" || !options.key) {
@@ -129,7 +287,9 @@
 
   global.ValmeSeoAuditRepository = Object.freeze({
     create,
+    createParentTransport,
     LOCAL_MODE,
+    REMOTE_MODE,
     SCHEMA_VERSION,
   });
 })(globalThis);

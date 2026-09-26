@@ -216,7 +216,7 @@ const SEO_AUDIT_SEED = [
   },
 ];
 
-const seoAuditRepository = ValmeSeoAuditRepository.create({
+let seoAuditRepository = ValmeSeoAuditRepository.create({
   mode: ValmeSeoAuditRepository.LOCAL_MODE,
   key: SEO_AUDIT_STORAGE,
   seed: SEO_AUDIT_SEED,
@@ -232,11 +232,49 @@ let seoAuditCreating = false;
 let seoAuditStorageOk = seoAuditRepository.status().writable;
 let seoAuditRepositoryLoading = true;
 
-seoAuditRepository.load().then((records) => {
-  seoAudits = records;
-  seoAuditRepositoryLoading = false;
-  seoAuditStorageOk = seoAuditRepository.status().writable;
-  if (current === "Auditorías") seoAuditRender("Persistencia local preparada.");
+async function seoAuditLoadRepository(message) {
+  const activeRepository = seoAuditRepository;
+  seoAuditRepositoryLoading = true;
+  try {
+    const records = await activeRepository.load();
+    if (activeRepository !== seoAuditRepository) return;
+    seoAudits = records;
+    seoAuditRepositoryLoading = false;
+    seoAuditStorageOk = seoAuditRepository.status().writable;
+    if (current === "Auditorías") seoAuditRender(message);
+  } catch {
+    if (activeRepository !== seoAuditRepository) return;
+    seoAuditRepositoryLoading = false;
+    seoAuditStorageOk = false;
+    if (current === "Auditorías") {
+      seoAuditRender("No se pudo cargar la persistencia remota. No se muestran datos locales.");
+    }
+  }
+}
+
+seoAuditLoadRepository("Persistencia local preparada.");
+
+window.addEventListener("message", (event) => {
+  const config = event.data;
+  if (
+    event.origin !== window.location.origin ||
+    event.source !== window.parent ||
+    !config ||
+    config.channel !== "valme:seo-audit:v1" ||
+    config.kind !== "config" ||
+    config.mode !== ValmeSeoAuditRepository.REMOTE_MODE ||
+    seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE
+  )
+    return;
+
+  seoAuditRepository = ValmeSeoAuditRepository.create({
+    mode: ValmeSeoAuditRepository.REMOTE_MODE,
+    seed: [],
+    transport: ValmeSeoAuditRepository.createParentTransport(),
+  });
+  seoAudits = [];
+  seoAuditCurrent = null;
+  seoAuditLoadRepository("Persistencia remota preparada.");
 });
 
 function seoAuditClone(value) {
@@ -323,7 +361,9 @@ function seoAuditList() {
   const repositoryStatus = seoAuditRepository.status();
   return (
     heading(
-      "AUDITORÍA SEO / DEMOSTRACIÓN",
+      repositoryStatus.mode === ValmeSeoAuditRepository.REMOTE_MODE
+        ? "AUDITORÍA SEO / STAGING"
+        : "AUDITORÍA SEO / DEMOSTRACIÓN",
       "Auditorías",
       "Alcance, evidencias y decisiones en un único expediente.",
       '<button class="v-primary" data-seo-new>+ Nueva auditoría</button>',
@@ -333,14 +373,16 @@ function seoAuditList() {
       <label class="v-search">Buscar<br><input id="v-seo-search" type="search" value="${safe(seoAuditQuery)}" placeholder="Cliente, dominio o ID"></label>
       <label>Estado<br><select id="v-seo-state">${["Todos", ...SEO_AUDIT_STATES].map((v) => `<option value="${v}" ${v === seoAuditStateFilter ? "selected" : ""}>${v === "Todos" ? "Todos" : seoAuditLabel(v)}</option>`).join("")}</select></label>
       <label>Cliente<br><select id="v-seo-client">${clientsList.map((v) => `<option ${v === seoAuditClientFilter ? "selected" : ""}>${safe(v)}</option>`).join("")}</select></label>
-      <button data-seo-reset aria-label="Restablecer auditorías de demostración">Restablecer demo</button>
+      ${repositoryStatus.mode === ValmeSeoAuditRepository.LOCAL_MODE ? '<button data-seo-reset aria-label="Restablecer auditorías de demostración">Restablecer demo</button>' : ""}
     </div>${seoAuditRows()}</section>
-    <p class="v-small v-muted v-audit-storage-state">Persistencia: ${safe(repositoryStatus.label)} · esquema local ${repositoryStatus.schemaVersion}</p>
-    ${seoAuditStorageOk ? "" : '<div class="v-notice v-audit-storage"><strong>No se pudo guardar en este navegador.</strong><p>Los cambios durarán solamente durante esta sesión.</p></div>'}`
+    <p class="v-small v-muted v-audit-storage-state">Persistencia: ${safe(repositoryStatus.label)} · esquema ${repositoryStatus.schemaVersion}</p>
+    ${seoAuditStorageOk ? "" : '<div class="v-notice v-audit-storage"><strong>La persistencia no está disponible.</strong><p>No se han sustituido los datos remotos por una copia local.</p></div>'}`
   );
 }
 
 function seoAuditNew() {
+  const remote = seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE;
+  const projects = remote ? seoAuditRepository.projects() : [];
   return (
     `<button class="v-back" data-seo-back>← Auditorías</button>` +
     heading(
@@ -351,9 +393,11 @@ function seoAuditNew() {
     ) +
     `<form id="v-seo-form" class="v-audit-form">
       <section class="v-audit-form-section"><div><span class="v-mono v-muted">01 / CONTEXTO</span><h2>Cliente y proyecto</h2></div><div class="v-audit-fields">
-        <label>Cliente<select name="client" required><option>Nébula Hogar</option><option>Tuilus</option></select></label>
-        <label>Proyecto<input name="project" required maxlength="80" value="Web principal"></label>
-        <label class="v-audit-wide">Dominio principal<input name="domain" required maxlength="160" placeholder="www.ejemplo.test"></label>
+        ${
+          remote
+            ? `<label class="v-audit-wide">Proyecto asignado<select name="projectId" required>${projects.map((project) => `<option value="${safe(project.id)}">${safe(project.client)} · ${safe(project.project)} · ${safe(project.domain)}</option>`).join("")}</select></label>`
+            : '<label>Cliente<select name="client" required><option>Nébula Hogar</option><option>Tuilus</option></select></label><label>Proyecto<input name="project" required maxlength="80" value="Web principal"></label><label class="v-audit-wide">Dominio principal<input name="domain" required maxlength="160" placeholder="www.ejemplo.test"></label>'
+        }
       </div></section>
       <section class="v-audit-form-section"><div><span class="v-mono v-muted">02 / ALCANCE</span><h2>Servicios autorizables</h2></div><div class="v-audit-checks">
         ${["SEO técnico", "Contenidos", "AEO/GEO", "Analítica"].map((s, i) => `<label><input type="checkbox" name="services" value="${s}" ${i === 0 ? "checked" : ""}>${s}</label>`).join("")}
@@ -363,7 +407,8 @@ function seoAuditNew() {
         <label>Duración (min)<input name="minutes" type="number" min="1" max="1440" value="45" required></label>
         <label>Coste máximo<input name="cost" type="number" min="0" step="0.01" value="0" required></label>
       </div></section>
-      <div class="v-flex"><button class="v-primary" type="submit">Guardar borrador</button><button type="button" data-seo-back>Cancelar</button></div>
+      <div class="v-flex"><button class="v-primary" type="submit" ${remote && !projects.length ? "disabled" : ""}>Guardar borrador</button><button type="button" data-seo-back>Cancelar</button></div>
+      ${remote && !projects.length ? '<div class="v-notice">No hay proyectos asignados disponibles para crear una auditoría.</div>' : ""}
     </form>`
   );
 }
@@ -451,8 +496,9 @@ function seoAuditDetail(a) {
       tag(seoAuditLabel(a.state), seoAuditTone(a.state)),
     ) +
     seoAuditStateTrack(a) +
-    `<div class="v-audit-command"><div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
-      ${a.state === "en_ejecucion" ? `<button class="v-primary" data-seo-run ${seoAuditRunning ? "disabled" : ""}>${seoAuditRunning ? "Analizando la web…" : "Ejecutar análisis real"}</button>` : ""}
+    `<div class="v-audit-command"><div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE ? "La decisión se registra en el expediente remoto." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
+      ${a.state === "en_ejecucion" && seoAuditRepository.status().mode === ValmeSeoAuditRepository.LOCAL_MODE ? `<button class="v-primary" data-seo-run ${seoAuditRunning ? "disabled" : ""}>${seoAuditRunning ? "Analizando la web…" : "Ejecutar análisis real"}</button>` : ""}
+      ${action?.next === "autorizado" ? '<label>Referencia de autorización<input id="v-seo-authorization-ref" required maxlength="500" placeholder="Ticket, acta o aprobación"></label>' : ""}
       ${action ? `<button class="${a.state === "en_ejecucion" ? "" : "v-primary"}" data-seo-transition="${action.next}">${action.label}</button>` : ""}
       ${a.state === "control_calidad" ? "<button data-seo-return>Devolver con motivo</button>" : ""}
       ${!terminal && a.state !== "cancelado" ? "<button data-seo-cancel>Cancelar auditoría</button>" : ""}
@@ -472,9 +518,13 @@ function seoAuditDetail(a) {
 function auditsWorkspace() {
   if (seoAuditRepositoryLoading) {
     return heading(
-      "AUDITORÍA SEO / DEMOSTRACIÓN",
+      seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE
+        ? "AUDITORÍA SEO / STAGING"
+        : "AUDITORÍA SEO / DEMOSTRACIÓN",
       "Auditorías",
-      "Preparando el repositorio local.",
+      seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE
+        ? "Cargando expedientes autorizados."
+        : "Preparando el repositorio local.",
     );
   }
   if (seoAuditCreating) return seoAuditNew();
@@ -492,6 +542,27 @@ function seoAuditRender(message) {
 async function seoAuditTransition(audit, next, reason) {
   if (!SEO_AUDIT_NEXT[audit.state].includes(next)) {
     announce(`Transición no permitida: ${seoAuditLabel(audit.state)} → ${seoAuditLabel(next)}.`);
+    return;
+  }
+  if (seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE) {
+    const authorizationRef = document.querySelector("#v-seo-authorization-ref")?.value.trim();
+    if (next === "autorizado" && !authorizationRef) {
+      announce("Añade la referencia de autorización antes de continuar.");
+      return;
+    }
+    try {
+      const updated = await seoAuditRepository.transition({
+        auditId: audit.id,
+        nextState: next,
+        reason,
+        ...(authorizationRef ? { authorizationRef } : {}),
+      });
+      seoAudits = seoAudits.map((item) => (item.id === updated.id ? updated : item));
+      seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
+    } catch (error) {
+      seoAuditStorageOk = false;
+      seoAuditRender(error.message);
+    }
     return;
   }
   const previous = audit.state;
@@ -556,7 +627,13 @@ root.addEventListener("click", async (event) => {
   } else if (data.seoTransition) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
-      await seoAuditTransition(audit, data.seoTransition, "Decisión simulada del Project Manager");
+      await seoAuditTransition(
+        audit,
+        data.seoTransition,
+        seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE
+          ? "Decisión del Project Manager"
+          : "Decisión simulada del Project Manager",
+      );
   } else if (data.seoReturn !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
@@ -575,6 +652,7 @@ root.addEventListener("click", async (event) => {
       await seoAuditRunReal(audit);
     }
   } else if (data.seoReset !== undefined) {
+    if (seoAuditRepository.status().mode !== ValmeSeoAuditRepository.LOCAL_MODE) return;
     seoAudits = await seoAuditRepository.reset();
     seoAuditCurrent = null;
     seoAuditQuery = "";
@@ -610,6 +688,54 @@ root.addEventListener("submit", async (event) => {
   const services = form.getAll("services").map(String);
   if (!services.length) {
     announce("Selecciona al menos un servicio.");
+    return;
+  }
+  const remote = seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE;
+  if (remote) {
+    const project = seoAuditRepository
+      .projects()
+      .find((item) => item.id === String(form.get("projectId")));
+    if (!project) {
+      announce("Selecciona un proyecto asignado válido.");
+      return;
+    }
+    try {
+      const domainUrl = project.domain.startsWith("http")
+        ? project.domain
+        : `https://${project.domain}`;
+      const audit = await seoAuditRepository.createDraft({
+        projectId: project.id,
+        serviceIds: services,
+        primaryDomain: project.domain,
+        seedUrls: [`${domainUrl.replace(/\/$/, "")}/`],
+        markets: ["España"],
+        languages: ["es"],
+        authorizedScope: {
+          includedDomains: [project.domain],
+          includedPaths: ["/"],
+          excludedPaths: [],
+          allowedReadActions: ["fetch_public_html"],
+          explicitlyExcludedActions: ["publish", "write", "delete"],
+        },
+        requestedCapabilityIds: services.includes("SEO técnico")
+          ? ["crawling", "indexacion", "canonical"]
+          : ["analisis_contenido"],
+        limits: {
+          maxPages: Number(form.get("pages")),
+          maxDurationMinutes: Number(form.get("minutes")),
+          maxCostAmount: Number(form.get("cost")),
+          currency: "EUR",
+        },
+      });
+      seoAudits.unshift(audit);
+      seoAuditCreating = false;
+      seoAuditCurrent = audit.id;
+      seoAuditTab = "Resumen";
+      seoAuditRender("Borrador creado. No se ha iniciado ninguna ejecución.");
+    } catch (error) {
+      seoAuditStorageOk = false;
+      seoAuditRender(error.message);
+    }
     return;
   }
   const id = `AUD-${new Date().getFullYear()}-${String(Math.max(0, ...seoAudits.map((a) => Number(a.id.split("-").at(-1)))) + 1).padStart(3, "0")}`;

@@ -18,6 +18,16 @@ export const listSeoAudits = createServerFn({ method: "POST" })
     ).list();
   });
 
+export const loadSeoAuditWorkspace = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createSupabaseSeoAuditStore(context.supabase),
+      context.userId,
+    ).workspace();
+  });
+
 export const createSeoAuditDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createSeoAuditDraftInputSchema.parse(input))

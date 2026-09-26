@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isSeoAuditRemoteEnabled } from "@/lib/seo-audit/repository.server";
 
 /**
  * Entrega la estructura del centro de mando (V2) solo a usuarios internos
@@ -17,8 +18,15 @@ export const getV2Shell = createServerFn({ method: "POST" })
       .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw error;
-    const internal = data && data.status !== "desactivado" && ["super_admin", "project_manager", "equipo"].includes(data.role ?? "");
+    const internal =
+      data &&
+      data.status !== "desactivado" &&
+      ["super_admin", "project_manager", "equipo"].includes(data.role ?? "");
     if (!internal) return { allowed: false as const };
     const { V2_SHELL_HTML } = await import("./v2/shell.server");
-    return { allowed: true as const, html: V2_SHELL_HTML };
+    return {
+      allowed: true as const,
+      html: V2_SHELL_HTML,
+      seoAuditMode: isSeoAuditRemoteEnabled() ? ("supabase" as const) : ("local-demo" as const),
+    };
   });

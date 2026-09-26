@@ -77,6 +77,15 @@ function fakeStore(initial: AuditRow = audit()) {
   let current: AuditRow | null = initial;
   const store: SeoAuditStore = {
     listAudits: async () => (current ? [current] : []),
+    listClients: async () => [{ id: "30000000-0000-4000-8000-000000000001", nombre: "Cliente" }],
+    listProjects: async () => [
+      {
+        id: "40000000-0000-4000-8000-000000000001",
+        client_id: "30000000-0000-4000-8000-000000000001",
+        nombre: "Proyecto",
+        primary_domain: "project.example",
+      },
+    ],
     findProject: async (projectId) => ({
       id: projectId,
       tenant_id: "20000000-0000-4000-8000-000000000001",
@@ -106,7 +115,24 @@ describe("SEO audit authenticated server repository", () => {
       () => assertSeoAuditRemoteEnabled({ SEO_AUDIT_REMOTE_ENABLED: "TRUE" }),
       SeoAuditRemoteDisabledError,
     );
-    assert.doesNotThrow(() => assertSeoAuditRemoteEnabled({ SEO_AUDIT_REMOTE_ENABLED: "true" }));
+    assert.throws(
+      () =>
+        assertSeoAuditRemoteEnabled({
+          SEO_AUDIT_REMOTE_ENABLED: "true",
+          SEO_AUDIT_REMOTE_ENVIRONMENT: "staging",
+          SEO_AUDIT_REMOTE_PROJECT_REF: "staging-ref",
+          SUPABASE_URL: "https://production-ref.supabase.co",
+        }),
+      SeoAuditRemoteDisabledError,
+    );
+    assert.doesNotThrow(() =>
+      assertSeoAuditRemoteEnabled({
+        SEO_AUDIT_REMOTE_ENABLED: "true",
+        SEO_AUDIT_REMOTE_ENVIRONMENT: "staging",
+        SEO_AUDIT_REMOTE_PROJECT_REF: "staging-ref",
+        SUPABASE_URL: "https://staging-ref.supabase.co",
+      }),
+    );
   });
 
   it("rejects browser-owned tenant, client, requester and state fields", () => {
@@ -134,6 +160,21 @@ describe("SEO audit authenticated server repository", () => {
     assert.equal(calls.inserted?.currency, "EUR");
     assert.equal(calls.inserted?.authorized_by, undefined);
     assert.equal(created.state, "borrador");
+  });
+
+  it("loads only the RLS-visible workspace context", async () => {
+    const { store } = fakeStore();
+    const workspace = await createSeoAuditServerRepository(store, "user").workspace();
+
+    assert.equal(workspace.audits.length, 1);
+    assert.deepEqual(
+      workspace.clients.map((client) => client.nombre),
+      ["Cliente"],
+    );
+    assert.deepEqual(
+      workspace.projects.map((project) => project.nombre),
+      ["Proyecto"],
+    );
   });
 
   it("does not reveal whether an inaccessible project exists", async () => {
@@ -208,6 +249,7 @@ describe("SEO audit authenticated server repository", () => {
   it("uses authenticated server functions and contains no admin client", () => {
     assert.match(functionsSource, /middleware\(\[requireSupabaseAuth\]\)/);
     assert.match(functionsSource, /assertSeoAuditRemoteEnabled\(\)/);
+    assert.match(functionsSource, /loadSeoAuditWorkspace/);
     assert.doesNotMatch(
       serverSource + functionsSource,
       /client\.server|supabaseAdmin|service_role/i,

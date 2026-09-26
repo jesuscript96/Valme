@@ -22,7 +22,20 @@ Todas las operaciones son asíncronas para que una futura implementación remota
 
 Solicitar cualquier modo distinto de `local-demo` activa un repositorio cerrado: permite mostrar los datos iniciales, pero rechaza escrituras con `remote-not-ready`. No existe conmutación automática a Supabase, ni llamadas HTTP, credenciales o clientes de red en el adaptador.
 
-La capa de servidor también falla cerrada. `listSeoAudits`, `createSeoAuditDraft` y `transitionSeoAudit` exigen una sesión Supabase válida y, además, la variable **exclusivamente de servidor** `SEO_AUDIT_REMOTE_ENABLED=true`. Este PR no define esa variable en ningún entorno ni conecta las funciones con la interfaz V2.
+La capa de servidor también falla cerrada. `loadSeoAuditWorkspace`, `listSeoAudits`, `createSeoAuditDraft` y `transitionSeoAudit` exigen una sesión Supabase válida. La activación requiere simultáneamente las variables exclusivamente de servidor `SEO_AUDIT_REMOTE_ENABLED=true`, `SEO_AUDIT_REMOTE_ENVIRONMENT=staging` y `SEO_AUDIT_REMOTE_PROJECT_REF`, además de que esta última coincida con el host de `SUPABASE_URL`. La interfaz nunca lee esas variables: el servidor decide el modo y lo comunica al iframe autenticado.
+
+## Puente de la interfaz V2
+
+El centro de mando se sirve dentro de un iframe `srcDoc`. El componente React padre es el único puente hacia las funciones de servidor:
+
+- solo acepta peticiones cuyo `event.source` coincide con el iframe creado por el panel;
+- el iframe solo acepta configuración y respuestas procedentes de `window.parent`;
+- el canal expone tres operaciones concretas: cargar el contexto visible, crear un borrador y solicitar una transición;
+- no expone un guardado masivo, un cliente Supabase, tokens ni variables de entorno;
+- un fallo remoto se muestra como tal y nunca carga silenciosamente la demostración local;
+- el análisis web y **Restablecer demo** permanecen limitados al modo local.
+
+Cuando el modo remoto está activo, los selectores se construyen con los clientes y proyectos que RLS permite ver. La creación solo envía `projectId` y los campos autorizables; tenant, cliente, solicitante y estado siguen derivándose en servidor.
 
 ## Frontera de confianza del servidor
 
@@ -48,6 +61,6 @@ Las funciones viven en `src/lib/seo-audit/repository.functions.ts` y delegan en 
 
 Hasta completar estos puntos, la aplicación no consulta las tablas de auditoría ni modifica producción.
 
-Los pasos 1 a 4 quedaron completados: `0005` está aplicada en staging, los doce escenarios RLS pasan, los tipos se regeneraron mediante el workflow protegido y las funciones autenticadas de servidor están implementadas. Los pasos 5 y 6 continúan pendientes, por lo que el modo remoto permanece bloqueado tanto por configuración como por la interfaz.
+Los pasos 1 a 4 quedaron completados: `0005` está aplicada en staging, los doce escenarios RLS pasan, los tipos se regeneraron mediante el workflow protegido y las funciones autenticadas de servidor están implementadas. El puente reversible del paso 6 está implementado, pero la variable no se define en ningún entorno desde el repositorio. Antes de activarlo debe completarse el paso 5 con una sesión real en staging y validar lectura, creación, transición, aislamiento y fallo de red de extremo a extremo.
 
 El procedimiento operativo y el ejecutor protegido para los tres primeros pasos se documentan en `docs/04-operations/seo-audit-staging.md`.
