@@ -1,0 +1,48 @@
+name: SEO audit authenticated staging browser
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type TEST-STAGING-USERS (creates synthetic audits)
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: seo-audit-staging-migration
+  cancel-in-progress: false
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    steps:
+      - name: Confirm staging test
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: test "$CONFIRMATION" = TEST-STAGING-USERS
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.5
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: node --test scripts/staging/seo-audit-browser-config.test.mjs
+      - name: Install isolated browser runtime
+        run: |
+          npm install --prefix "$RUNNER_TEMP/valme-browser" --no-package-lock --ignore-scripts playwright@1.58.2
+          node "$RUNNER_TEMP/valme-browser/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Test real user sessions against staging
+        env:
+          E2E_RUNTIME_DIR: ${{ runner.temp }}/valme-browser
+          STAGING_SUPABASE_PROJECT_REF: ${{ vars.STAGING_SUPABASE_PROJECT_REF }}
+          STAGING_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.STAGING_SUPABASE_PUBLISHABLE_KEY }}
+          STAGING_E2E_ACTORS: ${{ secrets.STAGING_E2E_ACTORS }}
+        run: node scripts/staging/seo-audit-browser.mjs
