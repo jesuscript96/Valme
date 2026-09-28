@@ -229,6 +229,8 @@ let seoAuditQuery = "";
 let seoAuditStateFilter = "Todos";
 let seoAuditClientFilter = "Todos";
 let seoAuditCreating = false;
+let seoAuditShowArchived = false;
+let seoAuditPresetProject = null;
 let seoAuditStorageOk = seoAuditRepository.status().writable;
 let seoAuditRepositoryLoading = true;
 
@@ -242,6 +244,7 @@ async function seoAuditLoadRepository(message) {
     seoAuditRepositoryLoading = false;
     seoAuditStorageOk = seoAuditRepository.status().writable;
     if (current === "Auditorías") seoAuditRender(message);
+    else if (current === "Clientes" && seoAuditIsRemote()) render("Clientes", false);
   } catch {
     if (activeRepository !== seoAuditRepository) return;
     seoAuditRepositoryLoading = false;
@@ -274,8 +277,34 @@ window.addEventListener("message", (event) => {
   });
   seoAudits = [];
   seoAuditCurrent = null;
+  seoAuditMarkEnvironment();
   seoAuditLoadRepository("Persistencia remota preparada.");
 });
+
+// En modo real, Clientes y Auditorías usan datos de staging; el resto sigue siendo demostración.
+function seoAuditMarkEnvironment() {
+  const topTag = root.querySelector(".v-top > .v-tag");
+  if (topTag) topTag.textContent = "● Staging · datos reales";
+  root.querySelector(".v-top .v-cycle")?.remove();
+  const demoLabel = root.querySelector(".v-demo-label");
+  if (demoLabel) demoLabel.textContent = "STAGING";
+  const footer = root.querySelectorAll(".v-bottom > span");
+  if (footer[0]) footer[0].textContent = "Clientes y Auditorías: datos reales de staging";
+  if (footer[1]) footer[1].textContent = "Resto de secciones: demostración";
+}
+
+function seoAuditIsRemote() {
+  return seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE;
+}
+
+function seoAuditIsArchived(a) {
+  return Boolean(a.archivedAt || a.clientArchived);
+}
+
+// Trabajo diario: lo archivado (o de un cliente archivado) no cuenta ni aparece por defecto.
+function seoAuditWorking() {
+  return seoAudits.filter((a) => !seoAuditIsArchived(a));
+}
 
 function seoAuditClone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -314,21 +343,26 @@ function seoAuditFiltered() {
   const q = seoAuditQuery.trim().toLowerCase();
   return seoAudits.filter(
     (a) =>
+      (seoAuditShowArchived || !seoAuditIsArchived(a)) &&
       (seoAuditStateFilter === "Todos" || a.state === seoAuditStateFilter) &&
       (seoAuditClientFilter === "Todos" || a.client === seoAuditClientFilter) &&
-      (!q || [a.id, a.client, a.project, a.domain].some((v) => v.toLowerCase().includes(q))),
+      (!q ||
+        [a.id, a.displayId || "", a.client, a.project, a.domain].some((v) =>
+          v.toLowerCase().includes(q),
+        )),
   );
 }
 
 function seoAuditSummary() {
-  const active = seoAudits.filter((a) =>
+  const working = seoAuditWorking();
+  const active = working.filter((a) =>
     ["en_cola", "en_ejecucion", "bloqueado"].includes(a.state),
   ).length;
-  const review = seoAudits.filter((a) =>
+  const review = working.filter((a) =>
     ["pendiente_autorizacion", "control_calidad", "devuelto"].includes(a.state),
   ).length;
-  const validated = seoAudits.filter((a) => a.state === "validado").length;
-  const blocked = seoAudits.filter((a) => a.state === "bloqueado").length;
+  const validated = working.filter((a) => a.state === "validado").length;
+  const blocked = working.filter((a) => a.state === "bloqueado").length;
   return `<div class="v-stats v-audit-stats">
     <div class="v-stat"><span class="v-small v-muted">Auditorías activas</span><div class="v-number">${active}</div><span class="v-small">Cola, ejecución o bloqueo</span></div>
     <div class="v-stat"><span class="v-small v-muted">Decisión humana</span><div class="v-number">${review}</div><span class="v-small">Autorización o calidad</span></div>
@@ -345,10 +379,10 @@ function seoAuditRows() {
         const evidence = a.evidence.length;
         const findings = a.findings.length;
         return `<div class="v-audit-row" role="listitem">
-      <div class="v-audit-main"><div class="v-flex">${tag(seoAuditLabel(a.state), seoAuditTone(a.state))}<span class="v-mono v-muted">${safe(a.id)}</span></div>
+      <div class="v-audit-main"><div class="v-flex">${tag(seoAuditLabel(a.state), seoAuditTone(a.state))}${a.archivedAt ? tag("Archivada") : a.clientArchived ? tag("Cliente archivado") : ""}<span class="v-mono v-muted">${safe(a.displayId || a.id)}</span></div>
         <strong>${safe(a.client)} · ${safe(a.project)}</strong><p>${safe(a.domain)}</p></div>
       <div class="v-audit-metrics"><span><b>${findings}</b> hallazgos</span><span><b>${evidence}</b> evidencias</span><span>${safe(a.services.join(" · "))}</span></div>
-      <button data-seo-open="${safe(a.id)}" aria-label="Abrir auditoría ${safe(a.id)}">Abrir →</button>
+      <button data-seo-open="${safe(a.id)}" aria-label="Abrir auditoría ${safe(a.displayId || a.id)}">Abrir →</button>
     </div>`;
       })
       .join("") ||
@@ -357,7 +391,13 @@ function seoAuditRows() {
 }
 
 function seoAuditList() {
-  const clientsList = ["Todos", ...new Set(seoAudits.map((a) => a.client))];
+  const clientsList = [
+    "Todos",
+    ...new Set(
+      seoAudits.filter((a) => seoAuditShowArchived || !seoAuditIsArchived(a)).map((a) => a.client),
+    ),
+  ];
+  const archivedCount = seoAudits.filter(seoAuditIsArchived).length;
   const repositoryStatus = seoAuditRepository.status();
   return (
     heading(
@@ -374,6 +414,7 @@ function seoAuditList() {
       <label class="v-search">Buscar<br><input id="v-seo-search" type="search" value="${safe(seoAuditQuery)}" placeholder="Cliente, dominio o ID"></label>
       <label>Estado<br><select id="v-seo-state">${["Todos", ...SEO_AUDIT_STATES].map((v) => `<option value="${v}" ${v === seoAuditStateFilter ? "selected" : ""}>${v === "Todos" ? "Todos" : seoAuditLabel(v)}</option>`).join("")}</select></label>
       <label>Cliente<br><select id="v-seo-client">${clientsList.map((v) => `<option ${v === seoAuditClientFilter ? "selected" : ""}>${safe(v)}</option>`).join("")}</select></label>
+      <label class="v-check v-audit-archived-toggle"><input type="checkbox" id="v-seo-archived" ${seoAuditShowArchived ? "checked" : ""}>Mostrar archivadas (${archivedCount})</label>
       ${repositoryStatus.mode === ValmeSeoAuditRepository.LOCAL_MODE ? '<button data-seo-reset aria-label="Restablecer auditorías de demostración">Restablecer demo</button>' : ""}
     </div>${seoAuditRows()}</section>
     <p class="v-small v-muted v-audit-storage-state">Persistencia: ${safe(repositoryStatus.label)} · esquema ${repositoryStatus.schemaVersion}</p>
@@ -396,7 +437,7 @@ function seoAuditNew() {
       <section class="v-audit-form-section"><div><span class="v-mono v-muted">01 / CONTEXTO</span><h2>Cliente y proyecto</h2></div><div class="v-audit-fields">
         ${
           remote
-            ? `<label class="v-audit-wide">Proyecto asignado<select name="projectId" required>${projects.map((project) => `<option value="${safe(project.id)}">${safe(project.client)} · ${safe(project.project)} · ${safe(project.domain)}</option>`).join("")}</select></label>`
+            ? `<label class="v-audit-wide">Proyecto asignado<select name="projectId" required>${projects.map((project) => `<option value="${safe(project.id)}" ${project.id === seoAuditPresetProject ? "selected" : ""}>${safe(project.client)} · ${safe(project.project)} · ${safe(project.domain)}</option>`).join("")}</select></label>`
             : '<label>Cliente<select name="client" required><option>Nébula Hogar</option><option>Tuilus</option></select></label><label>Proyecto<input name="project" required maxlength="80" value="Web principal"></label><label class="v-audit-wide">Dominio principal<input name="domain" required maxlength="160" placeholder="www.ejemplo.test"></label>'
         }
       </div></section>
@@ -488,23 +529,34 @@ function seoAuditDetail(a) {
   };
   const action = SEO_AUDIT_ACTIONS[a.state];
   const terminal = ["validado", "cancelado"].includes(a.state);
+  const archived = seoAuditIsArchived(a);
+  const archiveBlock = a.archivedAt
+    ? `<div class="v-notice v-audit-archived"><div><strong>Auditoría archivada${a.archivedAtLabel ? ` · ${safe(a.archivedAtLabel)}` : ""}</strong><p>Fuera del trabajo diario y en solo lectura. Al restaurarla vuelve al trabajo diario en su estado actual (${safe(seoAuditLabel(a.state))}).</p></div><button data-seo-restore>Restaurar auditoría</button></div>`
+    : a.clientArchived
+      ? `<div class="v-notice v-audit-archived"><div><strong>El cliente ${safe(a.client)} está archivado</strong><p>Sus auditorías quedan en solo lectura hasta restaurar el cliente desde Clientes.</p></div></div>`
+      : "";
   return (
     `<button class="v-back" data-seo-back>← Auditorías</button>` +
     heading(
-      a.id,
+      a.displayId || a.id,
       `${a.client} · ${a.project}`,
       a.domain,
       tag(seoAuditLabel(a.state), seoAuditTone(a.state)),
     ) +
     seoAuditStateTrack(a) +
-    `<div class="v-audit-command"><div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE ? "La decisión se registra en el expediente remoto." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
+    archiveBlock +
+    (archived ? "" : `<div class="v-audit-command">`) +
+    (archived
+      ? ""
+      : `<div><span class="v-mono v-muted">SIGUIENTE DECISIÓN</span><strong>${terminal ? "Expediente cerrado" : action ? action.label : "Resolver el bloqueo"}</strong><p>${terminal ? "Los artefactos quedan en modo consulta." : seoAuditRepository.status().mode === ValmeSeoAuditRepository.REMOTE_MODE ? "La decisión se registra en el expediente remoto." : "La acción actualiza solo esta demostración local."}</p></div><div class="v-flex">
       ${a.state === "en_ejecucion" && seoAuditRepository.status().mode === ValmeSeoAuditRepository.LOCAL_MODE ? `<button class="v-primary" data-seo-run ${seoAuditRunning ? "disabled" : ""}>${seoAuditRunning ? "Analizando la web…" : "Ejecutar análisis real"}</button>` : ""}
       ${action?.next === "autorizado" ? '<label>Referencia de autorización<input id="v-seo-authorization-ref" required maxlength="500" placeholder="Ticket, acta o aprobación"></label>' : ""}
       ${action ? `<button class="${a.state === "en_ejecucion" ? "" : "v-primary"}" data-seo-transition="${action.next}">${action.label}</button>` : ""}
       ${a.state === "control_calidad" ? "<button data-seo-return>Devolver con motivo</button>" : ""}
       ${!terminal && a.state !== "cancelado" ? "<button data-seo-cancel>Cancelar auditoría</button>" : ""}
-    </div></div>
-    <div class="v-tabs v-audit-tabs" role="tablist" aria-label="Secciones de la auditoría">${Object.keys(
+      <button data-seo-archive>Archivar</button>
+    </div></div>`) +
+    `<div class="v-tabs v-audit-tabs" role="tablist" aria-label="Secciones de la auditoría">${Object.keys(
       tabs,
     )
       .map(
@@ -564,7 +616,7 @@ async function seoAuditTransition(audit, next, reason) {
         ...(authorizationRef ? { authorizationRef } : {}),
       });
       seoAudits = seoAudits.map((item) => (item.id === updated.id ? updated : item));
-      seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
+      seoAuditRender(`Auditoría ${audit.displayId || audit.id}: ${seoAuditLabel(next)}.`);
     } catch (error) {
       seoAuditStorageOk = false;
       seoAuditRender(error.message);
@@ -577,7 +629,39 @@ async function seoAuditTransition(audit, next, reason) {
     `${seoAuditNow()} · ${seoAuditLabel(previous)} → ${seoAuditLabel(next)} · ${reason}`,
   );
   await seoAuditPersist();
-  seoAuditRender(`Auditoría ${audit.id}: ${seoAuditLabel(next)}.`);
+  seoAuditRender(`Auditoría ${audit.displayId || audit.id}: ${seoAuditLabel(next)}.`);
+}
+
+async function seoAuditSetArchived(audit, archived) {
+  const verb = archived ? "archivar" : "restaurar";
+  const question = archived
+    ? `¿Archivar la auditoría ${audit.displayId || audit.id}? Saldrá del trabajo diario y quedará en solo lectura. Podrás restaurarla cuando quieras; no se borra nada.`
+    : `¿Restaurar la auditoría ${audit.displayId || audit.id}? Volverá al trabajo diario en su estado actual.`;
+  if (!window.confirm(question)) return;
+  if (seoAuditIsRemote()) {
+    try {
+      await seoAuditRepository.setAuditArchived({ auditId: audit.id, archived });
+      await seoAuditLoadRepository(archived ? "Auditoría archivada." : "Auditoría restaurada.");
+    } catch (error) {
+      seoAuditRender(`No se pudo ${verb}: ${error.message}`);
+    }
+    return;
+  }
+  if (archived) {
+    audit.archivedAt = new Date().toISOString();
+    audit.archivedAtLabel = seoAuditNow();
+    audit.events.push(`${seoAuditNow()} · Archivada por Project Manager`);
+  } else {
+    delete audit.archivedAt;
+    delete audit.archivedAtLabel;
+    audit.events.push(`${seoAuditNow()} · Restaurada por Project Manager`);
+  }
+  await seoAuditPersist();
+  seoAuditRender(
+    archived
+      ? `Auditoría ${audit.displayId || audit.id} archivada.`
+      : `Auditoría ${audit.displayId || audit.id} restaurada.`,
+  );
 }
 
 let seoAuditRunning = false;
@@ -610,6 +694,28 @@ async function seoAuditRunReal(audit) {
   }
 }
 
+// Entrar en la sección desde la navegación lleva siempre al listado.
+root.addEventListener(
+  "click",
+  (event) => {
+    if (event.target.closest("button")?.dataset.go !== "Auditorías") return;
+    seoAuditCurrent = null;
+    seoAuditCreating = false;
+    seoAuditPresetProject = null;
+  },
+  true,
+);
+root.addEventListener(
+  "change",
+  (event) => {
+    if (event.target.id !== "v-mobile-select" || event.target.value !== "Auditorías") return;
+    seoAuditCurrent = null;
+    seoAuditCreating = false;
+    seoAuditPresetProject = null;
+  },
+  true,
+);
+
 root.addEventListener("click", async (event) => {
   const button = event.target.closest("button");
   if (!button) return;
@@ -620,13 +726,14 @@ root.addEventListener("click", async (event) => {
     seoAuditRender("Nuevo borrador de auditoría.");
   } else if (data.seoBack !== undefined) {
     seoAuditCreating = false;
+    seoAuditPresetProject = null;
     seoAuditCurrent = null;
     seoAuditTab = "Resumen";
     seoAuditRender("Vista de auditorías.");
   } else if (data.seoOpen) {
     seoAuditCurrent = data.seoOpen;
     seoAuditTab = "Resumen";
-    seoAuditRender(`Expediente ${data.seoOpen} abierto.`);
+    seoAuditRender("Expediente abierto.");
   } else if (data.seoTab) {
     seoAuditTab = data.seoTab;
     seoAuditRender(`Auditoría · ${seoAuditTab}.`);
@@ -651,7 +758,16 @@ root.addEventListener("click", async (event) => {
   } else if (data.seoCancel !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit)
-      await seoAuditTransition(audit, "cancelado", "Cancelación simulada por Project Manager");
+      await seoAuditTransition(
+        audit,
+        "cancelado",
+        seoAuditIsRemote()
+          ? "Cancelación del Project Manager"
+          : "Cancelación simulada por Project Manager",
+      );
+  } else if (data.seoArchive !== undefined || data.seoRestore !== undefined) {
+    const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
+    if (audit) await seoAuditSetArchived(audit, data.seoArchive !== undefined);
   } else if (data.seoRun !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit && audit.state === "en_ejecucion" && !seoAuditRunning) {
@@ -676,6 +792,9 @@ root.addEventListener("change", (event) => {
   } else if (event.target.id === "v-seo-client") {
     seoAuditClientFilter = event.target.value;
     seoAuditRender("Filtro de cliente aplicado.");
+  } else if (event.target.id === "v-seo-archived") {
+    seoAuditShowArchived = event.target.checked;
+    seoAuditRender(seoAuditShowArchived ? "Mostrando archivadas." : "Archivadas ocultas.");
   }
 });
 
@@ -735,6 +854,7 @@ root.addEventListener("submit", async (event) => {
       });
       seoAudits.unshift(audit);
       seoAuditCreating = false;
+      seoAuditPresetProject = null;
       seoAuditCurrent = audit.id;
       seoAuditTab = "Resumen";
       seoAuditRender("Borrador creado. No se ha iniciado ninguna ejecución.");

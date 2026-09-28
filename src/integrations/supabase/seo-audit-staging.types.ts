@@ -173,6 +173,8 @@ export type Database = {
       };
       clients: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           especialidades: number;
           estado: string;
@@ -185,6 +187,8 @@ export type Database = {
           tenant_id: string;
         };
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           especialidades?: number;
           estado?: string;
@@ -197,6 +201,8 @@ export type Database = {
           tenant_id: string;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           especialidades?: number;
           estado?: string;
@@ -564,6 +570,8 @@ export type Database = {
       };
       seo_audits: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           authorization_ref: string | null;
           authorized_by: string | null;
           authorized_scope: NonNullable<Json>;
@@ -589,6 +597,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           authorization_ref?: string | null;
           authorized_by?: string | null;
           authorized_scope: NonNullable<Json>;
@@ -614,6 +624,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           authorization_ref?: string | null;
           authorized_by?: string | null;
           authorized_scope?: NonNullable<Json>;

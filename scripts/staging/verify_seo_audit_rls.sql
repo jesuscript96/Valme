@@ -1,5 +1,5 @@
 -- Verificacion reproducible de aislamiento y permisos de 0005_seo_audit_persistence.
--- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0005 aplicadas:
+-- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0006 aplicadas:
 --   psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f scripts/staging/verify_seo_audit_rls.sql
 -- Todo ocurre dentro de una transaccion que termina en ROLLBACK: no deja datos.
 -- Cada escenario imprime "OK n: ..."; cualquier comprobacion fallida aborta con "FALLO: ...".
@@ -40,6 +40,8 @@ BEGIN IF pg_temp.n(_q) <> 0 THEN RAISE EXCEPTION 'FALLO: no deberia ver %', _lab
 --   42501 insufficient_privilege: falta de GRANT ('permission denied for table ...')
 --         o WITH CHECK de RLS ('new row violates row-level security policy ...').
 --   P0001 raise_exception: excepcion explicita de los triggers de 0005.
+--   23514 check_violation: 0006, archivar combinado con otros cambios.
+--   55000 object_not_in_prerequisite_state: 0006, registro archivado en solo lectura.
 CREATE FUNCTION pg_temp.rechazado(_q text, _label text, _sqlstate text, _msg text DEFAULT NULL)
 RETURNS void LANGUAGE plpgsql AS $$
 DECLARE c bigint; st text; m text;
@@ -715,6 +717,71 @@ DO $$ BEGIN
   IF (SELECT nombre FROM public.clients WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1') IS DISTINCT FROM 'Cliente A gestionado' THEN
     RAISE EXCEPTION 'FALLO: el PM global manager no modifico el cliente'; END IF;
   RAISE NOTICE 'OK 12: project_manager global + member no gestiona clientes; al elevar la membresia a manager puede crear y actualizar';
+END $$;
+
+-- ---------- 13. Archivado reversible de clientes y auditorias (0006) ----------
+-- d7: auditoria nueva del cliente A. pm1 es manager; pmd (55555) quedo como member en el
+-- escenario 8 y conserva acceso al cliente A.
+-- SQLSTATE de 0006: 42501 sin permiso o firma ajena; 23514 cambio combinado;
+-- 55000 registro archivado en solo lectura.
+RESET ROLE;
+INSERT INTO public.seo_audits (id, tenant_id, client_id, project_id, service_ids, requested_by, primary_domain,
+  seed_urls, markets, languages, authorized_scope, requested_capability_ids, max_pages, max_duration_minutes,
+  max_cost_amount, currency, contract_version) VALUES
+  ('aaaaaaaa-0000-0000-0000-0000000000d7', 'aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000c1',
+   'aaaaaaaa-0000-0000-0000-0000000000e1', ARRAY['seo'], '11111111-0000-0000-0000-000000000001', 'a.test',
+   ARRAY['https://a.test/'], ARRAY['ES'], ARRAY['es'], '{}'::jsonb, ARRAY['technical'], 10, 10, 0, 'EUR', 'v1');
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.como('55555555-0000-0000-0000-000000000005');
+DO $$ BEGIN
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'member archiva auditoria', '42501');
+  PERFORM pg_temp.sin_efecto($q$UPDATE public.clients SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'member archiva cliente');
+END $$;
+SELECT pg_temp.como('11111111-0000-0000-0000-000000000001');
+DO $$ BEGIN
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = '22222222-0000-0000-0000-000000000002'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'archivar auditoria en nombre ajeno', '42501');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET archived_at = now()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'archivar auditoria sin firma', '42501');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = auth.uid(), state = 'pendiente_autorizacion'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'archivar y cambiar estado a la vez', '23514');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'PM archiva auditoria');
+  PERFORM pg_temp.ve($q$SELECT 1 FROM public.seo_audits
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7' AND archived_at IS NOT NULL$q$, 'auditoria archivada (sigue legible)');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET state = 'pendiente_autorizacion'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'transicion en auditoria archivada', '55000');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = NULL, archived_by = NULL
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'PM restaura auditoria');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET state = 'pendiente_autorizacion'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'transicion tras restaurar');
+
+  PERFORM pg_temp.rechazado($q$UPDATE public.clients SET archived_at = now(), archived_by = '22222222-0000-0000-0000-000000000002'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'archivar cliente en nombre ajeno', '42501');
+  PERFORM pg_temp.rechazado($q$UPDATE public.clients SET archived_at = now(), archived_by = auth.uid(), nombre = 'x'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'archivar cliente y renombrarlo a la vez', '23514');
+  PERFORM pg_temp.permitido($q$UPDATE public.clients SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'PM archiva cliente');
+  PERFORM pg_temp.rechazado($q$UPDATE public.clients SET nombre = 'x'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'modificar cliente archivado', '55000');
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.projects (tenant_id, client_id, nombre, primary_domain, created_by) VALUES
+    ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000c1', 'x', 'x.test', auth.uid())$q$,
+    'proyecto en cliente archivado', '55000');
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_audits (tenant_id, client_id, project_id, service_ids, requested_by, primary_domain,
+    seed_urls, markets, languages, authorized_scope, requested_capability_ids, max_pages, max_duration_minutes,
+    max_cost_amount, currency, contract_version) VALUES
+    ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000c1', 'aaaaaaaa-0000-0000-0000-0000000000e1',
+     ARRAY['seo'], auth.uid(), 'a.test', ARRAY['https://a.test/'], ARRAY['ES'], ARRAY['es'], '{}'::jsonb,
+     ARRAY['technical'], 10, 10, 0, 'EUR', 'v1')$q$, 'auditoria en cliente archivado', '55000');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audits SET state = 'devuelto', transition_reason = 'prueba de archivado'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'transicion con cliente archivado', '55000');
+  PERFORM pg_temp.permitido($q$UPDATE public.clients SET archived_at = NULL, archived_by = NULL
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000c1'$q$, 'PM restaura cliente');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET state = 'devuelto', transition_reason = 'prueba de archivado'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'transicion tras restaurar el cliente');
+  RAISE NOTICE 'OK 13: solo managers archivan y restauran, siempre a su nombre y sin cambios combinados; lo archivado queda en solo lectura y un cliente archivado no admite trabajo nuevo';
 END $$;
 
 RESET ROLE;

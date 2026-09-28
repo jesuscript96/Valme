@@ -23,6 +23,7 @@ Esta carpeta es el mapa de decisión del proyecto. La numeración indica el orde
 - [Persistencia de auditorías SEO](03-architecture/seo-audit-persistence.md): modelo multi-tenant, RLS, trazabilidad y despliegue seguro.
 - [Espacio de auditorías SEO](03-architecture/seo-audit-workspace.md): interfaz V2 local para crear, revisar y recorrer expedientes antes de conectar la persistencia.
 - [Repositorio de auditorías SEO](03-architecture/seo-audit-repository.md): adaptador local versionado y condiciones de seguridad para habilitar persistencia remota.
+- [Trabajar con datos reales en staging](04-operations/staging-uso-real.md): preparación, arranque local contra staging, clientes, auditorías y archivado reversible (0006).
 
 ## Regla de trabajo
 
