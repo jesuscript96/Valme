@@ -7,6 +7,16 @@ const ROOT = new URL("../../", import.meta.url);
 const SUPABASE_CONFIG = new URL("supabase/config.toml", ROOT);
 const MIGRATION = new URL("drizzle/migrations/0005_seo_audit_persistence.sql", ROOT);
 const ARCHIVE_MIGRATION = new URL("drizzle/migrations/0006_archive_clients_audits.sql", ROOT);
+// Fase 1: solo se aplican sobre un staging completamente vacio (proyecto recien creado).
+export const BASELINE_MIGRATIONS = [
+  "0000_valme_command_center.sql",
+  "0001_create_tasks.sql",
+  "0002_add_task_workflow_phases.sql",
+  "0003_restrict_rls_to_team_roles.sql",
+  "0004_fase1_acceso_por_cliente.sql",
+];
+const BASELINE_TABLES = ["user_access", "user_client_access", "clients"];
+const PLATFORM_CHECKS = ["auth_uid", "authenticated_role", "service_role"];
 export const VERIFIER_SCENARIOS = 13;
 const VERIFIER = new URL("scripts/staging/verify_seo_audit_rls.sql", ROOT);
 
@@ -157,12 +167,37 @@ async function inspectDatabase(sql) {
   };
 }
 
-function assertDatabaseState(state) {
-  if (state.missingBaseline.length) {
+// "fresh": proyecto Supabase vacio (sin Fase 1 ni auditorias); "ready": Fase 1 completa;
+// "partial": estado a medias que el runner no toca.
+export function baselinePlan(state) {
+  const platformMissing = PLATFORM_CHECKS.filter((name) => state.missingBaseline.includes(name));
+  if (platformMissing.length) return "not-supabase";
+  const tablesMissing = BASELINE_TABLES.filter((name) => state.missingBaseline.includes(name));
+  if (tablesMissing.length === 0) return "ready";
+  if (tablesMissing.length === BASELINE_TABLES.length && state.presentAuditTables.length === 0) {
+    return "fresh";
+  }
+  return "partial";
+}
+
+function assertDatabaseState(state, { allowFresh = false } = {}) {
+  const plan = baselinePlan(state);
+  if (plan === "not-supabase") {
     throw new Error(
-      `Staging no tiene la Fase 1 completa: falta ${state.missingBaseline.join(", ")}.`,
+      `La base no parece un proyecto Supabase: falta ${state.missingBaseline.join(", ")}.`,
     );
   }
+  if (plan === "partial") {
+    throw new Error(
+      `Staging tiene la Fase 1 a medias: falta ${state.missingBaseline.join(", ")}. Revisala a mano.`,
+    );
+  }
+  if (plan === "fresh" && !allowFresh) {
+    throw new Error(
+      "Staging esta vacio: ejecuta primero apply para preparar la Fase 1 (0000-0004).",
+    );
+  }
+  if (plan === "fresh") return;
   if (state.presentAuditTables.length && state.missingAuditTables.length) {
     throw new Error(
       `Staging contiene una aplicacion parcial de 0005. Presentes: ${state.presentAuditTables.join(", ")}; faltan: ${state.missingAuditTables.join(", ")}.`,
@@ -170,14 +205,17 @@ function assertDatabaseState(state) {
   }
 }
 
-async function preflight(sql, stagingProjectRef) {
+async function preflight(sql, stagingProjectRef, { allowFresh = false } = {}) {
   const [identity] = await sql.unsafe(`
     SELECT current_database() AS database_name, current_user AS database_user,
            current_setting('server_version') AS server_version
   `);
   const state = await inspectDatabase(sql);
-  assertDatabaseState(state);
+  assertDatabaseState(state, { allowFresh });
   console.log(`[staging] Conexion validada para ${stagingProjectRef}.`);
+  if (baselinePlan(state) === "fresh") {
+    console.log("[staging] Proyecto vacio: se prepararan 0000-0004 antes de 0005 y 0006.");
+  }
   console.log(
     `[staging] PostgreSQL ${identity.server_version}; base ${identity.database_name}; usuario ${identity.database_user}.`,
   );
@@ -202,7 +240,21 @@ export function extractPrivilegesBlock(migration) {
   return match[1];
 }
 
-async function applyMigration(sql, state) {
+async function applyBaseline(sql) {
+  for (const file of BASELINE_MIGRATIONS) {
+    const text = await readFile(new URL(`drizzle/migrations/${file}`, ROOT), "utf8");
+    await sql.begin((transaction) => transaction.unsafe(text));
+    console.log(`[staging] Fase 1: ${file} aplicada.`);
+  }
+  const after = await inspectDatabase(sql);
+  if (baselinePlan(after) !== "ready") {
+    throw new Error(`La Fase 1 termino incompleta: falta ${after.missingBaseline.join(", ")}.`);
+  }
+  return after;
+}
+
+async function applyMigration(sql, initialState) {
+  const state = baselinePlan(initialState) === "fresh" ? await applyBaseline(sql) : initialState;
   const migration = await readFile(MIGRATION, "utf8");
   if (state.missingAuditTables.length === 0) {
     const privileges = extractPrivilegesBlock(migration);
@@ -291,7 +343,9 @@ export async function run(command, env = process.env) {
   });
 
   try {
-    const state = await preflight(sql, stagingProjectRef);
+    const state = await preflight(sql, stagingProjectRef, {
+      allowFresh: command === "apply" || command === "all",
+    });
     if (command === "apply" || command === "all") await applyMigration(sql, state);
     if (command === "verify" || command === "all") await verifyRls(sql, notices);
   } finally {

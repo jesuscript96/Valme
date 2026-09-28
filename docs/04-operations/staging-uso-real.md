@@ -14,7 +14,9 @@ demostración. Para trabajar contra staging se arranca la aplicación en local.
    seguridad con el runner (ver [seo-audit-staging.md](seo-audit-staging.md)):
    `npm run staging:seo-audit:all` con `STAGING_DB_URL`, `STAGING_SUPABASE_PROJECT_REF` y
    `STAGING_APPLY_CONFIRM=apply-0005-to-<ref>`. Es idempotente: si `0005` ya existe,
-   reconcilia privilegios y aplica `0006`.
+   reconcilia privilegios y aplica `0006`. Sobre un proyecto de staging recién creado y
+   completamente vacío aplica antes la Fase 1 (`0000`-`0004`); si la Fase 1 está a medias,
+   se detiene sin tocar nada.
 2. **Tu cuenta en staging.** En el panel de Supabase del proyecto de staging:
    Authentication → Users → Add user, con tu correo y una contraseña que solo conozcas tú.
 3. **Tu rol.** Da a esa cuenta rol `super_admin` activo con cartera completa:

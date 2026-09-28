@@ -260,7 +260,8 @@ seoAuditLoadRepository("Persistencia local preparada.");
 window.addEventListener("message", (event) => {
   const config = event.data;
   if (
-    event.origin !== window.location.origin ||
+    event.origin !==
+      (window.origin && window.origin !== "null" ? window.origin : window.location.origin) ||
     event.source !== window.parent ||
     !config ||
     config.channel !== "valme:seo-audit:v1" ||

@@ -222,6 +222,49 @@ describe("SEO audit browser repository", () => {
     assert.equal(repository.status().source, "remote");
   });
 
+  it("talks to the parent from a srcdoc iframe, whose location.origin is null", async () => {
+    const listeners: Array<(event: unknown) => void> = [];
+    const posted: Array<{ message: { channel: string }; target: string }> = [];
+    const parent = {
+      postMessage: (message: { channel: string }, target: string) => {
+        if (target === "null") throw new SyntaxError("Invalid target origin 'null'");
+        posted.push({ message, target });
+      },
+    };
+    const context: Record<string, unknown> = {
+      origin: "http://localhost:4180",
+      location: { origin: "null" },
+      parent,
+      crypto: { randomUUID: () => "req-1" },
+      setTimeout,
+      clearTimeout,
+      addEventListener: (type: string, listener: (event: unknown) => void) => {
+        if (type === "message") listeners.push(listener);
+      },
+    };
+    runInNewContext(source, context);
+    const api = context["ValmeSeoAuditRepository"] as {
+      createParentTransport(): (action: string, payload?: unknown) => Promise<unknown>;
+    };
+
+    const pending = api.createParentTransport()("load");
+    assert.equal(posted[0]?.target, "http://localhost:4180");
+    for (const listener of listeners) {
+      listener({
+        origin: "http://localhost:4180",
+        source: parent,
+        data: {
+          channel: posted[0]?.message.channel,
+          kind: "response",
+          id: "req-1",
+          ok: true,
+          data: { audits: [] },
+        },
+      });
+    }
+    assert.deepEqual(plain(await pending), { audits: [] });
+  });
+
   it("contains no network client or credential material", () => {
     assert.doesNotMatch(source, /\bfetch\s*\(/);
     assert.doesNotMatch(source, /createClient|SUPABASE_URL|SUPABASE_PUBLISHABLE_KEY/);

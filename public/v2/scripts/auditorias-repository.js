@@ -296,6 +296,12 @@
     });
   }
 
+  // El panel vive en un iframe srcdoc: location.origin vale "null" y el origen real,
+  // heredado del documento padre, está en window.origin.
+  function frameOrigin() {
+    return global.origin && global.origin !== "null" ? global.origin : global.location.origin;
+  }
+
   function createParentTransport(options = {}) {
     const target = options.target || global.parent;
     const timeoutMs = options.timeoutMs || 15000;
@@ -304,7 +310,7 @@
     global.addEventListener("message", (event) => {
       const message = event.data;
       if (
-        event.origin !== global.location.origin ||
+        event.origin !== frameOrigin() ||
         event.source !== target ||
         !message ||
         message.channel !== BRIDGE_CHANNEL ||
@@ -329,7 +335,7 @@
         pending.set(id, { resolve, reject, timer });
         target.postMessage(
           { channel: BRIDGE_CHANNEL, kind: "request", id, action, payload },
-          global.location.origin,
+          frameOrigin(),
         );
       });
   }

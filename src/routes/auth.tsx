@@ -105,10 +105,25 @@ function AuthPage() {
   async function onForgot(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setInfo(null);
     setBusy(true);
-    await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
-    setBusy(false);
-    setInfo("Si el email corresponde a una cuenta autorizada, recibirás un enlace para fijar una nueva contraseña.");
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/reset-password` });
+      // Sin revelar si la cuenta existe: solo se informa de límites de envío o fallos de red.
+      if (err && (err.status === 429 || /rate limit|too many/i.test(err.message))) {
+        setError("Se han enviado demasiados correos en poco tiempo. Espera unos minutos y vuelve a intentarlo.");
+        return;
+      }
+      if (err && !err.status) {
+        setError("No se pudo contactar con el servicio de acceso. Revisa la conexión y vuelve a intentarlo.");
+        return;
+      }
+      setInfo("Si el email corresponde a una cuenta autorizada, recibirás un enlace para fijar una nueva contraseña.");
+    } catch {
+      setError("No se pudo contactar con el servicio de acceso. Revisa la conexión y vuelve a intentarlo.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (mode === "forgot") {
@@ -120,6 +135,7 @@ function AuthPage() {
           <button type="button" className="w-full text-sm text-muted-foreground underline" onClick={() => { setMode("login"); setInfo(null); }}>Volver a iniciar sesión</button>
         </form>
         {info && <Notice kind="info">{info}</Notice>}
+        {error && <Notice kind="error">{error}</Notice>}
       </AuthShell>
     );
   }
