@@ -247,6 +247,21 @@
       };
     }
 
+    // H-01, H-02… salen de la posición en la lista, así que el orden tiene que ser estable.
+    // Una revisión importada de una vez comparte created_at y Postgres devuelve los empates
+    // en cualquier orden (la fila recién editada suele ir al final): se desempata por
+    // prioridad y título, que no cambian.
+    const PRIORITY_RANK = { critica: 0, alta: 1, media: 2, baja: 3 };
+
+    function compareFindings(a, b) {
+      return (
+        String(a.created_at || "").localeCompare(String(b.created_at || "")) ||
+        (PRIORITY_RANK[a.priority] ?? 9) - (PRIORITY_RANK[b.priority] ?? 9) ||
+        String(a.title).localeCompare(String(b.title), "es") ||
+        String(a.id).localeCompare(String(b.id))
+      );
+    }
+
     function auditArtifacts(auditId) {
       const evidence = context.evidence
         .filter((item) => item.audit_id === auditId)
@@ -263,6 +278,7 @@
       const refByEvidence = new Map(evidence.map((item) => [item.dbId, item.id]));
       const findings = context.findings
         .filter((item) => item.audit_id === auditId)
+        .sort(compareFindings)
         .map((item, index) => ({
           id: `H-${String(index + 1).padStart(2, "0")}`,
           dbId: item.id,
