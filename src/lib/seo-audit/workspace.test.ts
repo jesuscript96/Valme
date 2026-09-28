@@ -88,7 +88,9 @@ describe("SEO audit V2 workspace", () => {
     assert.match(panel, /transitionSeoAudit/);
     assert.match(shellFunction, /isSeoAuditRemoteEnabled/);
     assert.match(workspace, /event\.source !== window\.parent/);
-    assert.match(workspace, /event\.origin !== window\.location\.origin/);
+    // Iframe srcdoc: location.origin es "null"; el origen heredado del padre está en window.origin.
+    assert.match(workspace, /event\.origin !==\s*\(window\.origin && window\.origin !== "null"/);
+    assert.doesNotMatch(workspace, /event\.origin !== window\.location\.origin \|\|/);
     assert.match(workspace, /createParentTransport/);
     assert.doesNotMatch(workspace, /SEO_AUDIT_REMOTE_ENABLED|VITE_SEO_AUDIT_REMOTE_ENABLED/);
   });
