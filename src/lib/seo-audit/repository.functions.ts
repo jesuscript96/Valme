@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
   assertSeoAuditRemoteEnabled,
   createSeoAuditDraftInputSchema,
+  createFindingActionInputSchema,
   createSeoAuditServerRepository,
   createSeoClientInputSchema,
   createSupabaseSeoAuditStore,
@@ -12,6 +13,7 @@ import {
   setSeoAuditArchivedInputSchema,
   setSeoClientArchivedInputSchema,
   transitionSeoAuditInputSchema,
+  updateFindingActionInputSchema,
   type SeoAuditDatabase,
 } from "./repository.server";
 
@@ -111,4 +113,26 @@ export const reviewSeoFinding = createServerFn({ method: "POST" })
       createStore(context.supabase),
       context.userId,
     ).reviewFinding(data);
+  });
+
+export const createFindingAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => createFindingActionInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).createAction(data);
+  });
+
+export const updateFindingAction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => updateFindingActionInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).updateAction(data);
   });

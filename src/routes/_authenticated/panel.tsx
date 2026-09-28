@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { AccessGate } from "@/components/valme-access-gate";
 import { getV2Shell } from "@/lib/v2-shell.functions";
 import {
+  createFindingAction,
   createSeoAuditDraft,
   createSeoClient,
   importSeoAuditReview,
@@ -13,6 +14,7 @@ import {
   setSeoAuditArchived,
   setSeoClientArchived,
   transitionSeoAudit,
+  updateFindingAction,
 } from "@/lib/seo-audit/repository.functions";
 import { publicSeoAuditErrorMessage } from "@/lib/seo-audit/public-errors";
 
@@ -26,6 +28,8 @@ const SEO_AUDIT_ACTIONS = [
   "setAuditArchived",
   "importReview",
   "reviewFinding",
+  "createAction",
+  "updateAction",
 ] as const;
 
 type SeoAuditBridgeRequest = {
@@ -76,6 +80,8 @@ function V2Frame() {
   const setAuditArchived = useServerFn(setSeoAuditArchived);
   const importReview = useServerFn(importSeoAuditReview);
   const reviewFinding = useServerFn(reviewSeoFinding);
+  const createAction = useServerFn(createFindingAction);
+  const updateAction = useServerFn(updateFindingAction);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const q = useQuery({
     queryKey: ["v2-shell"],
@@ -133,6 +139,12 @@ function V2Frame() {
         if (request.action === "reviewFinding") {
           data = await reviewFinding({ data: request.payload });
         }
+        if (request.action === "createAction") {
+          data = await createAction({ data: request.payload });
+        }
+        if (request.action === "updateAction") {
+          data = await updateAction({ data: request.payload });
+        }
         target.postMessage(
           { channel: SEO_AUDIT_CHANNEL, kind: "response", id: request.id, ok: true, data },
           window.location.origin,
@@ -155,6 +167,7 @@ function V2Frame() {
     return () => window.removeEventListener("message", handleMessage);
   }, [
     addClient,
+    createAction,
     createDraft,
     importReview,
     loadWorkspace,
@@ -162,6 +175,7 @@ function V2Frame() {
     setAuditArchived,
     setClientArchived,
     transition,
+    updateAction,
   ]);
 
   if (q.isError || (q.data && !q.data.allowed)) {

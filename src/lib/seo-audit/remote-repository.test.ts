@@ -9,10 +9,12 @@ import {
   createSeoAuditDraftInputSchema,
   createSeoAuditServerRepository,
   type CreateSeoAuditDraftInput,
+  type ActionSummary,
   type EvidenceSummary,
   type FindingEvidenceLink,
   type FindingSummary,
   importSeoAuditReviewInputSchema,
+  createFindingActionInputSchema,
   type SeoAuditStore,
 } from "./repository.server";
 import {
@@ -101,7 +103,10 @@ function fakeStore(initial: AuditRow = audit()) {
     auditArchive?: { archived_at: string | null; archived_by: string | null };
     findingsInserted?: Array<Record<string, unknown>>;
     review?: { review_decision: string; review_note: string | null };
+    actionInserted?: Record<string, unknown>;
+    actionUpdated?: Record<string, unknown>;
   } = {};
+  const actions: ActionSummary[] = [];
   let current: AuditRow | null = initial;
   const findings: FindingSummary[] = [];
   const evidence: EvidenceSummary[] = [];
@@ -257,6 +262,49 @@ function fakeStore(initial: AuditRow = audit()) {
         });
       }
     },
+    listActions: async () => actions.map((item) => ({ ...item })),
+    listAgents: async () => [
+      {
+        id: "a0000000-0000-4000-8000-000000000001",
+        nombre: "Agente Contenido",
+        especialidad: "Contenido",
+        disponibilidad: "disponible",
+      },
+    ],
+    findAction: async (actionId) => actions.find((item) => item.id === actionId) ?? null,
+    insertAction: async (row) => {
+      calls.actionInserted = row as Record<string, unknown>;
+      const created: ActionSummary = {
+        id: `b0000000-0000-4000-8000-00000000000${actions.length}`,
+        tenant_id: row.tenant_id,
+        audit_id: row.audit_id,
+        finding_id: row.finding_id,
+        kind: row.kind,
+        title: row.title,
+        detail: row.detail,
+        done_criteria: row.done_criteria ?? null,
+        owner_user_id: row.owner_user_id,
+        agent_id: row.agent_id ?? null,
+        due_date: row.due_date ?? null,
+        status: "pendiente",
+        conclusion: null,
+        outcome: null,
+        created_by: row.created_by,
+        created_at: "2026-09-28T00:00:00.000Z",
+        updated_at: "2026-09-28T00:00:00.000Z",
+        completed_by: null,
+        completed_at: null,
+      };
+      actions.push(created);
+      return { ...created };
+    },
+    updateAction: async (actionId, patch) => {
+      calls.actionUpdated = patch as Record<string, unknown>;
+      const action = actions.find((item) => item.id === actionId);
+      if (!action) return null;
+      Object.assign(action, patch);
+      return { ...action };
+    },
     updateFindingReview: async (findingId, patch) => {
       calls.review = patch;
       const finding = findings.find((item) => item.id === findingId);
@@ -274,6 +322,7 @@ function fakeStore(initial: AuditRow = audit()) {
     findings,
     evidence,
     links,
+    actions,
     setCurrent: (value: AuditRow | null) => (current = value),
   };
 }
@@ -619,7 +668,7 @@ describe("SEO audit authenticated server repository", () => {
 
     store.updateFindingReview = async () => null;
     await assert.rejects(
-      () => repository.reviewFinding({ findingId: findings[0]!.id, decision: "descartar" }),
+      () => repository.reviewFinding({ findingId: findings[0]!.id, decision: "investigar" }),
       /no admite cambios/,
     );
     await assert.rejects(
@@ -629,6 +678,77 @@ describe("SEO audit authenticated server repository", () => {
           decision: "descartar",
         }),
       /hallazgo no existe/,
+    );
+  });
+
+  it("requires a reason to discard a finding", async () => {
+    const { store, findings, calls } = fakeStore();
+    const repository = createSeoAuditServerRepository(store, "user");
+    await repository.importReview(importSeoAuditReviewInputSchema.parse(reviewInput()));
+    await assert.rejects(
+      () =>
+        repository.reviewFinding({ findingId: findings[0]!.id, decision: "descartar", note: "  " }),
+      /escribe el motivo/,
+    );
+    assert.equal(calls.review, undefined);
+  });
+
+  it("creates follow-up tasks with a PM owner and an agent on the finding's audit", async () => {
+    const { store, findings, calls } = fakeStore();
+    const userId = "50000000-0000-4000-8000-000000000009";
+    const repository = createSeoAuditServerRepository(store, userId);
+    await repository.importReview(importSeoAuditReviewInputSchema.parse(reviewInput()));
+    const input = createFindingActionInputSchema.parse({
+      findingId: findings[0]!.id,
+      kind: "investigacion",
+      title: "Investigar demanda",
+      detail: "¿Se busca «departamento de marketing externo»?",
+      ownerUserId: "60000000-0000-4000-8000-000000000001",
+      agentId: "a0000000-0000-4000-8000-000000000001",
+      dueDate: "2026-10-05",
+    });
+    const action = await repository.createAction(input);
+    assert.equal(action.status, "pendiente");
+    assert.equal(calls.actionInserted?.["tenant_id"], TENANT_ID);
+    assert.equal(calls.actionInserted?.["audit_id"], audit().id);
+    assert.equal(calls.actionInserted?.["created_by"], userId);
+    assert.equal(calls.actionInserted?.["due_date"], "2026-10-05");
+    assert.throws(() => createFindingActionInputSchema.parse({ ...input, dueDate: "5/10/2026" }));
+  });
+
+  it("closes an investigation with a conclusion and applies its outcome to the finding", async () => {
+    const { store, findings, calls } = fakeStore();
+    const repository = createSeoAuditServerRepository(store, "user");
+    await repository.importReview(importSeoAuditReviewInputSchema.parse(reviewInput()));
+    const action = await repository.createAction(
+      createFindingActionInputSchema.parse({
+        findingId: findings[0]!.id,
+        kind: "investigacion",
+        title: "Investigar demanda",
+        detail: "¿Hay demanda?",
+        ownerUserId: "60000000-0000-4000-8000-000000000001",
+      }),
+    );
+
+    await assert.rejects(
+      () => repository.updateAction({ actionId: action.id, status: "hecha" }),
+      /escribe su conclusión/,
+    );
+    const closed = await repository.updateAction({
+      actionId: action.id,
+      status: "hecha",
+      conclusion: "Hay demanda en España",
+      outcome: "priorizar",
+    });
+    assert.equal(closed.status, "hecha");
+    assert.equal(closed.outcome, "priorizar");
+    assert.deepEqual(calls.review, {
+      review_decision: "priorizar",
+      review_note: "Hay demanda en España",
+    });
+    await assert.rejects(
+      () => repository.updateAction({ actionId: action.id, status: "en_curso" }),
+      /está cerrada/,
     );
   });
 

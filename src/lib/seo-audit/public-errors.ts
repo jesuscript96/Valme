@@ -22,6 +22,11 @@ export const SEO_AUDIT_PUBLIC_ERRORS = {
   auditLocked:
     "La auditoría está cerrada, archivada o su cliente está archivado: no admite cambios en hallazgos ni evidencias.",
   importInvalid: "La revisión externa no es coherente: revisa sus evidencias y hallazgos.",
+  actionNotVisible: "La tarea no existe o no está asignada a tu sesión.",
+  actionClosed: "La tarea está cerrada y ya no admite cambios.",
+  ownerMustBePm: "El responsable de una tarea debe ser un Project Manager activo.",
+  conclusionRequired: "Para cerrar una investigación escribe su conclusión.",
+  discardNeedsReason: "Para descartar un hallazgo escribe el motivo en la nota.",
 } as const;
 
 const PUBLIC_MESSAGES = new Set<string>(Object.values(SEO_AUDIT_PUBLIC_ERRORS));
