@@ -4,6 +4,8 @@ import { describe, it } from "node:test";
 import {
   assertApplyConfirmation,
   assertStagingTarget,
+  BASELINE_MIGRATIONS,
+  baselinePlan,
   extractPrivilegesBlock,
   prepareVerifierSql,
   projectRefsFromDatabaseUrl,
@@ -27,6 +29,32 @@ const ciWorkflow = readFileSync(
 );
 
 describe("SEO audit staging runner", () => {
+  it("prepares Fase 1 only on a completely empty Supabase project", () => {
+    const empty = {
+      missingBaseline: ["user_access", "user_client_access", "clients"],
+      presentAuditTables: [],
+    };
+    assert.equal(baselinePlan(empty), "fresh");
+    assert.equal(baselinePlan({ missingBaseline: [], presentAuditTables: [] }), "ready");
+    assert.equal(
+      baselinePlan({ missingBaseline: ["user_client_access"], presentAuditTables: [] }),
+      "partial",
+    );
+    assert.equal(
+      baselinePlan({ ...empty, presentAuditTables: ["tenants"] }),
+      "partial",
+      "Nunca rehace la Fase 1 si ya hay tablas de auditoria",
+    );
+    assert.equal(
+      baselinePlan({ missingBaseline: ["auth_uid", "clients"], presentAuditTables: [] }),
+      "not-supabase",
+    );
+    assert.deepEqual(
+      BASELINE_MIGRATIONS.map((file: string) => file.slice(0, 4)),
+      ["0000", "0001", "0002", "0003", "0004"],
+    );
+  });
+
   it("reads the production project ref from the tracked Supabase config", async () => {
     assert.equal(await readProductionProjectRef(), production);
   });
