@@ -488,21 +488,57 @@ function seoAuditEvidence(a) {
     <div class="v-audit-plain-list">${a.evidence.map((e) => `<div class="v-audit-evidence-row"><div><span class="v-mono v-muted">${safe(e.id)} · ${safe(e.method)}</span><strong>${safe(e.source)}</strong><p>${safe(e.resource)} · ${safe(e.observed)}</p></div>${tag(e.trusted ? "Interna" : "No confiable", e.trusted ? "good" : "warn")}</div>`).join("") || '<div class="v-audit-empty"><strong>Todavía no hay evidencias.</strong><p>Se registrarán después de autorizar e iniciar el encargo.</p></div>'}</div></section>`;
 }
 
+const SEO_FINDING_DECISIONS = {
+  pendiente: "Pendiente",
+  priorizar: "Priorizar",
+  investigar: "Investigar",
+  descartar: "Descartar",
+};
+
+// Solo lectura: auditoría cerrada, archivada o de un cliente archivado (lo mismo que exige RLS).
+function seoAuditLocked(a) {
+  return seoAuditIsArchived(a) || ["validado", "cancelado"].includes(a.state);
+}
+
+function seoAuditFindingReview(a, f) {
+  if (!f.review) return "";
+  const locked = seoAuditLocked(a);
+  const signature = f.review.by
+    ? `Decidido por ${safe(f.review.by)} · ${safe(f.review.at)}`
+    : "Sin decisión todavía";
+  return `<form class="v-finding-review" data-seo-review="${safe(f.dbId)}">
+      <label>Decisión del PM<select name="decision" ${locked ? "disabled" : ""}>${Object.entries(
+        SEO_FINDING_DECISIONS,
+      )
+        .map(
+          ([value, label]) =>
+            `<option value="${value}" ${value === f.review.decision ? "selected" : ""}>${label}</option>`,
+        )
+        .join("")}</select></label>
+      <label>Nota<textarea name="note" rows="2" maxlength="3000" ${locked ? "disabled" : ""}>${safe(f.review.note)}</textarea></label>
+      <div class="v-flex">${locked ? "" : '<button type="submit">Guardar decisión</button>'}<span class="v-small v-muted">${signature}</span></div>
+    </form>`;
+}
+
 function seoAuditFindings(a) {
   const rows = a.findings
     .map(
       (
         f,
-      ) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}<strong>${safe(f.title)}</strong>
-      <p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}</p>
+      ) => `<div class="v-audit-finding-row"><div>${tag(f.priority, f.priority === "Alta" ? "bad" : "warn")}${f.review && f.review.decision !== "pendiente" ? tag(SEO_FINDING_DECISIONS[f.review.decision], f.review.decision === "priorizar" ? "good" : "") : ""}<strong>${safe(f.title)}</strong>
+      <p>${safe(f.category)} · Confianza ${safe(f.confidence)} · ${safe(f.status)}${f.responsible ? ` · ${safe(f.responsible)}` : ""}</p>
       ${f.description ? `<p class="v-small">${safe(f.description)}</p>` : ""}
       ${f.impact ? `<p class="v-small v-muted"><b>Impacto:</b> ${safe(f.impact)}</p>` : ""}
       ${f.recommendation ? `<p class="v-small v-muted"><b>Recomendación:</b> ${safe(f.recommendation)}</p>` : ""}
       ${Array.isArray(f.evidenceIds) && f.evidenceIds.length ? `<p class="v-small v-mono v-muted">Evidencia: ${safe(f.evidenceIds.join(", "))}</p>` : '<p class="v-small v-muted">Evidencia incompleta</p>'}
+      ${Array.isArray(f.limitations) && f.limitations.length ? `<p class="v-small v-muted"><b>Límites:</b> ${safe(f.limitations.join(" "))}</p>` : ""}
+      ${seoAuditFindingReview(a, f)}
       </div><span class="v-mono">${safe(f.id)}</span></div>`,
     )
     .join("");
-  return `<section><div class="v-section-head"><h2>Hallazgos</h2><span class="v-mono">${a.findings.length} REGISTROS</span></div>
+  const decided = a.findings.filter((f) => f.review && f.review.decision !== "pendiente").length;
+  const reviewable = a.findings.some((f) => f.review);
+  return `<section><div class="v-section-head"><h2>Hallazgos</h2><span class="v-mono">${reviewable ? `${decided} DE ${a.findings.length} CON DECISIÓN` : `${a.findings.length} REGISTROS`}</span></div>
     <div class="v-audit-plain-list">${rows || '<div class="v-audit-empty"><strong>Sin hallazgos.</strong><p>El borrador aún no contiene resultados.</p></div>'}</div>
     ${Array.isArray(a.limitations) && a.limitations.length ? `<div class="v-notice"><strong>Límites de esta ejecución</strong><ul>${a.limitations.map((l) => `<li>${safe(l)}</li>`).join("")}</ul></div>` : ""}</section>`;
 }
@@ -517,6 +553,20 @@ function seoAuditHistory(a) {
     .reverse()
     .map((event) => `<li>${safe(event)}</li>`)
     .join("")}</ol></section>`;
+}
+
+// La revisión externa del piloto se ofrece en la auditoría real de su dominio mientras no
+// tenga hallazgos y admita cambios.
+function seoAuditImportOffer(a) {
+  if (
+    !a.remote ||
+    a.findings.length ||
+    seoAuditLocked(a) ||
+    typeof ValmePilot === "undefined" ||
+    !String(a.domain).toLowerCase().endsWith(ValmePilot.domain)
+  )
+    return "";
+  return `<div class="v-notice v-audit-import"><div><strong>Revisión externa disponible · 27 sep 2026</strong><p>${ValmePilot.findingCount} hallazgos y las 8 páginas revisadas de ${safe(a.domain)}. Se registran como revisión de Codex, no como ejecución automática de Search OS; después decides sobre cada hallazgo.</p></div><button class="v-primary" data-seo-import-pilot>Cargar revisión externa</button></div>`;
 }
 
 function seoAuditDetail(a) {
@@ -557,6 +607,7 @@ function seoAuditDetail(a) {
       ${!terminal && a.state !== "cancelado" ? "<button data-seo-cancel>Cancelar auditoría</button>" : ""}
       <button data-seo-archive>Archivar</button>
     </div></div>`) +
+    seoAuditImportOffer(a) +
     `<div class="v-tabs v-audit-tabs" role="tablist" aria-label="Secciones de la auditoría">${Object.keys(
       tabs,
     )
@@ -766,6 +817,9 @@ root.addEventListener("click", async (event) => {
           ? "Cancelación del Project Manager"
           : "Cancelación simulada por Project Manager",
       );
+  } else if (data.seoImportPilot !== undefined) {
+    const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
+    if (audit) await seoAuditImportPilot(audit);
   } else if (data.seoArchive !== undefined || data.seoRestore !== undefined) {
     const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
     if (audit) await seoAuditSetArchived(audit, data.seoArchive !== undefined);
@@ -805,6 +859,46 @@ root.addEventListener("input", (event) => {
   const list = root.querySelector(".v-audit-list");
   if (list) list.outerHTML = seoAuditRows();
   decorate();
+});
+
+async function seoAuditImportPilot(audit) {
+  if (
+    !window.confirm(
+      `¿Cargar en ${audit.displayId || audit.id} los ${ValmePilot.findingCount} hallazgos y las evidencias de la revisión externa de ${ValmePilot.domain}? Quedarán registrados en staging a tu nombre como importación.`,
+    )
+  )
+    return;
+  try {
+    const payload = await ValmePilot.loadImportPayload(audit.id);
+    const result = await seoAuditRepository.importReview(payload);
+    seoAuditTab = "Hallazgos";
+    await seoAuditLoadRepository(
+      `Revisión cargada: ${result.findings} hallazgos y ${result.evidence} evidencias.`,
+    );
+  } catch (error) {
+    seoAuditRender(`No se pudo cargar la revisión: ${error.message}`);
+  }
+}
+
+root.addEventListener("submit", async (event) => {
+  const form = event.target.closest("form[data-seo-review]");
+  if (!form) return;
+  event.preventDefault();
+  const data = new FormData(form);
+  const button = form.querySelector('button[type="submit"]');
+  if (button) button.disabled = true;
+  try {
+    await seoAuditRepository.reviewFinding({
+      findingId: form.dataset.seoReview,
+      decision: String(data.get("decision")),
+      note: String(data.get("note") || ""),
+    });
+    seoAuditTab = "Hallazgos";
+    await seoAuditLoadRepository("Decisión guardada.");
+  } catch (error) {
+    if (button) button.disabled = false;
+    announce(`No se pudo guardar la decisión: ${error.message}`);
+  }
 });
 
 root.addEventListener("submit", async (event) => {

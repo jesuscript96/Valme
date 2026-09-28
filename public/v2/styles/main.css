@@ -1188,6 +1188,57 @@ body {
 #valme-v2 .v-audit-archived > button {
   flex-shrink: 0;
 }
+
+/* Revisión externa disponible para cargar */
+#valme-v2 .v-audit-import {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+#valme-v2 .v-audit-import > button {
+  flex-shrink: 0;
+}
+
+/* Decisión del PM bajo cada hallazgo */
+#valme-v2 .v-audit-plain-list > .v-audit-finding-row {
+  align-items: flex-start;
+}
+#valme-v2 .v-audit-finding-row > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+#valme-v2 .v-audit-finding-row > .v-mono {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+#valme-v2 .v-audit-finding-row > div > .v-tag + .v-tag {
+  margin-left: 6px;
+}
+#valme-v2 .v-finding-review {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) minmax(0, 1fr);
+  gap: 10px 14px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--v-line);
+  background: var(--v-surface-2);
+}
+#valme-v2 .v-finding-review label {
+  display: grid;
+  gap: 6px;
+}
+#valme-v2 .v-finding-review select,
+#valme-v2 .v-finding-review textarea {
+  width: 100%;
+  margin-top: 0;
+}
+#valme-v2 .v-finding-review textarea {
+  min-height: 60px;
+}
+#valme-v2 .v-finding-review .v-flex {
+  grid-column: 1 / -1;
+}
 #valme-v2 .v-rc-tools {
   align-items: flex-end;
 }
@@ -1661,9 +1712,13 @@ body {
     align-items: stretch;
     padding: 16px;
   }
-  #valme-v2 .v-audit-archived {
+  #valme-v2 .v-audit-archived,
+  #valme-v2 .v-audit-import {
     flex-direction: column;
     align-items: flex-start;
+  }
+  #valme-v2 .v-finding-review {
+    grid-template-columns: 1fr;
   }
   #valme-v2 .v-audit-command > .v-flex {
     align-items: stretch;

@@ -141,8 +141,88 @@
 
   function createRemoteRepository(options) {
     const transport = options.transport;
-    let context = { clients: [], projects: [], tenants: [] };
+    let context = {
+      clients: [],
+      projects: [],
+      tenants: [],
+      findings: [],
+      evidence: [],
+      links: [],
+      people: [],
+    };
     let lastError = null;
+
+    const LABELS = {
+      priority: { baja: "Baja", media: "Media", alta: "Alta", critica: "Crítica" },
+      confidence: { baja: "baja", media: "media", alta: "alta" },
+      category: {
+        contenido: "Contenido",
+        eeat: "E-E-A-T",
+        search_console: "Search Console",
+        seo_tecnico: "SEO técnico",
+        aeo_geo_citabilidad: "AEO/GEO y citabilidad",
+        schema_org: "Schema.org",
+        ga4: "GA4",
+      },
+      findingState: {
+        propuesto: "Propuesto",
+        bloqueado: "Bloqueado",
+        devuelto: "Devuelto",
+        validado: "Validado",
+        descartado: "Descartado",
+      },
+    };
+
+    function personName(userId) {
+      if (!userId) return null;
+      const person = context.people.find((item) => item.user_id === userId);
+      return person ? person.full_name || person.email : "Otro miembro del equipo";
+    }
+
+    function auditArtifacts(auditId) {
+      const evidence = context.evidence
+        .filter((item) => item.audit_id === auditId)
+        .map((item, index) => ({
+          id: `E-${String(index + 1).padStart(2, "0")}`,
+          dbId: item.id,
+          source: item.source,
+          resource: item.url_or_resource,
+          method: item.collection_method,
+          observed: item.observed_data,
+          observedAt: formatDate(item.observed_at),
+          trusted: !item.contains_external_untrusted_data,
+        }));
+      const refByEvidence = new Map(evidence.map((item) => [item.dbId, item.id]));
+      const findings = context.findings
+        .filter((item) => item.audit_id === auditId)
+        .map((item, index) => ({
+          id: `H-${String(index + 1).padStart(2, "0")}`,
+          dbId: item.id,
+          priority: LABELS.priority[item.priority] || item.priority,
+          title: item.title,
+          category:
+            LABELS.category[item.category] ||
+            item.category.charAt(0).toUpperCase() + item.category.slice(1).replaceAll("_", " "),
+          confidence: LABELS.confidence[item.confidence] || item.confidence,
+          status: LABELS.findingState[item.state] || item.state,
+          description: item.description,
+          impact: item.impact,
+          recommendation: item.recommendation,
+          responsible: item.responsible_name,
+          limitations: item.limitations || [],
+          evidenceIds: context.links
+            .filter((link) => link.finding_id === item.id)
+            .map((link) => refByEvidence.get(link.evidence_id))
+            .filter(Boolean),
+          review: {
+            decision: item.review_decision || "pendiente",
+            note: item.review_note || "",
+            by: personName(item.reviewed_by),
+            at: item.reviewed_at ? formatDate(item.reviewed_at) : null,
+          },
+        }));
+      return { evidence, findings };
+    }
 
     function allProjects() {
       const clients = new Map(context.clients.map((client) => [client.id, client]));
@@ -184,6 +264,7 @@
 
     function mapAudit(row) {
       const project = allProjects().find((item) => item.id === row.project_id);
+      const artifacts = auditArtifacts(row.id);
       return {
         id: row.id,
         displayId: `AUD-${String(row.id).slice(0, 8).toUpperCase()}`,
@@ -200,7 +281,7 @@
         capabilities: row.requested_capability_ids,
         markets: row.markets,
         languages: row.languages,
-        requestedBy: "Usuario autenticado",
+        requestedBy: personName(row.requested_by) || "Usuario autenticado",
         createdAt: formatDate(row.created_at),
         limits: {
           pages: row.max_pages,
@@ -210,8 +291,9 @@
         scope: scopeLabel(row.authorized_scope),
         authorizedScope: row.authorized_scope,
         accesses: [],
-        evidence: [],
-        findings: [],
+        evidence: artifacts.evidence,
+        findings: artifacts.findings,
+        remote: true,
         coverage: row.service_ids.map((service) => ({
           service,
           state: "pendiente_justificado",
@@ -233,6 +315,10 @@
           clients: workspace.clients || [],
           projects: workspace.projects || [],
           tenants: workspace.tenants || [],
+          findings: workspace.findings || [],
+          evidence: workspace.evidence || [],
+          links: workspace.links || [],
+          people: workspace.people || [],
         };
         lastError = null;
         return workspace.audits.map(mapAudit);
@@ -280,6 +366,8 @@
       addClient: (input) => write("addClient", input),
       setClientArchived: (input) => write("setClientArchived", input),
       setAuditArchived: (input) => write("setAuditArchived", input),
+      importReview: (input) => write("importReview", input),
+      reviewFinding: (input) => write("reviewFinding", input),
       projects: projectOptions,
       clients: clientList,
       tenants: tenantList,

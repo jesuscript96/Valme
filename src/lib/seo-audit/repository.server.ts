@@ -29,6 +29,79 @@ type TenantRole = Database["public"]["Enums"]["tenant_role"];
 export type TenantSummary = { id: string; nombre: string; role: TenantRole | null };
 type OwnAccess = Pick<Tables["user_access"]["Row"], "role" | "status" | "full_portfolio">;
 type ArchivePatch = { archived_at: string | null; archived_by: string | null };
+type FindingRow = Tables["seo_audit_findings"]["Row"];
+type FindingInsert = Tables["seo_audit_findings"]["Insert"];
+type EvidenceInsert = Tables["seo_audit_evidence"]["Insert"];
+export type FindingSummary = Pick<
+  FindingRow,
+  | "id"
+  | "audit_id"
+  | "category"
+  | "related_service_id"
+  | "title"
+  | "description"
+  | "priority"
+  | "impact"
+  | "recommendation"
+  | "state"
+  | "confidence"
+  | "sources"
+  | "observed_at"
+  | "responsible_name"
+  | "limitations"
+  | "review_decision"
+  | "review_note"
+  | "reviewed_by"
+  | "reviewed_at"
+  | "created_at"
+>;
+export type EvidenceSummary = Pick<
+  Tables["seo_audit_evidence"]["Row"],
+  | "id"
+  | "audit_id"
+  | "url_or_resource"
+  | "source"
+  | "observed_at"
+  | "collection_method"
+  | "observed_data"
+  | "contains_external_untrusted_data"
+>;
+export type FindingEvidenceLink = Pick<
+  Tables["seo_finding_evidence"]["Row"],
+  "audit_id" | "finding_id" | "evidence_id"
+>;
+export type PersonSummary = Pick<Tables["user_access"]["Row"], "user_id" | "email" | "full_name">;
+type ReviewPatch = { review_decision: ReviewDecision; review_note: string | null };
+
+export const FINDING_REVIEW_DECISIONS = [
+  "pendiente",
+  "priorizar",
+  "investigar",
+  "descartar",
+] as const;
+export type ReviewDecision = (typeof FINDING_REVIEW_DECISIONS)[number];
+// Catálogo de 0005 (seo_findings_category_valid).
+export const FINDING_CATEGORIES = [
+  "auditoria_completa",
+  "crawling",
+  "seo_tecnico",
+  "indexacion",
+  "sitemap",
+  "robots_txt",
+  "canonical",
+  "redirects",
+  "core_web_vitals",
+  "pagespeed",
+  "crux",
+  "search_console",
+  "ga4",
+  "schema_org",
+  "contenido",
+  "eeat",
+  "keyword_research",
+  "semantic_clustering",
+  "aeo_geo_citabilidad",
+] as const;
 
 const nonEmptyString = z.string().trim().min(1);
 
@@ -73,6 +146,54 @@ export const setSeoAuditArchivedInputSchema = z
   .object({ auditId: z.uuid(), archived: z.boolean() })
   .strict();
 
+const importedEvidenceSchema = z
+  .object({
+    key: nonEmptyString.max(200),
+    url: z.url().max(2000),
+    source: nonEmptyString.max(200),
+    collectionMethod: nonEmptyString.max(300),
+    observedAt: z.iso.datetime({ offset: true }),
+    observedData: nonEmptyString.max(4000),
+  })
+  .strict();
+
+const importedFindingSchema = z
+  .object({
+    title: nonEmptyString.max(200),
+    description: nonEmptyString.max(4000),
+    impact: nonEmptyString.max(1000),
+    recommendation: nonEmptyString.max(4000),
+    category: z.enum(FINDING_CATEGORIES),
+    serviceId: nonEmptyString.max(80),
+    priority: z.enum(["baja", "media", "alta", "critica"]),
+    confidence: z.enum(["baja", "media", "alta"]),
+    resultType: z.enum(["medicion", "observacion", "estimacion", "heuristica"]),
+    sources: z.array(z.url().max(2000)).min(1).max(20),
+    evidenceKeys: z.array(nonEmptyString.max(200)).max(50),
+    limitations: z.array(nonEmptyString.max(500)).max(10),
+  })
+  .strict();
+
+// Revisión externa (por ejemplo, el piloto de VALME) cargada en una auditoría real.
+export const importSeoAuditReviewInputSchema = z
+  .object({
+    auditId: z.uuid(),
+    reviewer: z.object({ id: nonEmptyString.max(80), name: nonEmptyString.max(120) }).strict(),
+    evidence: z.array(importedEvidenceSchema).max(50),
+    findings: z.array(importedFindingSchema).min(1).max(50),
+  })
+  .strict();
+
+export const reviewSeoFindingInputSchema = z
+  .object({
+    findingId: z.uuid(),
+    decision: z.enum(FINDING_REVIEW_DECISIONS),
+    note: z.string().trim().max(3000).optional(),
+  })
+  .strict();
+
+export type ImportSeoAuditReviewInput = z.infer<typeof importSeoAuditReviewInputSchema>;
+export type ReviewSeoFindingInput = z.infer<typeof reviewSeoFindingInputSchema>;
 export type CreateSeoAuditDraftInput = z.infer<typeof createSeoAuditDraftInputSchema>;
 export type TransitionSeoAuditInput = z.infer<typeof transitionSeoAuditInputSchema>;
 export type CreateSeoClientInput = z.infer<typeof createSeoClientInputSchema>;
@@ -98,6 +219,15 @@ export interface SeoAuditStore {
   ): Promise<AuditRow | null>;
   updateClientArchive(clientId: string, patch: ArchivePatch): Promise<ClientSummary | null>;
   updateAuditArchive(auditId: string, patch: ArchivePatch): Promise<AuditRow | null>;
+  listFindings(): Promise<FindingSummary[]>;
+  listEvidence(): Promise<EvidenceSummary[]>;
+  listFindingEvidence(): Promise<FindingEvidenceLink[]>;
+  listPeople(): Promise<PersonSummary[]>;
+  findFinding(findingId: string): Promise<FindingSummary | null>;
+  insertEvidence(rows: EvidenceInsert[]): Promise<Array<{ id: string; url_or_resource: string }>>;
+  insertFindings(rows: FindingInsert[]): Promise<Array<{ id: string; title: string }>>;
+  linkFindingEvidence(rows: Tables["seo_finding_evidence"]["Insert"][]): Promise<void>;
+  updateFindingReview(findingId: string, patch: ReviewPatch): Promise<FindingSummary | null>;
 }
 
 export class SeoAuditRemoteDisabledError extends Error {
@@ -118,7 +248,9 @@ export class SeoAuditRepositoryError extends Error {
       | "transition-conflict"
       | "archived"
       | "not-allowed"
-      | "invalid-input",
+      | "invalid-input"
+      | "finding-not-visible"
+      | "locked",
     message: string,
   ) {
     super(message);
@@ -188,10 +320,118 @@ function throwArchiveError(operation: string, error: { message: string; code?: s
   throwStoreError(operation, error);
 }
 
+// Artefactos hijos: 42501 por RLS significa auditoría cerrada, archivada o sin permiso de
+// escritura; los triggers de 0007 usan 42501 para "no eres manager".
+function throwArtifactError(
+  operation: string,
+  error: { message: string; code?: string },
+  notAllowedMessage: string,
+): never {
+  if (error.code === "42501") {
+    throw new SeoAuditRepositoryError(
+      "locked",
+      /row-level security/i.test(error.message)
+        ? SEO_AUDIT_PUBLIC_ERRORS.auditLocked
+        : notAllowedMessage,
+    );
+  }
+  throwStoreError(operation, error);
+}
+
+const findingColumns =
+  "id, audit_id, category, related_service_id, title, description, priority, impact, recommendation, state, confidence, sources, observed_at, responsible_name, limitations, review_decision, review_note, reviewed_by, reviewed_at, created_at";
+
 export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>): SeoAuditStore {
   const clientColumns = "id, nombre, sector, tenant_id, archived_at";
 
   return {
+    async listFindings() {
+      const { data, error } = await supabase
+        .from("seo_audit_findings")
+        .select(findingColumns)
+        .order("created_at");
+      if (error) throwStoreError("listar hallazgos", error);
+      return data;
+    },
+
+    async listEvidence() {
+      const { data, error } = await supabase
+        .from("seo_audit_evidence")
+        .select(
+          "id, audit_id, url_or_resource, source, observed_at, collection_method, observed_data, contains_external_untrusted_data",
+        )
+        .order("observed_at");
+      if (error) throwStoreError("listar evidencias", error);
+      return data;
+    },
+
+    async listFindingEvidence() {
+      const { data, error } = await supabase
+        .from("seo_finding_evidence")
+        .select("audit_id, finding_id, evidence_id");
+      if (error) throwStoreError("listar enlaces de evidencia", error);
+      return data;
+    },
+
+    async listPeople() {
+      // RLS: cada usuario ve su propio acceso; un super admin ve todos.
+      const { data, error } = await supabase
+        .from("user_access")
+        .select("user_id, email, full_name");
+      if (error) throwStoreError("listar personas", error);
+      return data;
+    },
+
+    async findFinding(findingId) {
+      const { data, error } = await supabase
+        .from("seo_audit_findings")
+        .select(findingColumns)
+        .eq("id", findingId)
+        .maybeSingle();
+      if (error) throwStoreError("leer el hallazgo", error);
+      return data;
+    },
+
+    async insertEvidence(rows) {
+      if (!rows.length) return [];
+      const { data, error } = await supabase
+        .from("seo_audit_evidence")
+        .insert(rows)
+        .select("id, url_or_resource");
+      if (error)
+        throwArtifactError("registrar evidencias", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+      return data;
+    },
+
+    async insertFindings(rows) {
+      const { data, error } = await supabase
+        .from("seo_audit_findings")
+        .insert(rows)
+        .select("id, title");
+      if (error)
+        throwArtifactError("registrar hallazgos", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+      return data;
+    },
+
+    async linkFindingEvidence(rows) {
+      if (!rows.length) return;
+      const { error } = await supabase.from("seo_finding_evidence").insert(rows);
+      if (error)
+        throwArtifactError("enlazar evidencias", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+    },
+
+    async updateFindingReview(findingId, patch) {
+      const { data, error } = await supabase
+        .from("seo_audit_findings")
+        .update(patch)
+        .eq("id", findingId)
+        .select(findingColumns)
+        .maybeSingle();
+      if (error)
+        throwArtifactError("guardar la decision", error, SEO_AUDIT_PUBLIC_ERRORS.reviewNotAllowed);
+      return data;
+    },
+
     async listAudits() {
       const { data, error } = await supabase
         .from("seo_audits")
@@ -345,13 +585,161 @@ export function createSeoAuditServerRepository(store: SeoAuditStore, userId: str
     list: () => store.listAudits(),
 
     async workspace() {
-      const [audits, clients, projects, tenants] = await Promise.all([
-        store.listAudits(),
-        store.listClients(),
-        store.listProjects(),
-        store.listTenants(),
+      const [audits, clients, projects, tenants, findings, evidence, links, people] =
+        await Promise.all([
+          store.listAudits(),
+          store.listClients(),
+          store.listProjects(),
+          store.listTenants(),
+          store.listFindings(),
+          store.listEvidence(),
+          store.listFindingEvidence(),
+          store.listPeople(),
+        ]);
+      return { audits, clients, projects, tenants, findings, evidence, links, people };
+    },
+
+    // Carga una revisión externa: evidencias, hallazgos y sus enlaces. Idempotente por título
+    // (hallazgos) y por URL + fecha de observación (evidencias) para poder reintentar.
+    async importReview(input: ImportSeoAuditReviewInput) {
+      const audit = await store.findAudit(input.auditId);
+      if (!audit) {
+        throw new SeoAuditRepositoryError(
+          "audit-not-visible",
+          SEO_AUDIT_PUBLIC_ERRORS.auditNotVisible,
+        );
+      }
+      if (audit.archived_at || ["validado", "cancelado"].includes(audit.state)) {
+        throw new SeoAuditRepositoryError("locked", SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+      }
+      const keys = new Set(input.evidence.map((item) => item.key));
+      if (
+        keys.size !== input.evidence.length ||
+        input.findings.some((finding) => finding.evidenceKeys.some((key) => !keys.has(key)))
+      ) {
+        throw new SeoAuditRepositoryError("invalid-input", SEO_AUDIT_PUBLIC_ERRORS.importInvalid);
+      }
+
+      const [existingFindings, existingEvidence, existingLinks] = await Promise.all([
+        store.listFindings(),
+        store.listEvidence(),
+        store.listFindingEvidence(),
       ]);
-      return { audits, clients, projects, tenants };
+      const evidenceIdentity = (url: string, observedAt: string) =>
+        `${url}|${new Date(observedAt).toISOString()}`;
+      const evidenceIds = new Map<string, string>();
+      for (const row of existingEvidence.filter((item) => item.audit_id === audit.id)) {
+        evidenceIds.set(evidenceIdentity(row.url_or_resource, row.observed_at), row.id);
+      }
+      const newEvidence = input.evidence.filter(
+        (item) => !evidenceIds.has(evidenceIdentity(item.url, item.observedAt)),
+      );
+      const insertedEvidence = await store.insertEvidence(
+        newEvidence.map((item) => ({
+          tenant_id: audit.tenant_id,
+          audit_id: audit.id,
+          url_or_resource: item.url,
+          source: item.source,
+          observed_at: item.observedAt,
+          collection_method: item.collectionMethod,
+          observed_data: item.observedData,
+          contains_external_untrusted_data: true,
+          level: "url",
+          created_by: userId,
+        })),
+      );
+      for (const row of insertedEvidence) {
+        const item = newEvidence.find((candidate) => candidate.url === row.url_or_resource);
+        if (item) evidenceIds.set(evidenceIdentity(item.url, item.observedAt), row.id);
+      }
+      const evidenceIdByKey = new Map(
+        input.evidence.map((item) => [
+          item.key,
+          evidenceIds.get(evidenceIdentity(item.url, item.observedAt)),
+        ]),
+      );
+
+      const titleOf = (title: string) => title.trim().toLowerCase();
+      const findingIds = new Map(
+        existingFindings
+          .filter((item) => item.audit_id === audit.id)
+          .map((item) => [titleOf(item.title), item.id]),
+      );
+      const newFindings = input.findings.filter((item) => !findingIds.has(titleOf(item.title)));
+      const observedAt = input.evidence[0]?.observedAt ?? new Date().toISOString();
+      if (newFindings.length) {
+        const inserted = await store.insertFindings(
+          newFindings.map((item) => ({
+            tenant_id: audit.tenant_id,
+            audit_id: audit.id,
+            category: item.category,
+            related_service_id: item.serviceId,
+            title: item.title,
+            description: item.description,
+            priority: item.priority,
+            impact: item.impact,
+            recommendation: item.recommendation,
+            result_type: item.resultType,
+            confidence: item.confidence,
+            sources: item.sources,
+            observed_at: observedAt,
+            responsible_kind: "tool",
+            responsible_id: input.reviewer.id,
+            responsible_name: input.reviewer.name,
+            limitations: item.limitations,
+            created_by: userId,
+          })),
+        );
+        for (const row of inserted) findingIds.set(titleOf(row.title), row.id);
+      }
+
+      const linked = new Set(
+        existingLinks
+          .filter((item) => item.audit_id === audit.id)
+          .map((item) => `${item.finding_id}|${item.evidence_id}`),
+      );
+      const links = input.findings.flatMap((finding) => {
+        const findingId = findingIds.get(titleOf(finding.title));
+        return finding.evidenceKeys
+          .map((key) => evidenceIdByKey.get(key))
+          .filter((evidenceId): evidenceId is string => Boolean(findingId && evidenceId))
+          .filter((evidenceId) => !linked.has(`${findingId}|${evidenceId}`))
+          .map((evidenceId) => ({
+            tenant_id: audit.tenant_id,
+            audit_id: audit.id,
+            finding_id: findingId as string,
+            evidence_id: evidenceId,
+            linked_by: userId,
+          }));
+      });
+      await store.linkFindingEvidence(links);
+
+      return {
+        evidence: insertedEvidence.length,
+        findings: newFindings.length,
+        links: links.length,
+        skippedFindings: input.findings.length - newFindings.length,
+      };
+    },
+
+    async reviewFinding(input: ReviewSeoFindingInput) {
+      const finding = await store.findFinding(input.findingId);
+      if (!finding) {
+        throw new SeoAuditRepositoryError(
+          "finding-not-visible",
+          SEO_AUDIT_PUBLIC_ERRORS.findingNotVisible,
+        );
+      }
+      const note = input.note?.trim() || null;
+      const updated = await store.updateFindingReview(input.findingId, {
+        review_decision: input.decision,
+        review_note: note,
+      });
+      // Sin fila: RLS no deja escribir (auditoría cerrada o archivada).
+      if (!updated) {
+        throw new SeoAuditRepositoryError("locked", SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+      }
+      return updated;
     },
 
     async createDraft(input: CreateSeoAuditDraftInput): Promise<AuditRow> {

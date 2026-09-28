@@ -10,7 +10,7 @@ demostración. Para trabajar contra staging se arranca la aplicación en local.
 
 ## Preparación (una sola vez)
 
-1. **Migraciones en staging.** Aplica `0005` y `0006` y verifica los 13 escenarios de
+1. **Migraciones en staging.** Aplica `0005`, `0006` y `0007` y verifica los 14 escenarios de
    seguridad con el runner (ver [seo-audit-staging.md](seo-audit-staging.md)):
    `npm run staging:seo-audit:all` con `STAGING_DB_URL`, `STAGING_SUPABASE_PROJECT_REF` y
    `STAGING_APPLY_CONFIRM=apply-0005-to-<ref>`. Es idempotente: si `0005` ya existe,
@@ -44,6 +44,11 @@ Abre `http://localhost:4180/panel`, inicia sesión con tu cuenta de staging y ve
 
 - **Clientes → + Nuevo cliente:** nombre, sector, primer proyecto y dominio.
 - **Ficha del cliente:** proyectos, auditorías y «Nueva auditoría →» por proyecto.
+- **Revisión externa del piloto VALME:** en la auditoría real de `valmesolutions.com`, sin
+  hallazgos todavía, aparece «Cargar revisión externa». Registra los 5 hallazgos y las 8
+  páginas revisadas como revisión de Codex (no como ejecución automática).
+- **Decisión del PM** en cada hallazgo (pendiente, priorizar, investigar, descartar) con
+  nota. Solo managers; la firma y la fecha las pone la base de datos.
 - **Archivar** (cliente o auditoría): lo retira del trabajo diario y lo deja en solo
   lectura. No borra nada y se deshace con «Restaurar». Solo managers del cliente.
 
@@ -55,8 +60,6 @@ cambios de contenido y se descartan con `git checkout -- <archivo>`.
 
 ## Límites actuales
 
-- Los hallazgos y evidencias del piloto VALME siguen en modo demostración; todavía no
-  se cargan en el expediente remoto.
 - Solo super admin o Project Manager con cartera completa pueden dar de alta clientes,
   para que quien crea un cliente pueda verlo después.
 - Producción no se toca: `0005` y `0006` se aplicarán en Lovable Cloud en un despliegue

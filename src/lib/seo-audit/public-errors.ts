@@ -17,6 +17,11 @@ export const SEO_AUDIT_PUBLIC_ERRORS = {
   clientExists: "Ya existe un cliente con ese nombre.",
   invalidDomain:
     "El dominio no es válido. Escribe solo el dominio, por ejemplo valmesolutions.com.",
+  findingNotVisible: "El hallazgo no existe o no está asignado a tu sesión.",
+  reviewNotAllowed: "Solo un manager del cliente decide sobre los hallazgos.",
+  auditLocked:
+    "La auditoría está cerrada, archivada o su cliente está archivado: no admite cambios en hallazgos ni evidencias.",
+  importInvalid: "La revisión externa no es coherente: revisa sus evidencias y hallazgos.",
 } as const;
 
 const PUBLIC_MESSAGES = new Set<string>(Object.values(SEO_AUDIT_PUBLIC_ERRORS));

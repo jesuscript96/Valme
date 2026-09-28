@@ -7,6 +7,8 @@ import {
   createSeoAuditServerRepository,
   createSeoClientInputSchema,
   createSupabaseSeoAuditStore,
+  importSeoAuditReviewInputSchema,
+  reviewSeoFindingInputSchema,
   setSeoAuditArchivedInputSchema,
   setSeoClientArchivedInputSchema,
   transitionSeoAuditInputSchema,
@@ -87,4 +89,26 @@ export const setSeoAuditArchived = createServerFn({ method: "POST" })
       createStore(context.supabase),
       context.userId,
     ).setAuditArchived(data);
+  });
+
+export const importSeoAuditReview = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => importSeoAuditReviewInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).importReview(data);
+  });
+
+export const reviewSeoFinding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => reviewSeoFindingInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).reviewFinding(data);
   });
