@@ -5,7 +5,10 @@ import {
   assertSeoAuditRemoteEnabled,
   createSeoAuditDraftInputSchema,
   createSeoAuditServerRepository,
+  createSeoClientInputSchema,
   createSupabaseSeoAuditStore,
+  setSeoAuditArchivedInputSchema,
+  setSeoClientArchivedInputSchema,
   transitionSeoAuditInputSchema,
   type SeoAuditDatabase,
 } from "./repository.server";
@@ -51,4 +54,37 @@ export const transitionSeoAudit = createServerFn({ method: "POST" })
     return createSeoAuditServerRepository(createStore(context.supabase), context.userId).transition(
       data,
     );
+  });
+
+export const createSeoClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => createSeoClientInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).createClient(data);
+  });
+
+export const setSeoClientArchived = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => setSeoClientArchivedInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).setClientArchived(data);
+  });
+
+export const setSeoAuditArchived = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => setSeoAuditArchivedInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    assertSeoAuditRemoteEnabled();
+    return createSeoAuditServerRepository(
+      createStore(context.supabase),
+      context.userId,
+    ).setAuditArchived(data);
   });

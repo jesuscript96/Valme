@@ -11,6 +11,11 @@ import {
   type CreateSeoAuditDraftInput,
   type SeoAuditStore,
 } from "./repository.server";
+import {
+  SEO_AUDIT_GENERIC_ERROR,
+  SEO_AUDIT_PUBLIC_ERRORS,
+  publicSeoAuditErrorMessage,
+} from "./public-errors";
 
 type AuditRow = Database["public"]["Tables"]["seo_audits"]["Row"];
 type AuditInsert = Database["public"]["Tables"]["seo_audits"]["Insert"];
@@ -44,6 +49,8 @@ function audit(overrides: Partial<AuditRow> = {}): AuditRow {
     transition_reason: null,
     created_at: "2026-09-25T00:00:00.000Z",
     updated_at: "2026-09-25T00:00:00.000Z",
+    archived_at: null,
+    archived_by: null,
     ...overrides,
   };
 }
@@ -68,16 +75,91 @@ function draftInput(): CreateSeoAuditDraftInput {
   };
 }
 
+const CLIENT_ID = "30000000-0000-4000-8000-000000000001";
+const TENANT_ID = "20000000-0000-4000-8000-000000000001";
+
+type ClientState = {
+  id: string;
+  nombre: string;
+  sector: string;
+  tenant_id: string;
+  archived_at: string | null;
+};
+
 function fakeStore(initial: AuditRow = audit()) {
   const calls: {
     inserted?: AuditInsert;
     updated?: AuditUpdate;
     expectedState?: AuditRow["state"];
+    clientInserted?: Record<string, unknown>;
+    projectInserted?: Record<string, unknown>;
+    clientArchive?: { archived_at: string | null; archived_by: string | null };
+    auditArchive?: { archived_at: string | null; archived_by: string | null };
   } = {};
   let current: AuditRow | null = initial;
+  const clients: ClientState[] = [
+    {
+      id: CLIENT_ID,
+      nombre: "Cliente",
+      sector: "General",
+      tenant_id: TENANT_ID,
+      archived_at: null,
+    },
+  ];
+  const access = {
+    value: { role: "super_admin", status: "activo", full_portfolio: false } as {
+      role: "super_admin" | "project_manager" | "equipo" | "cliente";
+      status: "activo" | "invitado" | "desactivado";
+      full_portfolio: boolean;
+    } | null,
+  };
+  const tenants = {
+    value: [{ id: TENANT_ID, nombre: "VALME", role: "owner" as const }] as Array<{
+      id: string;
+      nombre: string;
+      role: "owner" | "manager" | "member" | "reviewer" | null;
+    }>,
+  };
   const store: SeoAuditStore = {
     listAudits: async () => (current ? [current] : []),
-    listClients: async () => [{ id: "30000000-0000-4000-8000-000000000001", nombre: "Cliente" }],
+    listClients: async () => clients.map((client) => ({ ...client })),
+    listTenants: async () => tenants.value,
+    findOwnAccess: async () => access.value,
+    findClient: async (clientId) => {
+      const client = clients.find((item) => item.id === clientId);
+      return client ? { ...client } : null;
+    },
+    insertClient: async (client) => {
+      calls.clientInserted = client as Record<string, unknown>;
+      clients.push({
+        id: String(client.id),
+        nombre: client.nombre,
+        sector: client.sector ?? "General",
+        tenant_id: client.tenant_id,
+        archived_at: null,
+      });
+    },
+    insertProject: async (project) => {
+      calls.projectInserted = project as Record<string, unknown>;
+      return {
+        id: "40000000-0000-4000-8000-000000000099",
+        client_id: project.client_id,
+        nombre: project.nombre,
+        primary_domain: project.primary_domain,
+      };
+    },
+    updateClientArchive: async (clientId, patch) => {
+      calls.clientArchive = patch;
+      const client = clients.find((item) => item.id === clientId);
+      if (!client) return null;
+      client.archived_at = patch.archived_at;
+      return { ...client };
+    },
+    updateAuditArchive: async (_auditId, patch) => {
+      calls.auditArchive = patch;
+      current = current ? audit({ ...current, ...patch }) : null;
+      return current;
+    },
     listProjects: async () => [
       {
         id: "40000000-0000-4000-8000-000000000001",
@@ -105,7 +187,14 @@ function fakeStore(initial: AuditRow = audit()) {
       return current;
     },
   };
-  return { store, calls, setCurrent: (value: AuditRow | null) => (current = value) };
+  return {
+    store,
+    calls,
+    clients,
+    access,
+    tenants,
+    setCurrent: (value: AuditRow | null) => (current = value),
+  };
 }
 
 describe("SEO audit authenticated server repository", () => {
@@ -174,6 +263,10 @@ describe("SEO audit authenticated server repository", () => {
     assert.deepEqual(
       workspace.projects.map((project) => project.nombre),
       ["Proyecto"],
+    );
+    assert.deepEqual(
+      workspace.tenants.map((tenant) => tenant.role),
+      ["owner"],
     );
   });
 
@@ -244,6 +337,130 @@ describe("SEO audit authenticated server repository", () => {
       () => createSeoAuditServerRepository(store, "user").list(),
       /network unavailable/,
     );
+  });
+
+  it("registers a client with its first project only for users who will see it", async () => {
+    const { store, calls, access } = fakeStore();
+    const userId = "50000000-0000-4000-8000-000000000009";
+    const repository = createSeoAuditServerRepository(store, userId);
+
+    const created = await repository.createClient({
+      nombre: "VALME Solutions",
+      projectName: "Web principal",
+      primaryDomain: "https://www.ValmeSolutions.com/servicios",
+    });
+    assert.equal(created.client.nombre, "VALME Solutions");
+    assert.equal(calls.clientInserted?.["tenant_id"], TENANT_ID);
+    assert.equal(calls.clientInserted?.["archived_at"], undefined);
+    assert.equal(calls.projectInserted?.["primary_domain"], "www.valmesolutions.com");
+    assert.equal(calls.projectInserted?.["created_by"], userId);
+    assert.equal(calls.projectInserted?.["client_id"], created.client.id);
+
+    await assert.rejects(
+      () =>
+        repository.createClient({
+          nombre: "valme solutions",
+          projectName: "Web",
+          primaryDomain: "valmesolutions.com",
+        }),
+      /Ya existe un cliente/,
+    );
+
+    access.value = { role: "project_manager", status: "activo", full_portfolio: false };
+    await assert.rejects(
+      () =>
+        repository.createClient({ nombre: "Otro", projectName: "Web", primaryDomain: "otro.com" }),
+      (error: unknown) => error instanceof SeoAuditRepositoryError && error.code === "not-allowed",
+    );
+  });
+
+  it("rejects malformed domains and ambiguous organizations before writing", async () => {
+    const { store, calls, tenants } = fakeStore();
+    const repository = createSeoAuditServerRepository(store, "user");
+    await assert.rejects(
+      () =>
+        repository.createClient({
+          nombre: "X",
+          projectName: "Web",
+          primaryDomain: "no es un dominio",
+        }),
+      /dominio no es válido/,
+    );
+    tenants.value = [
+      { id: TENANT_ID, nombre: "A", role: "manager" },
+      { id: "20000000-0000-4000-8000-000000000002", nombre: "B", role: "owner" },
+    ];
+    await assert.rejects(
+      () => repository.createClient({ nombre: "X", projectName: "Web", primaryDomain: "x.com" }),
+      /Elige la organización/,
+    );
+    tenants.value = [{ id: TENANT_ID, nombre: "A", role: "member" }];
+    await assert.rejects(
+      () => repository.createClient({ nombre: "X", projectName: "Web", primaryDomain: "x.com" }),
+      /Elige la organización/,
+    );
+    assert.equal(calls.clientInserted, undefined);
+  });
+
+  it("archives and restores clients and audits in the caller's own name", async () => {
+    const { store, calls } = fakeStore();
+    const userId = "50000000-0000-4000-8000-000000000009";
+    const repository = createSeoAuditServerRepository(store, userId);
+
+    const archivedClient = await repository.setClientArchived({
+      clientId: CLIENT_ID,
+      archived: true,
+    });
+    assert.ok(archivedClient.archived_at);
+    assert.equal(calls.clientArchive?.archived_by, userId);
+    await repository.setClientArchived({ clientId: CLIENT_ID, archived: false });
+    assert.deepEqual(calls.clientArchive, { archived_at: null, archived_by: null });
+
+    await repository.setAuditArchived({ auditId: audit().id, archived: true });
+    assert.equal(calls.auditArchive?.archived_by, userId);
+  });
+
+  it("treats a filtered archive update as a permission error, not a silent success", async () => {
+    const { store } = fakeStore();
+    store.updateClientArchive = async () => null;
+    store.updateAuditArchive = async () => null;
+    const repository = createSeoAuditServerRepository(store, "member");
+    await assert.rejects(
+      () => repository.setClientArchived({ clientId: CLIENT_ID, archived: true }),
+      /Solo un manager/,
+    );
+    await assert.rejects(
+      () => repository.setAuditArchived({ auditId: audit().id, archived: true }),
+      /Solo un manager/,
+    );
+  });
+
+  it("keeps archived work read-only and blocks new work on archived clients", async () => {
+    const { store, calls, clients } = fakeStore(
+      audit({ archived_at: "2026-09-28T10:00:00Z", archived_by: "u" }),
+    );
+    const repository = createSeoAuditServerRepository(store, "user");
+    await assert.rejects(
+      () => repository.transition({ auditId: audit().id, nextState: "pendiente_autorizacion" }),
+      /archivada/,
+    );
+
+    clients[0]!.archived_at = "2026-09-28T10:00:00Z";
+    await assert.rejects(() => repository.createDraft(draftInput()), /cliente está archivado/);
+    assert.equal(calls.inserted, undefined);
+    assert.equal(calls.updated, undefined);
+  });
+
+  it("forwards only curated error messages to the browser", () => {
+    assert.equal(
+      publicSeoAuditErrorMessage(new Error(SEO_AUDIT_PUBLIC_ERRORS.archiveNotAllowed)),
+      SEO_AUDIT_PUBLIC_ERRORS.archiveNotAllowed,
+    );
+    assert.equal(
+      publicSeoAuditErrorMessage(new Error('duplicate key value violates unique constraint "x"')),
+      SEO_AUDIT_GENERIC_ERROR,
+    );
+    assert.equal(publicSeoAuditErrorMessage("texto"), SEO_AUDIT_GENERIC_ERROR);
   });
 
   it("uses authenticated server functions and contains no admin client", () => {

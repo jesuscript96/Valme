@@ -1102,10 +1102,16 @@ body {
 }
 #valme-v2 .v-audit-tools {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 200px)) auto;
+  grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(150px, 200px)) auto auto;
   align-items: end;
   gap: 10px;
   margin-bottom: 12px;
+}
+#valme-v2 .v-audit-tools .v-audit-archived-toggle {
+  display: flex;
+  align-self: center;
+  min-height: var(--v-control);
+  white-space: nowrap;
 }
 #valme-v2 .v-audit-tools label {
   display: grid;
@@ -1171,6 +1177,35 @@ body {
 #valme-v2 .v-audit-empty p {
   margin-top: 4px;
 }
+/* Archivado: aviso de solo lectura con su acción de restaurar */
+#valme-v2 .v-audit-archived {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-left-color: var(--v-ink);
+}
+#valme-v2 .v-audit-archived > button {
+  flex-shrink: 0;
+}
+#valme-v2 .v-rc-tools {
+  align-items: flex-end;
+}
+#valme-v2 .v-rc-tools .v-search input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+#valme-v2 .v-rc-tools .v-check {
+  min-height: var(--v-control);
+}
+#valme-v2 .v-rc-danger .v-section-head {
+  margin: 0;
+}
+#valme-v2 .v-rc-danger .v-section-head > div {
+  max-width: 60ch;
+}
+
 #valme-v2 .v-audit-storage-state {
   margin-top: 10px;
   color: var(--v-faint);
@@ -1625,6 +1660,10 @@ body {
     flex-direction: column;
     align-items: stretch;
     padding: 16px;
+  }
+  #valme-v2 .v-audit-archived {
+    flex-direction: column;
+    align-items: flex-start;
   }
   #valme-v2 .v-audit-command > .v-flex {
     align-items: stretch;

@@ -6,6 +6,8 @@ import postgres from "postgres";
 const ROOT = new URL("../../", import.meta.url);
 const SUPABASE_CONFIG = new URL("supabase/config.toml", ROOT);
 const MIGRATION = new URL("drizzle/migrations/0005_seo_audit_persistence.sql", ROOT);
+const ARCHIVE_MIGRATION = new URL("drizzle/migrations/0006_archive_clients_audits.sql", ROOT);
+export const VERIFIER_SCENARIOS = 13;
 const VERIFIER = new URL("scripts/staging/verify_seo_audit_rls.sql", ROOT);
 
 export const AUDIT_TABLES = [
@@ -140,7 +142,19 @@ async function inspectDatabase(sql) {
     .map(([name]) => name);
   const presentAuditTables = rows.filter((row) => row.present).map((row) => row.name);
   const missingAuditTables = rows.filter((row) => !row.present).map((row) => row.name);
-  return { missingBaseline, presentAuditTables, missingAuditTables };
+  const [archive] = await sql.unsafe(`
+    SELECT count(*)::int AS columns
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name IN ('clients', 'seo_audits')
+      AND column_name = 'archived_at'
+  `);
+  return {
+    missingBaseline,
+    presentAuditTables,
+    missingAuditTables,
+    archiveApplied: archive.columns === 2,
+  };
 }
 
 function assertDatabaseState(state) {
@@ -172,6 +186,11 @@ async function preflight(sql, stagingProjectRef) {
       ? "[staging] 0005 ya esta aplicada completamente."
       : "[staging] Fase 1 preparada; 0005 todavia no esta aplicada.",
   );
+  console.log(
+    state.archiveApplied
+      ? "[staging] 0006 (archivado) ya esta aplicada."
+      : "[staging] 0006 (archivado) todavia no esta aplicada.",
+  );
   return state;
 }
 
@@ -191,15 +210,26 @@ async function applyMigration(sql, state) {
     console.log(
       "[staging] 0005 ya estaba aplicada; privilegios reconciliados con la version actual de la migracion.",
     );
-    return;
+  } else {
+    await sql.begin((transaction) => transaction.unsafe(migration));
+    const after = await inspectDatabase(sql);
+    assertDatabaseState(after);
+    if (after.missingAuditTables.length) {
+      throw new Error(`0005 termino sin crear: ${after.missingAuditTables.join(", ")}.`);
+    }
+    console.log("[staging] 0005 aplicada completamente.");
   }
-  await sql.begin((transaction) => transaction.unsafe(migration));
-  const after = await inspectDatabase(sql);
-  assertDatabaseState(after);
-  if (after.missingAuditTables.length) {
-    throw new Error(`0005 termino sin crear: ${after.missingAuditTables.join(", ")}.`);
-  }
-  console.log("[staging] 0005 aplicada completamente.");
+
+  // 0006 es idempotente (IF NOT EXISTS, CREATE OR REPLACE, DROP TRIGGER IF EXISTS).
+  const archive = await readFile(ARCHIVE_MIGRATION, "utf8");
+  await sql.begin((transaction) => transaction.unsafe(archive));
+  const final = await inspectDatabase(sql);
+  if (!final.archiveApplied) throw new Error("0006 termino sin crear las columnas de archivado.");
+  console.log(
+    state.archiveApplied
+      ? "[staging] 0006 ya estaba aplicada; reglas de archivado reconciliadas."
+      : "[staging] 0006 aplicada completamente.",
+  );
 }
 
 async function verifyRls(sql, notices) {
@@ -208,11 +238,14 @@ async function verifyRls(sql, notices) {
   if (state.missingAuditTables.length) {
     throw new Error("No se puede verificar RLS antes de aplicar 0005.");
   }
+  if (!state.archiveApplied) {
+    throw new Error("No se puede verificar el archivado antes de aplicar 0006.");
+  }
 
   notices.length = 0;
   const verifier = prepareVerifierSql(await readFile(VERIFIER, "utf8"));
   await sql.unsafe(verifier);
-  for (let scenario = 1; scenario <= 12; scenario += 1) {
+  for (let scenario = 1; scenario <= VERIFIER_SCENARIOS; scenario += 1) {
     if (!notices.some((message) => message.startsWith(`OK ${scenario}:`))) {
       throw new Error(`El verificador no confirmo el escenario ${scenario}.`);
     }
@@ -220,7 +253,9 @@ async function verifyRls(sql, notices) {
   if (!notices.includes("VERIFICACION COMPLETA")) {
     throw new Error("El verificador no alcanzo VERIFICACION COMPLETA.");
   }
-  console.log("[staging] 12/12 escenarios RLS correctos; el fixture termino en ROLLBACK.");
+  console.log(
+    `[staging] ${VERIFIER_SCENARIOS}/${VERIFIER_SCENARIOS} escenarios RLS correctos; el fixture termino en ROLLBACK.`,
+  );
 }
 
 export async function run(command, env = process.env) {

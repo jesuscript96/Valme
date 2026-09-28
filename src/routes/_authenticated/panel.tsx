@@ -6,17 +6,29 @@ import { AccessGate } from "@/components/valme-access-gate";
 import { getV2Shell } from "@/lib/v2-shell.functions";
 import {
   createSeoAuditDraft,
+  createSeoClient,
   loadSeoAuditWorkspace,
+  setSeoAuditArchived,
+  setSeoClientArchived,
   transitionSeoAudit,
 } from "@/lib/seo-audit/repository.functions";
+import { publicSeoAuditErrorMessage } from "@/lib/seo-audit/public-errors";
 
 const SEO_AUDIT_CHANNEL = "valme:seo-audit:v1";
+const SEO_AUDIT_ACTIONS = [
+  "load",
+  "createDraft",
+  "transition",
+  "addClient",
+  "setClientArchived",
+  "setAuditArchived",
+] as const;
 
 type SeoAuditBridgeRequest = {
   channel: typeof SEO_AUDIT_CHANNEL;
   kind: "request";
   id: string;
-  action: "load" | "createDraft" | "transition";
+  action: (typeof SEO_AUDIT_ACTIONS)[number];
   payload?: unknown;
 };
 
@@ -27,7 +39,7 @@ function isBridgeRequest(value: unknown): value is SeoAuditBridgeRequest {
     message.channel === SEO_AUDIT_CHANNEL &&
     message.kind === "request" &&
     typeof message.id === "string" &&
-    ["load", "createDraft", "transition"].includes(message.action ?? "")
+    (SEO_AUDIT_ACTIONS as readonly string[]).includes(message.action ?? "")
   );
 }
 
@@ -55,6 +67,9 @@ function V2Frame() {
   const loadWorkspace = useServerFn(loadSeoAuditWorkspace);
   const createDraft = useServerFn(createSeoAuditDraft);
   const transition = useServerFn(transitionSeoAudit);
+  const addClient = useServerFn(createSeoClient);
+  const setClientArchived = useServerFn(setSeoClientArchived);
+  const setAuditArchived = useServerFn(setSeoAuditArchived);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const q = useQuery({
     queryKey: ["v2-shell"],
@@ -97,18 +112,27 @@ function V2Frame() {
         if (request.action === "transition") {
           data = await transition({ data: request.payload });
         }
+        if (request.action === "addClient") {
+          data = await addClient({ data: request.payload });
+        }
+        if (request.action === "setClientArchived") {
+          data = await setClientArchived({ data: request.payload });
+        }
+        if (request.action === "setAuditArchived") {
+          data = await setAuditArchived({ data: request.payload });
+        }
         target.postMessage(
           { channel: SEO_AUDIT_CHANNEL, kind: "response", id: request.id, ok: true, data },
           window.location.origin,
         );
-      } catch {
+      } catch (error) {
         target.postMessage(
           {
             channel: SEO_AUDIT_CHANNEL,
             kind: "response",
             id: request.id,
             ok: false,
-            error: "La operación remota no se pudo completar.",
+            error: publicSeoAuditErrorMessage(error),
           },
           window.location.origin,
         );
@@ -117,7 +141,7 @@ function V2Frame() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [createDraft, loadWorkspace, transition]);
+  }, [addClient, createDraft, loadWorkspace, setAuditArchived, setClientArchived, transition]);
 
   if (q.isError || (q.data && !q.data.allowed)) {
     return (

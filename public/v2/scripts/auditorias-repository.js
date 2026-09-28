@@ -127,28 +127,71 @@
       .join(" · ");
   }
 
+  function formatDate(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value || "");
+    return date.toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   function createRemoteRepository(options) {
     const transport = options.transport;
-    let context = { clients: [], projects: [] };
+    let context = { clients: [], projects: [], tenants: [] };
     let lastError = null;
 
-    function projectOptions() {
-      const clients = new Map(context.clients.map((client) => [client.id, client.nombre]));
+    function allProjects() {
+      const clients = new Map(context.clients.map((client) => [client.id, client]));
       return context.projects.map((project) => ({
         id: project.id,
         clientId: project.client_id,
-        client: clients.get(project.client_id) || "Cliente asignado",
+        client: clients.get(project.client_id)?.nombre || "Cliente asignado",
+        clientArchived: Boolean(clients.get(project.client_id)?.archived_at),
         project: project.nombre,
         domain: project.primary_domain,
       }));
     }
 
+    // Solo proyectos de clientes activos admiten auditorías nuevas.
+    function projectOptions() {
+      return allProjects().filter((project) => !project.clientArchived);
+    }
+
+    function clientList() {
+      const projects = allProjects();
+      return context.clients.map((client) => ({
+        id: client.id,
+        name: client.nombre,
+        sector: client.sector || "General",
+        tenantId: client.tenant_id,
+        archivedAt: client.archived_at || null,
+        projects: projects.filter((project) => project.clientId === client.id),
+      }));
+    }
+
+    function tenantList() {
+      return context.tenants.map((tenant) => ({
+        id: tenant.id,
+        name: tenant.nombre,
+        role: tenant.role,
+        canManage: tenant.role === "owner" || tenant.role === "manager",
+      }));
+    }
+
     function mapAudit(row) {
-      const project = projectOptions().find((item) => item.id === row.project_id);
+      const project = allProjects().find((item) => item.id === row.project_id);
       return {
         id: row.id,
+        displayId: `AUD-${String(row.id).slice(0, 8).toUpperCase()}`,
         projectId: row.project_id,
         clientId: row.client_id,
+        archivedAt: row.archived_at || null,
+        archivedAtLabel: row.archived_at ? formatDate(row.archived_at) : null,
+        clientArchived: Boolean(project?.clientArchived),
         client: project?.client || "Cliente asignado",
         project: project?.project || "Proyecto asignado",
         domain: row.primary_domain,
@@ -158,7 +201,7 @@
         markets: row.markets,
         languages: row.languages,
         requestedBy: "Usuario autenticado",
-        createdAt: row.created_at,
+        createdAt: formatDate(row.created_at),
         limits: {
           pages: row.max_pages,
           minutes: row.max_duration_minutes,
@@ -175,8 +218,10 @@
           reason: "Cobertura detallada pendiente de carga.",
         })),
         events: [
-          `${row.created_at} · Borrador registrado`,
-          ...(row.transition_reason ? [`${row.updated_at} · ${row.transition_reason}`] : []),
+          `${formatDate(row.created_at)} · Borrador registrado`,
+          ...(row.transition_reason
+            ? [`${formatDate(row.updated_at)} · ${row.transition_reason}`]
+            : []),
         ],
       };
     }
@@ -184,7 +229,11 @@
     async function load() {
       try {
         const workspace = await transport("load");
-        context = { clients: workspace.clients, projects: workspace.projects };
+        context = {
+          clients: workspace.clients || [],
+          projects: workspace.projects || [],
+          tenants: workspace.tenants || [],
+        };
         lastError = null;
         return workspace.audits.map(mapAudit);
       } catch (error) {
@@ -215,11 +264,25 @@
       }
     }
 
+    // Las escrituras de clientes y archivado devuelven el resultado del servidor; quien
+    // llama recarga el espacio de trabajo para ver el estado autoritativo.
+    // Un rechazo explicado (permiso, archivado) no marca el repositorio como inservible.
+    async function write(action, input) {
+      const result = await transport(action, input);
+      lastError = null;
+      return result;
+    }
+
     return Object.freeze({
       load,
       createDraft,
       transition,
+      addClient: (input) => write("addClient", input),
+      setClientArchived: (input) => write("setClientArchived", input),
+      setAuditArchived: (input) => write("setAuditArchived", input),
       projects: projectOptions,
+      clients: clientList,
+      tenants: tenantList,
       save: async () => false,
       reset: load,
       status: () => ({

@@ -123,7 +123,7 @@ describe("SEO audit persistence migration", () => {
     const journal = JSON.parse(readFileSync(journalUrl, "utf8")) as {
       entries: Array<Record<string, unknown>>;
     };
-    assert.deepEqual(journal.entries.at(-1), {
+    assert.deepEqual(journal.entries[5], {
       idx: 5,
       version: "7",
       when: 1790300000000,
@@ -232,12 +232,28 @@ describe("SEO audit persistence migration", () => {
     );
     assert.match(script, /^BEGIN;$/m);
     assert.match(script.trimEnd(), /ROLLBACK;$/);
-    for (let n = 1; n <= 12; n++) assert.match(script, new RegExp(`OK ${n}:`));
+    for (let n = 1; n <= 13; n++) assert.match(script, new RegExp(`OK ${n}:`));
     assert.match(script, /\\echo VERIFICACION COMPLETA/);
   });
 
   // Comprobaciones textuales del contrato del verificador. No ejecutan SQL: el
   // resultado real solo lo da ejecutar el guion contra PostgreSQL.
+  it("registers 0006 (archivado) right after 0005 in the Drizzle journal", () => {
+    const journal = JSON.parse(readFileSync(journalUrl, "utf8")) as {
+      entries: Array<Record<string, unknown>>;
+    };
+    assert.equal(journal.entries.at(-1)?.["idx"], 6);
+    assert.equal(journal.entries.at(-1)?.["tag"], "0006_archive_clients_audits");
+    const snapshot0005 = JSON.parse(readFileSync(snapshotUrl, "utf8")) as { id: string };
+    const snapshot0006 = JSON.parse(
+      readFileSync(
+        new URL("../../../drizzle/migrations/meta/0006_snapshot.json", import.meta.url),
+        "utf8",
+      ),
+    ) as { prevId: string };
+    assert.equal(snapshot0006.prevId, snapshot0005.id);
+  });
+
   it("declares a verifier contract that requires an explicit SQLSTATE for every denial", () => {
     const script = readFileSync(
       new URL("../../../scripts/staging/verify_seo_audit_rls.sql", import.meta.url),
@@ -255,7 +271,7 @@ describe("SEO audit persistence migration", () => {
       (m) => m[1] ?? "",
     );
     assert.ok(calls.length > 0);
-    for (const call of calls) assert.match(call, /'(42501|P0001)'/);
+    for (const call of calls) assert.match(call, /'(42501|P0001|23514|55000)'/);
   });
 
   it("covers DELETE by catalog privilege and by real attempts on visible rows", () => {
