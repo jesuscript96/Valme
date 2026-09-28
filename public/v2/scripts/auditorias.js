@@ -231,6 +231,9 @@ let seoAuditClientFilter = "Todos";
 let seoAuditCreating = false;
 let seoAuditShowArchived = false;
 let seoAuditPresetProject = null;
+// Formulario abierto de nueva tarea ({ findingId, kind }) y de cierre (id de la tarea).
+let seoAuditActionForm = null;
+let seoAuditCloseForm = null;
 let seoAuditStorageOk = seoAuditRepository.status().writable;
 let seoAuditRepositoryLoading = true;
 
@@ -475,7 +478,28 @@ function seoAuditOverview(a) {
     <div class="v-audit-score"><strong>${a.evidence.length}</strong><span>Evidencias</span></div>
     <div class="v-audit-score"><strong>${a.findings.length}</strong><span>Hallazgos</span></div>
     <div class="v-audit-score"><strong>${a.coverage.filter((c) => c.state === "evidencia_suficiente").length}/${a.coverage.length}</strong><span>Servicios completos</span></div>
-  </aside></div>`;
+  </aside></div>${seoAuditNextActions(a.actions || [])}`;
+}
+
+// Tareas abiertas ordenadas por fecha (sin fecha al final), con su hallazgo de origen.
+function seoAuditNextActions(actions, options = {}) {
+  const open = actions
+    .filter((action) => action.open)
+    .sort((x, y) => (x.dueDate || "9999").localeCompare(y.dueDate || "9999"));
+  if (!open.length && !options.showEmpty) return "";
+  return `<section class="v-section"><div class="v-section-head"><h2>Próximas acciones</h2><span class="v-mono">${open.length} ABIERTAS</span></div>
+    <div class="v-panel v-next-actions">${
+      open
+        .map(
+          (
+            action,
+          ) => `<div class="v-row"><div><div class="v-flex">${tag(action.kindLabel)}${tag(action.overdue ? "Vencida" : action.statusLabel, action.overdue ? "bad" : action.status === "en_curso" ? "warn" : "")}<span class="v-mono v-muted">${safe(options.prefix ? `${options.prefix(action)} · ` : "")}${safe(action.findingRef)}</span></div>
+          <strong>${safe(action.title)}</strong>
+          <p>PM: ${safe(action.owner)} · ${action.agent ? `Agente: ${safe(action.agent)}` : "Sin agente"} · ${action.dueLabel ? safe(action.dueLabel) : "Sin fecha"}</p></div>
+          ${options.openButton ? options.openButton(action) : `<button data-seo-goto-finding>Ver hallazgo →</button>`}</div>`,
+        )
+        .join("") || '<div class="v-audit-empty"><strong>No hay acciones abiertas.</strong></div>'
+    }</div></section>`;
 }
 
 function seoAuditScope(a) {
@@ -520,6 +544,73 @@ function seoAuditFindingReview(a, f) {
     </form>`;
 }
 
+const SEO_ACTION_STATUS_TONE = { pendiente: "", en_curso: "warn", hecha: "good", cancelada: "" };
+
+function seoAuditActionsBlock(a, f) {
+  if (!f.review) return "";
+  const locked = seoAuditLocked(a);
+  const creating = seoAuditActionForm && seoAuditActionForm.findingId === f.dbId;
+  const rows = (f.actions || []).map((action) => seoAuditActionRow(action, locked)).join("");
+  return `<div class="v-finding-actions"><div class="v-finding-actions-head"><strong>Seguimiento</strong>${
+    locked || creating
+      ? ""
+      : `<div class="v-flex"><button data-seo-action-new="${safe(f.dbId)}" data-kind="investigacion">+ Tarea de investigación</button><button data-seo-action-new="${safe(f.dbId)}" data-kind="accion">+ Acción del plan</button></div>`
+  }</div>${rows || (creating ? "" : '<p class="v-small v-muted">Sin tareas. Tras decidir, crea la investigación o la acción que corresponda.</p>')}${creating ? seoAuditActionFormHtml(f, seoAuditActionForm.kind) : ""}</div>`;
+}
+
+function seoAuditActionRow(action, locked) {
+  const meta = [
+    `PM: ${action.owner}`,
+    action.agent ? `Agente: ${action.agent}` : "Sin agente",
+    action.dueLabel
+      ? `${action.overdue ? "Vencida el" : "Fecha límite:"} ${action.dueLabel}`
+      : "Sin fecha",
+  ].join(" · ");
+  const closing = seoAuditCloseForm === action.id;
+  const buttons =
+    !action.open || locked || closing
+      ? ""
+      : `<div class="v-flex">${action.status === "pendiente" ? `<button data-seo-action-status="${safe(action.id)}" data-status="en_curso">Empezar</button>` : ""}<button class="v-primary" data-seo-action-close="${safe(action.id)}">Cerrar…</button><button data-seo-action-status="${safe(action.id)}" data-status="cancelada">Cancelar tarea</button></div>`;
+  const closed = action.open
+    ? ""
+    : `<p class="v-small"><b>${action.status === "hecha" ? "Conclusión" : "Cancelada"}:</b> ${safe(action.conclusion || "Sin comentario")}${action.outcome ? ` → hallazgo marcado como <b>${safe(SEO_FINDING_DECISIONS[action.outcome])}</b>` : ""}</p><p class="v-small v-muted">Cerrada por ${safe(action.closedBy || "—")} · ${safe(action.closedAt || "")}</p>`;
+  return `<div class="v-action-row" id="tarea-${safe(action.id)}">
+    <div class="v-flex">${tag(action.kindLabel)}${tag(action.overdue ? "Vencida" : action.statusLabel, action.overdue ? "bad" : SEO_ACTION_STATUS_TONE[action.status])}</div>
+    <strong>${safe(action.title)}</strong>
+    <p class="v-small">${safe(action.detail)}</p>
+    ${action.doneCriteria ? `<p class="v-small v-muted"><b>Hecho cuando:</b> ${safe(action.doneCriteria)}</p>` : ""}
+    <p class="v-small v-muted">${safe(meta)}</p>
+    ${closed}${closing ? seoAuditCloseFormHtml(action) : buttons}
+  </div>`;
+}
+
+function seoAuditActionFormHtml(f, kind) {
+  const team = seoAuditRepository.team ? seoAuditRepository.team() : { pms: [], agents: [] };
+  const investigation = kind === "investigacion";
+  if (!team.pms.length) {
+    return '<div class="v-notice"><strong>No hay Project Managers disponibles.</strong><p>El responsable de una tarea debe ser un PM o super admin activo.</p><button type="button" data-seo-action-form-cancel>Cerrar</button></div>';
+  }
+  return `<form class="v-action-form" data-seo-action-form="${safe(f.dbId)}" data-kind="${kind}">
+    <strong class="v-wide">${investigation ? "Nueva tarea de investigación" : "Nueva acción del plan"}</strong>
+    <label class="v-wide">Título<input name="title" required maxlength="200" value="${safe(investigation ? `Investigar: ${f.title}` : f.title)}"></label>
+    <label class="v-wide">${investigation ? "Pregunta que hay que responder" : "Entregable"}<textarea name="detail" required maxlength="2000" rows="2" placeholder="${investigation ? "¿Qué hay que averiguar para decidir? Por ejemplo: ¿se busca «departamento de marketing externo»?" : "Qué se va a entregar"}">${investigation ? "" : safe(f.recommendation || "")}</textarea></label>
+    ${investigation ? "" : '<label class="v-wide">Hecho cuando<input name="doneCriteria" maxlength="1000" placeholder="Criterio verificable para dar la acción por terminada"></label>'}
+    <label>PM responsable<select name="ownerUserId" required>${team.pms.map((pm) => `<option value="${safe(pm.id)}">${safe(pm.name)}</option>`).join("")}</select></label>
+    <label>Agente<select name="agentId"><option value="">Sin agente</option>${team.agents.map((agent) => `<option value="${safe(agent.id)}">${safe(agent.name)} · ${safe(agent.specialty)}${agent.availability === "saturado" ? " (saturado)" : ""}</option>`).join("")}</select></label>
+    <label>Fecha límite<input type="date" name="dueDate"></label>
+    <div class="v-flex v-wide"><button class="v-primary" type="submit">Crear tarea</button><button type="button" data-seo-action-form-cancel>Cancelar</button></div>
+  </form>`;
+}
+
+function seoAuditCloseFormHtml(action) {
+  const investigation = action.kind === "investigacion";
+  return `<form class="v-action-form" data-seo-action-close-form="${safe(action.id)}" data-kind="${action.kind}">
+    <label class="v-wide">${investigation ? "Conclusión de la investigación" : "Resultado (opcional)"}<textarea name="conclusion" ${investigation ? "required" : ""} maxlength="3000" rows="3" placeholder="${investigation ? "Qué has averiguado y con qué fuente" : "Qué se ha entregado"}"></textarea></label>
+    ${investigation ? '<label class="v-wide">Decisión sobre el hallazgo<select name="outcome"><option value="">Mantener la decisión actual</option><option value="priorizar">Priorizar</option><option value="descartar">Descartar</option></select></label>' : ""}
+    <div class="v-flex v-wide"><button class="v-primary" type="submit">Cerrar tarea</button><button type="button" data-seo-action-close-cancel>Volver</button></div>
+  </form>`;
+}
+
 function seoAuditFindings(a) {
   const rows = a.findings
     .map(
@@ -533,6 +624,7 @@ function seoAuditFindings(a) {
       ${Array.isArray(f.evidenceIds) && f.evidenceIds.length ? `<p class="v-small v-mono v-muted">Evidencia: ${safe(f.evidenceIds.join(", "))}</p>` : '<p class="v-small v-muted">Evidencia incompleta</p>'}
       ${Array.isArray(f.limitations) && f.limitations.length ? `<p class="v-small v-muted"><b>Límites:</b> ${safe(f.limitations.join(" "))}</p>` : ""}
       ${seoAuditFindingReview(a, f)}
+      ${seoAuditActionsBlock(a, f)}
       </div><span class="v-mono">${safe(f.id)}</span></div>`,
     )
     .join("");
@@ -777,12 +869,16 @@ root.addEventListener("click", async (event) => {
     seoAuditCurrent = null;
     seoAuditRender("Nuevo borrador de auditoría.");
   } else if (data.seoBack !== undefined) {
+    seoAuditActionForm = null;
+    seoAuditCloseForm = null;
     seoAuditCreating = false;
     seoAuditPresetProject = null;
     seoAuditCurrent = null;
     seoAuditTab = "Resumen";
     seoAuditRender("Vista de auditorías.");
   } else if (data.seoOpen) {
+    seoAuditActionForm = null;
+    seoAuditCloseForm = null;
     seoAuditCurrent = data.seoOpen;
     seoAuditTab = "Resumen";
     seoAuditRender("Expediente abierto.");
@@ -880,21 +976,121 @@ async function seoAuditImportPilot(audit) {
   }
 }
 
+root.addEventListener("click", async (event) => {
+  const button = event.target.closest("button");
+  if (!button) return;
+  const data = button.dataset;
+  if (data.seoActionNew) {
+    seoAuditActionForm = { findingId: data.seoActionNew, kind: data.kind };
+    seoAuditCloseForm = null;
+    seoAuditRender("Nueva tarea.");
+  } else if (data.seoActionFormCancel !== undefined) {
+    seoAuditActionForm = null;
+    seoAuditRender();
+  } else if (data.seoActionClose) {
+    seoAuditCloseForm = data.seoActionClose;
+    seoAuditActionForm = null;
+    seoAuditRender("Cierre de tarea.");
+  } else if (data.seoActionCloseCancel !== undefined) {
+    seoAuditCloseForm = null;
+    seoAuditRender();
+  } else if (data.seoActionStatus) {
+    if (
+      data.status === "cancelada" &&
+      !window.confirm(
+        "¿Cancelar esta tarea? Quedará cerrada en el historial y no se podrá reabrir.",
+      )
+    )
+      return;
+    try {
+      await seoAuditRepository.updateAction({
+        actionId: data.seoActionStatus,
+        status: data.status,
+      });
+      await seoAuditLoadRepository(
+        data.status === "en_curso" ? "Tarea en curso." : "Tarea cancelada.",
+      );
+    } catch (error) {
+      announce(`No se pudo actualizar la tarea: ${error.message}`);
+    }
+  } else if (data.seoGotoFinding !== undefined) {
+    seoAuditTab = "Hallazgos";
+    seoAuditRender("Hallazgos.");
+  }
+});
+
 root.addEventListener("submit", async (event) => {
-  const form = event.target.closest("form[data-seo-review]");
+  const form = event.target.closest("form[data-seo-action-form], form[data-seo-action-close-form]");
   if (!form) return;
   event.preventDefault();
   const data = new FormData(form);
   const button = form.querySelector('button[type="submit"]');
   if (button) button.disabled = true;
+  const text = (name) => String(data.get(name) || "").trim();
+  try {
+    if (form.dataset.seoActionForm) {
+      await seoAuditRepository.createAction({
+        findingId: form.dataset.seoActionForm,
+        kind: form.dataset.kind,
+        title: text("title"),
+        detail: text("detail"),
+        ownerUserId: text("ownerUserId"),
+        ...(text("doneCriteria") ? { doneCriteria: text("doneCriteria") } : {}),
+        ...(text("agentId") ? { agentId: text("agentId") } : {}),
+        ...(text("dueDate") ? { dueDate: text("dueDate") } : {}),
+      });
+      seoAuditActionForm = null;
+      await seoAuditLoadRepository("Tarea creada.");
+    } else {
+      await seoAuditRepository.updateAction({
+        actionId: form.dataset.seoActionCloseForm,
+        status: "hecha",
+        ...(text("conclusion") ? { conclusion: text("conclusion") } : {}),
+        ...(text("outcome") ? { outcome: text("outcome") } : {}),
+      });
+      seoAuditCloseForm = null;
+      await seoAuditLoadRepository(
+        text("outcome") ? "Tarea cerrada y hallazgo actualizado." : "Tarea cerrada.",
+      );
+    }
+  } catch (error) {
+    if (button) button.disabled = false;
+    announce(`No se pudo guardar la tarea: ${error.message}`);
+  }
+});
+
+root.addEventListener("submit", async (event) => {
+  const form = event.target.closest("form[data-seo-review]");
+  if (!form) return;
+  event.preventDefault();
+  const data = new FormData(form);
+  const decision = String(data.get("decision"));
+  const note = String(data.get("note") || "").trim();
+  if (decision === "descartar" && !note) {
+    announce("Para descartar un hallazgo escribe el motivo en la nota.");
+    form.querySelector("textarea")?.focus();
+    return;
+  }
+  const button = form.querySelector('button[type="submit"]');
+  if (button) button.disabled = true;
   try {
     await seoAuditRepository.reviewFinding({
       findingId: form.dataset.seoReview,
-      decision: String(data.get("decision")),
-      note: String(data.get("note") || ""),
+      decision,
+      note,
     });
     seoAuditTab = "Hallazgos";
-    await seoAuditLoadRepository("Decisión guardada.");
+    const kind = { investigar: "investigacion", priorizar: "accion" }[decision];
+    const audit = seoAudits.find((item) => item.id === seoAuditCurrent);
+    const finding = audit?.findings.find((item) => item.dbId === form.dataset.seoReview);
+    const hasOpen = finding?.actions?.some((action) => action.open && action.kind === kind);
+    seoAuditActionForm = kind && !hasOpen ? { findingId: form.dataset.seoReview, kind } : null;
+    seoAuditCloseForm = null;
+    await seoAuditLoadRepository(
+      seoAuditActionForm
+        ? `Decisión guardada. Crea ahora la ${kind === "investigacion" ? "tarea de investigación" : "acción del plan"}.`
+        : "Decisión guardada.",
+    );
   } catch (error) {
     if (button) button.disabled = false;
     announce(`No se pudo guardar la decisión: ${error.message}`);

@@ -133,6 +133,15 @@
             .join("") ||
           '<div class="v-audit-empty"><strong>Sin auditorías.</strong><p>Crea la primera desde uno de sus proyectos.</p></div>'
         }</div></section>
+      ${seoAuditNextActions(
+        audits.filter((audit) => !audit.archivedAt).flatMap((audit) => audit.actions || []),
+        {
+          showEmpty: true,
+          prefix: (action) => audits.find((audit) => audit.id === action.auditId)?.displayId || "",
+          openButton: (action) =>
+            `<button data-rc-open-audit="${safe(action.auditId)}" data-rc-tab="Hallazgos">Ver hallazgo →</button>`,
+        },
+      )}
       ${
         archived
           ? ""
@@ -223,7 +232,7 @@
     } else if (data.rcOpenAudit) {
       seoAuditCreating = false;
       seoAuditCurrent = data.rcOpenAudit;
-      seoAuditTab = "Resumen";
+      seoAuditTab = data.rcTab || "Resumen";
       render("Auditorías");
       announce("Expediente abierto.");
     } else if (data.rcNewAudit) {

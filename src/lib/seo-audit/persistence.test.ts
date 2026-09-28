@@ -232,7 +232,7 @@ describe("SEO audit persistence migration", () => {
     );
     assert.match(script, /^BEGIN;$/m);
     assert.match(script.trimEnd(), /ROLLBACK;$/);
-    for (let n = 1; n <= 14; n++) assert.match(script, new RegExp(`OK ${n}:`));
+    for (let n = 1; n <= 15; n++) assert.match(script, new RegExp(`OK ${n}:`));
     assert.match(script, /\\echo VERIFICACION COMPLETA/);
   });
 
@@ -244,7 +244,8 @@ describe("SEO audit persistence migration", () => {
     };
     assert.equal(journal.entries[6]?.["idx"], 6);
     assert.equal(journal.entries[6]?.["tag"], "0006_archive_clients_audits");
-    assert.equal(journal.entries.at(-1)?.["tag"], "0007_finding_review");
+    assert.equal(journal.entries[7]?.["tag"], "0007_finding_review");
+    assert.equal(journal.entries.at(-1)?.["tag"], "0008_finding_actions");
     const snapshot0005 = JSON.parse(readFileSync(snapshotUrl, "utf8")) as { id: string };
     const snapshot0006 = JSON.parse(
       readFileSync(
@@ -261,6 +262,7 @@ describe("SEO audit persistence migration", () => {
         readFileSync(new URL(`../../../drizzle/migrations/meta/${name}`, import.meta.url), "utf8"),
       ) as { id: string; prevId: string };
     assert.equal(read("0007_snapshot.json").prevId, read("0006_snapshot.json").id);
+    assert.equal(read("0008_snapshot.json").prevId, read("0007_snapshot.json").id);
   });
 
   it("declares a verifier contract that requires an explicit SQLSTATE for every denial", () => {

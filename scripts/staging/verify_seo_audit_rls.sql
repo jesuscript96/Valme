@@ -1,5 +1,5 @@
 -- Verificacion reproducible de aislamiento y permisos de 0005_seo_audit_persistence.
--- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0007 aplicadas:
+-- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0008 aplicadas:
 --   psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f scripts/staging/verify_seo_audit_rls.sql
 -- Todo ocurre dentro de una transaccion que termina en ROLLBACK: no deja datos.
 -- Cada escenario imprime "OK n: ..."; cualquier comprobacion fallida aborta con "FALLO: ...".
@@ -835,6 +835,82 @@ DO $$ BEGIN
   PERFORM pg_temp.permitido($q$UPDATE public.seo_audit_findings SET review_decision = 'descartar'
     WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'decision tras restaurar');
   RAISE NOTICE 'OK 14: solo managers deciden sobre hallazgos, la firma la pone la base de datos, sin cambios combinados; los artefactos de una auditoria archivada quedan en solo lectura';
+END $$;
+
+-- ---------- 15. Seguimiento de hallazgos: tareas con PM y agente (0008) ----------
+-- Sobre d8/b8 del escenario 14. pm1 y pm2 son PM activos; pmd (55555) es equipo/member.
+RESET ROLE;
+DO $$ BEGIN
+  IF has_table_privilege('anon', 'public.seo_finding_actions', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER') THEN
+    RAISE EXCEPTION 'FALLO: anon tiene algun privilegio en seo_finding_actions'; END IF;
+  IF has_table_privilege('authenticated', 'public.seo_finding_actions', 'DELETE, TRUNCATE, REFERENCES, TRIGGER') THEN
+    RAISE EXCEPTION 'FALLO: authenticated tiene DELETE, TRUNCATE, REFERENCES o TRIGGER en seo_finding_actions'; END IF;
+END $$;
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.como('11111111-0000-0000-0000-000000000001');
+DO $$ BEGIN
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_finding_actions (tenant_id, audit_id, finding_id, kind, title, detail,
+    owner_user_id, created_by) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8',
+    'aaaaaaaa-0000-0000-0000-0000000000b8', 'investigacion', 'Validar demanda', 'Hay busquedas?',
+    '55555555-0000-0000-0000-000000000005', auth.uid())$q$, 'responsable que no es PM', '23514');
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_finding_actions (tenant_id, audit_id, finding_id, kind, title, detail,
+    owner_user_id, created_by, status, conclusion) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8',
+    'aaaaaaaa-0000-0000-0000-0000000000b8', 'investigacion', 'Validar demanda', 'Hay busquedas?',
+    auth.uid(), auth.uid(), 'hecha', 'x')$q$, 'tarea que nace cerrada', '23514');
+  PERFORM pg_temp.permitido($q$INSERT INTO public.seo_finding_actions (id, tenant_id, audit_id, finding_id, kind, title, detail,
+    owner_user_id, agent_id, due_date, created_by) VALUES ('aaaaaaaa-0000-0000-0000-000000000a01', 'aaaaaaaa-0000-0000-0000-00000000000a',
+    'aaaaaaaa-0000-0000-0000-0000000000d8', 'aaaaaaaa-0000-0000-0000-0000000000b8', 'investigacion', 'Validar demanda',
+    'Hay busquedas?', auth.uid(), (SELECT id FROM public.agents ORDER BY nombre LIMIT 1), current_date + 7, auth.uid())$q$,
+    'PM crea tarea de investigacion con agente');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_finding_actions SET kind = 'accion'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'$q$, 'cambiar el tipo de una tarea', '23514');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_finding_actions SET status = 'hecha'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'$q$, 'cerrar sin conclusion', '23514');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_finding_actions SET status = 'hecha', conclusion = 'Hay demanda suficiente',
+    outcome = 'priorizar', completed_by = '22222222-0000-0000-0000-000000000002'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'$q$, 'PM cierra con conclusion (intentando firmar por otro)');
+  PERFORM pg_temp.ve($q$SELECT 1 FROM public.seo_finding_actions WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'
+    AND completed_by = '11111111-0000-0000-0000-000000000001' AND completed_at IS NOT NULL$q$, 'cierre firmado por quien cierra');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_finding_actions SET title = 'x'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'$q$, 'modificar una tarea cerrada', '55000');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audit_findings SET review_decision = 'descartar', review_note = NULL
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'descartar sin motivo', '23514');
+  PERFORM pg_temp.rechazado($q$DELETE FROM public.seo_finding_actions WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a01'$q$,
+    'borrar una tarea', '42501', 'permission denied for table seo_finding_actions');
+END $$;
+SELECT pg_temp.como('55555555-0000-0000-0000-000000000005');
+DO $$ BEGIN
+  PERFORM pg_temp.permitido($q$INSERT INTO public.seo_finding_actions (id, tenant_id, audit_id, finding_id, kind, title, detail,
+    owner_user_id, created_by) VALUES ('aaaaaaaa-0000-0000-0000-000000000a02', 'aaaaaaaa-0000-0000-0000-00000000000a',
+    'aaaaaaaa-0000-0000-0000-0000000000d8', 'aaaaaaaa-0000-0000-0000-0000000000b8', 'accion', 'Crear pagina de oferta',
+    'Pagina B2B enlazada desde portada', '11111111-0000-0000-0000-000000000001', auth.uid())$q$, 'member crea accion con PM responsable');
+END $$;
+SELECT pg_temp.como('22222222-0000-0000-0000-000000000002');
+DO $$ BEGIN
+  PERFORM pg_temp.no_ve($q$SELECT 1 FROM public.seo_finding_actions WHERE tenant_id = 'aaaaaaaa-0000-0000-0000-00000000000a'$q$,
+    'tareas del tenant A (PM B)');
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_finding_actions (tenant_id, audit_id, finding_id, kind, title, detail,
+    owner_user_id, created_by) VALUES ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8',
+    'aaaaaaaa-0000-0000-0000-0000000000b8', 'accion', 'x', 'x', auth.uid(), auth.uid())$q$,
+    'PM B crea tarea en el tenant A', '42501', 'new row violates row-level security policy%');
+  PERFORM pg_temp.sin_efecto($q$UPDATE public.seo_finding_actions SET title = 'x'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a02'$q$, 'PM B modifica tarea del tenant A');
+END $$;
+SELECT pg_temp.como('33333333-0000-0000-0000-000000000003');
+DO $$ BEGIN
+  PERFORM pg_temp.no_ve($q$SELECT 1 FROM public.seo_finding_actions$q$, 'tareas internas (cliente reviewer)');
+END $$;
+SELECT pg_temp.como('11111111-0000-0000-0000-000000000001');
+DO $$ BEGIN
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d8'$q$, 'PM archiva d8 otra vez');
+  PERFORM pg_temp.sin_efecto($q$UPDATE public.seo_finding_actions SET status = 'en_curso'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a02'$q$, 'avanzar tarea de auditoria archivada');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = NULL, archived_by = NULL
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d8'$q$, 'PM restaura d8 otra vez');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_finding_actions SET status = 'en_curso'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-000000000a02'$q$, 'avanzar tarea tras restaurar');
+  RAISE NOTICE 'OK 15: tareas de hallazgos con PM activo responsable, nacen pendientes, cierre firmado por la base de datos, cerradas inmutables, sin DELETE ni acceso anon, aisladas por tenant, internas y en solo lectura si la auditoria se archiva; descartar exige motivo';
 END $$;
 
 RESET ROLE;

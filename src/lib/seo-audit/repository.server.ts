@@ -70,7 +70,17 @@ export type FindingEvidenceLink = Pick<
   Tables["seo_finding_evidence"]["Row"],
   "audit_id" | "finding_id" | "evidence_id"
 >;
-export type PersonSummary = Pick<Tables["user_access"]["Row"], "user_id" | "email" | "full_name">;
+export type PersonSummary = Pick<
+  Tables["user_access"]["Row"],
+  "user_id" | "email" | "full_name" | "role" | "status"
+>;
+export type AgentSummary = Pick<
+  Tables["agents"]["Row"],
+  "id" | "nombre" | "especialidad" | "disponibilidad"
+>;
+export type ActionSummary = Tables["seo_finding_actions"]["Row"];
+type ActionInsert = Tables["seo_finding_actions"]["Insert"];
+type ActionUpdate = Tables["seo_finding_actions"]["Update"];
 type ReviewPatch = { review_decision: ReviewDecision; review_note: string | null };
 
 export const FINDING_REVIEW_DECISIONS = [
@@ -194,6 +204,34 @@ export const reviewSeoFindingInputSchema = z
 
 export type ImportSeoAuditReviewInput = z.infer<typeof importSeoAuditReviewInputSchema>;
 export type ReviewSeoFindingInput = z.infer<typeof reviewSeoFindingInputSchema>;
+
+export const FINDING_ACTION_KINDS = ["investigacion", "accion"] as const;
+export const FINDING_ACTION_STATUSES = ["pendiente", "en_curso", "hecha", "cancelada"] as const;
+
+export const createFindingActionInputSchema = z
+  .object({
+    findingId: z.uuid(),
+    kind: z.enum(FINDING_ACTION_KINDS),
+    title: nonEmptyString.max(200),
+    detail: nonEmptyString.max(2000),
+    doneCriteria: nonEmptyString.max(1000).optional(),
+    ownerUserId: z.uuid(),
+    agentId: z.uuid().optional(),
+    dueDate: z.iso.date().optional(),
+  })
+  .strict();
+
+export const updateFindingActionInputSchema = z
+  .object({
+    actionId: z.uuid(),
+    status: z.enum(FINDING_ACTION_STATUSES),
+    conclusion: nonEmptyString.max(3000).optional(),
+    outcome: z.enum(["priorizar", "descartar"]).optional(),
+  })
+  .strict();
+
+export type CreateFindingActionInput = z.infer<typeof createFindingActionInputSchema>;
+export type UpdateFindingActionInput = z.infer<typeof updateFindingActionInputSchema>;
 export type CreateSeoAuditDraftInput = z.infer<typeof createSeoAuditDraftInputSchema>;
 export type TransitionSeoAuditInput = z.infer<typeof transitionSeoAuditInputSchema>;
 export type CreateSeoClientInput = z.infer<typeof createSeoClientInputSchema>;
@@ -228,6 +266,11 @@ export interface SeoAuditStore {
   insertFindings(rows: FindingInsert[]): Promise<Array<{ id: string; title: string }>>;
   linkFindingEvidence(rows: Tables["seo_finding_evidence"]["Insert"][]): Promise<void>;
   updateFindingReview(findingId: string, patch: ReviewPatch): Promise<FindingSummary | null>;
+  listActions(): Promise<ActionSummary[]>;
+  listAgents(): Promise<AgentSummary[]>;
+  findAction(actionId: string): Promise<ActionSummary | null>;
+  insertAction(action: ActionInsert): Promise<ActionSummary>;
+  updateAction(actionId: string, patch: ActionUpdate): Promise<ActionSummary | null>;
 }
 
 export class SeoAuditRemoteDisabledError extends Error {
@@ -250,7 +293,8 @@ export class SeoAuditRepositoryError extends Error {
       | "not-allowed"
       | "invalid-input"
       | "finding-not-visible"
-      | "locked",
+      | "locked"
+      | "action-not-visible",
     message: string,
   ) {
     super(message);
@@ -338,6 +382,18 @@ function throwArtifactError(
   throwStoreError(operation, error);
 }
 
+// Tareas: 23514 del trigger (responsable no PM), 55000 (cerrada), 42501 por RLS (auditoría
+// cerrada, archivada o sin permiso de escritura).
+function throwActionError(operation: string, error: { message: string; code?: string }): never {
+  if (error.code === "55000") {
+    throw new SeoAuditRepositoryError("locked", SEO_AUDIT_PUBLIC_ERRORS.actionClosed);
+  }
+  if (error.code === "23514" && /Project Manager/i.test(error.message)) {
+    throw new SeoAuditRepositoryError("invalid-input", SEO_AUDIT_PUBLIC_ERRORS.ownerMustBePm);
+  }
+  throwArtifactError(operation, error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+}
+
 const findingColumns =
   "id, audit_id, category, related_service_id, title, description, priority, impact, recommendation, state, confidence, sources, observed_at, responsible_name, limitations, review_decision, review_note, reviewed_by, reviewed_at, created_at";
 
@@ -377,7 +433,7 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
       // RLS: cada usuario ve su propio acceso; un super admin ve todos.
       const { data, error } = await supabase
         .from("user_access")
-        .select("user_id, email, full_name");
+        .select("user_id, email, full_name, role, status");
       if (error) throwStoreError("listar personas", error);
       return data;
     },
@@ -418,6 +474,55 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
       const { error } = await supabase.from("seo_finding_evidence").insert(rows);
       if (error)
         throwArtifactError("enlazar evidencias", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+    },
+
+    async listActions() {
+      const { data, error } = await supabase
+        .from("seo_finding_actions")
+        .select("*")
+        .order("created_at");
+      if (error) throwStoreError("listar tareas", error);
+      return data;
+    },
+
+    async listAgents() {
+      const { data, error } = await supabase
+        .from("agents")
+        .select("id, nombre, especialidad, disponibilidad")
+        .order("nombre");
+      if (error) throwStoreError("listar agentes", error);
+      return data;
+    },
+
+    async findAction(actionId) {
+      const { data, error } = await supabase
+        .from("seo_finding_actions")
+        .select("*")
+        .eq("id", actionId)
+        .maybeSingle();
+      if (error) throwStoreError("leer la tarea", error);
+      return data;
+    },
+
+    async insertAction(action) {
+      const { data, error } = await supabase
+        .from("seo_finding_actions")
+        .insert(action)
+        .select("*")
+        .single();
+      if (error) throwActionError("crear la tarea", error);
+      return data;
+    },
+
+    async updateAction(actionId, patch) {
+      const { data, error } = await supabase
+        .from("seo_finding_actions")
+        .update(patch)
+        .eq("id", actionId)
+        .select("*")
+        .maybeSingle();
+      if (error) throwActionError("actualizar la tarea", error);
+      return data;
     },
 
     async updateFindingReview(findingId, patch) {
@@ -585,18 +690,41 @@ export function createSeoAuditServerRepository(store: SeoAuditStore, userId: str
     list: () => store.listAudits(),
 
     async workspace() {
-      const [audits, clients, projects, tenants, findings, evidence, links, people] =
-        await Promise.all([
-          store.listAudits(),
-          store.listClients(),
-          store.listProjects(),
-          store.listTenants(),
-          store.listFindings(),
-          store.listEvidence(),
-          store.listFindingEvidence(),
-          store.listPeople(),
-        ]);
-      return { audits, clients, projects, tenants, findings, evidence, links, people };
+      const [
+        audits,
+        clients,
+        projects,
+        tenants,
+        findings,
+        evidence,
+        links,
+        people,
+        actions,
+        agents,
+      ] = await Promise.all([
+        store.listAudits(),
+        store.listClients(),
+        store.listProjects(),
+        store.listTenants(),
+        store.listFindings(),
+        store.listEvidence(),
+        store.listFindingEvidence(),
+        store.listPeople(),
+        store.listActions(),
+        store.listAgents(),
+      ]);
+      return {
+        audits,
+        clients,
+        projects,
+        tenants,
+        findings,
+        evidence,
+        links,
+        people,
+        actions,
+        agents,
+      };
     },
 
     // Carga una revisión externa: evidencias, hallazgos y sus enlaces. Idempotente por título
@@ -722,6 +850,76 @@ export function createSeoAuditServerRepository(store: SeoAuditStore, userId: str
       };
     },
 
+    async createAction(input: CreateFindingActionInput) {
+      const finding = await store.findFinding(input.findingId);
+      if (!finding) {
+        throw new SeoAuditRepositoryError(
+          "finding-not-visible",
+          SEO_AUDIT_PUBLIC_ERRORS.findingNotVisible,
+        );
+      }
+      const audit = await store.findAudit(finding.audit_id);
+      if (!audit) {
+        throw new SeoAuditRepositoryError(
+          "audit-not-visible",
+          SEO_AUDIT_PUBLIC_ERRORS.auditNotVisible,
+        );
+      }
+      return store.insertAction({
+        tenant_id: audit.tenant_id,
+        audit_id: audit.id,
+        finding_id: finding.id,
+        kind: input.kind,
+        title: input.title,
+        detail: input.detail,
+        done_criteria: input.doneCriteria ?? null,
+        owner_user_id: input.ownerUserId,
+        agent_id: input.agentId ?? null,
+        due_date: input.dueDate ?? null,
+        created_by: userId,
+      });
+    },
+
+    // Cerrar una investigación con resultado decide también sobre el hallazgo; la decisión va
+    // primero para que un colaborador sin rol de manager no deje la tarea cerrada a medias.
+    async updateAction(input: UpdateFindingActionInput) {
+      const action = await store.findAction(input.actionId);
+      if (!action) {
+        throw new SeoAuditRepositoryError(
+          "action-not-visible",
+          SEO_AUDIT_PUBLIC_ERRORS.actionNotVisible,
+        );
+      }
+      if (action.status === "hecha" || action.status === "cancelada") {
+        throw new SeoAuditRepositoryError("locked", SEO_AUDIT_PUBLIC_ERRORS.actionClosed);
+      }
+      const closing = input.status === "hecha";
+      if (closing && action.kind === "investigacion" && !input.conclusion) {
+        throw new SeoAuditRepositoryError(
+          "invalid-input",
+          SEO_AUDIT_PUBLIC_ERRORS.conclusionRequired,
+        );
+      }
+      const outcome = closing && action.kind === "investigacion" ? (input.outcome ?? null) : null;
+      if (outcome) {
+        await this.reviewFinding({
+          findingId: action.finding_id,
+          decision: outcome,
+          note: input.conclusion,
+        });
+      }
+      const conclusion = closing ? (input.conclusion ?? "Hecho.") : (input.conclusion ?? null);
+      const updated = await store.updateAction(input.actionId, {
+        status: input.status,
+        conclusion,
+        outcome,
+      });
+      if (!updated) {
+        throw new SeoAuditRepositoryError("locked", SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+      }
+      return updated;
+    },
+
     async reviewFinding(input: ReviewSeoFindingInput) {
       const finding = await store.findFinding(input.findingId);
       if (!finding) {
@@ -731,6 +929,12 @@ export function createSeoAuditServerRepository(store: SeoAuditStore, userId: str
         );
       }
       const note = input.note?.trim() || null;
+      if (input.decision === "descartar" && !note) {
+        throw new SeoAuditRepositoryError(
+          "invalid-input",
+          SEO_AUDIT_PUBLIC_ERRORS.discardNeedsReason,
+        );
+      }
       const updated = await store.updateFindingReview(input.findingId, {
         review_decision: input.decision,
         review_note: note,

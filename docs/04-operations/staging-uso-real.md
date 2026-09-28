@@ -10,11 +10,11 @@ demostración. Para trabajar contra staging se arranca la aplicación en local.
 
 ## Preparación (una sola vez)
 
-1. **Migraciones en staging.** Aplica `0005`, `0006` y `0007` y verifica los 14 escenarios de
+1. **Migraciones en staging.** Aplica `0005` a `0008` y verifica los 15 escenarios de
    seguridad con el runner (ver [seo-audit-staging.md](seo-audit-staging.md)):
    `npm run staging:seo-audit:all` con `STAGING_DB_URL`, `STAGING_SUPABASE_PROJECT_REF` y
    `STAGING_APPLY_CONFIRM=apply-0005-to-<ref>`. Es idempotente: si `0005` ya existe,
-   reconcilia privilegios y aplica `0006`. Sobre un proyecto de staging recién creado y
+   reconcilia privilegios y aplica `0006`, `0007` y `0008`. Sobre un proyecto de staging recién creado y
    completamente vacío aplica antes la Fase 1 (`0000`-`0004`); si la Fase 1 está a medias,
    se detiene sin tocar nada.
 2. **Tu cuenta en staging.** En el panel de Supabase del proyecto de staging:
@@ -48,7 +48,19 @@ Abre `http://localhost:4180/panel`, inicia sesión con tu cuenta de staging y ve
   hallazgos todavía, aparece «Cargar revisión externa». Registra los 5 hallazgos y las 8
   páginas revisadas como revisión de Codex (no como ejecución automática).
 - **Decisión del PM** en cada hallazgo (pendiente, priorizar, investigar, descartar) con
-  nota. Solo managers; la firma y la fecha las pone la base de datos.
+  nota. Solo managers; la firma y la fecha las pone la base de datos. Descartar exige
+  escribir el motivo.
+- **Seguimiento** de cada hallazgo:
+  - Al guardar «Investigar» se abre una **tarea de investigación**: pregunta que hay que
+    responder, PM responsable (Project Manager o super admin activo), agente opcional y
+    fecha límite.
+  - Al guardar «Priorizar» se abre una **acción del plan**, con el criterio de «hecho».
+  - Cada tarea pasa por Pendiente → En curso → Hecha (o Cancelada). Una tarea cerrada ya
+    no se edita.
+  - Cerrar una investigación exige su conclusión y permite decidir el hallazgo en el mismo
+    paso (priorizar o descartar).
+  - Las tareas abiertas aparecen en **Próximas acciones**, en el resumen de la auditoría
+    y en la ficha del cliente, con las vencidas marcadas.
 - **Archivar** (cliente o auditoría): lo retira del trabajo diario y lo deja en solo
   lectura. No borra nada y se deshace con «Restaurar». Solo managers del cliente.
 
@@ -62,5 +74,5 @@ cambios de contenido y se descartan con `git checkout -- <archivo>`.
 
 - Solo super admin o Project Manager con cartera completa pueden dar de alta clientes,
   para que quien crea un cliente pueda verlo después.
-- Producción no se toca: `0005` y `0006` se aplicarán en Lovable Cloud en un despliegue
+- Producción no se toca: `0005` a `0008` se aplicarán en Lovable Cloud en un despliegue
   controlado antes del lanzamiento.

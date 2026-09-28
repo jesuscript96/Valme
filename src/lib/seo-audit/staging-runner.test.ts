@@ -154,7 +154,7 @@ describe("SEO audit staging runner", () => {
     assert.doesNotMatch(prepared, /^\s*\\/m);
     assert.match(prepared, /RAISE NOTICE 'VERIFICACION COMPLETA'/);
     assert.match(prepared, /ROLLBACK;/);
-    for (let scenario = 1; scenario <= 14; scenario += 1) {
+    for (let scenario = 1; scenario <= 15; scenario += 1) {
       assert.match(prepared, new RegExp(`OK ${scenario}:`));
     }
   });

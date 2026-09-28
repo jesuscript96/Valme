@@ -679,6 +679,72 @@ export type Database = {
           },
         ];
       };
+      seo_finding_actions: {
+        Row: {
+          agent_id: string | null;
+          audit_id: string;
+          completed_at: string | null;
+          completed_by: string | null;
+          conclusion: string | null;
+          created_at: string;
+          created_by: string;
+          detail: string;
+          done_criteria: string | null;
+          due_date: string | null;
+          finding_id: string;
+          id: string;
+          kind: string;
+          outcome: string | null;
+          owner_user_id: string;
+          status: string;
+          tenant_id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          agent_id?: string | null;
+          audit_id: string;
+          completed_at?: string | null;
+          completed_by?: string | null;
+          conclusion?: string | null;
+          created_at?: string;
+          created_by: string;
+          detail: string;
+          done_criteria?: string | null;
+          due_date?: string | null;
+          finding_id: string;
+          id?: string;
+          kind: string;
+          outcome?: string | null;
+          owner_user_id: string;
+          status?: string;
+          tenant_id: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          agent_id?: string | null;
+          audit_id?: string;
+          completed_at?: string | null;
+          completed_by?: string | null;
+          conclusion?: string | null;
+          created_at?: string;
+          created_by?: string;
+          detail?: string;
+          done_criteria?: string | null;
+          due_date?: string | null;
+          finding_id?: string;
+          id?: string;
+          kind?: string;
+          outcome?: string | null;
+          owner_user_id?: string;
+          status?: string;
+          tenant_id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       seo_finding_evidence: {
         Row: {
           audit_id: string;

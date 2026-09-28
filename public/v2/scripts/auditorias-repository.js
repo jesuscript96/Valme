@@ -149,6 +149,8 @@
       evidence: [],
       links: [],
       people: [],
+      actions: [],
+      agents: [],
     };
     let lastError = null;
 
@@ -177,6 +179,72 @@
       if (!userId) return null;
       const person = context.people.find((item) => item.user_id === userId);
       return person ? person.full_name || person.email : "Otro miembro del equipo";
+    }
+
+    const ACTION_LABELS = {
+      kind: { investigacion: "Investigación", accion: "Acción del plan" },
+      status: {
+        pendiente: "Pendiente",
+        en_curso: "En curso",
+        hecha: "Hecha",
+        cancelada: "Cancelada",
+      },
+    };
+
+    function formatDay(value) {
+      if (!value) return null;
+      const date = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+    }
+
+    function mapAction(item, findingRef, findingTitle) {
+      const agent = context.agents.find((candidate) => candidate.id === item.agent_id);
+      const open = item.status === "pendiente" || item.status === "en_curso";
+      const today = new Date().toISOString().slice(0, 10);
+      return {
+        id: item.id,
+        auditId: item.audit_id,
+        findingId: item.finding_id,
+        findingRef,
+        findingTitle,
+        kind: item.kind,
+        kindLabel: ACTION_LABELS.kind[item.kind] || item.kind,
+        title: item.title,
+        detail: item.detail,
+        doneCriteria: item.done_criteria || "",
+        owner: personName(item.owner_user_id) || "PM asignado",
+        agent: agent ? agent.nombre : null,
+        dueDate: item.due_date || null,
+        dueLabel: formatDay(item.due_date),
+        overdue: Boolean(open && item.due_date && item.due_date < today),
+        status: item.status,
+        statusLabel: ACTION_LABELS.status[item.status] || item.status,
+        open,
+        conclusion: item.conclusion || "",
+        outcome: item.outcome || null,
+        closedBy: personName(item.completed_by),
+        closedAt: item.completed_at ? formatDate(item.completed_at) : null,
+      };
+    }
+
+    // Responsables posibles: PM o super admin activos visibles para la sesión.
+    function team() {
+      return {
+        pms: context.people
+          .filter(
+            (person) =>
+              person.status === "activo" &&
+              (person.role === "project_manager" || person.role === "super_admin"),
+          )
+          .map((person) => ({ id: person.user_id, name: person.full_name || person.email })),
+        agents: context.agents.map((agent) => ({
+          id: agent.id,
+          name: agent.nombre,
+          specialty: agent.especialidad,
+          availability: agent.disponibilidad,
+        })),
+      };
     }
 
     function auditArtifacts(auditId) {
@@ -214,6 +282,11 @@
             .filter((link) => link.finding_id === item.id)
             .map((link) => refByEvidence.get(link.evidence_id))
             .filter(Boolean),
+          actions: context.actions
+            .filter((action) => action.finding_id === item.id)
+            .map((action) =>
+              mapAction(action, `H-${String(index + 1).padStart(2, "0")}`, item.title),
+            ),
           review: {
             decision: item.review_decision || "pendiente",
             note: item.review_note || "",
@@ -221,7 +294,8 @@
             at: item.reviewed_at ? formatDate(item.reviewed_at) : null,
           },
         }));
-      return { evidence, findings };
+      const actions = findings.flatMap((finding) => finding.actions);
+      return { evidence, findings, actions };
     }
 
     function allProjects() {
@@ -293,6 +367,7 @@
         accesses: [],
         evidence: artifacts.evidence,
         findings: artifacts.findings,
+        actions: artifacts.actions,
         remote: true,
         coverage: row.service_ids.map((service) => ({
           service,
@@ -319,6 +394,8 @@
           evidence: workspace.evidence || [],
           links: workspace.links || [],
           people: workspace.people || [],
+          actions: workspace.actions || [],
+          agents: workspace.agents || [],
         };
         lastError = null;
         return workspace.audits.map(mapAudit);
@@ -368,6 +445,9 @@
       setAuditArchived: (input) => write("setAuditArchived", input),
       importReview: (input) => write("importReview", input),
       reviewFinding: (input) => write("reviewFinding", input),
+      createAction: (input) => write("createAction", input),
+      updateAction: (input) => write("updateAction", input),
+      team,
       projects: projectOptions,
       clients: clientList,
       tenants: tenantList,
