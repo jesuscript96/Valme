@@ -7,7 +7,9 @@ import { getV2Shell } from "@/lib/v2-shell.functions";
 import {
   createSeoAuditDraft,
   createSeoClient,
+  importSeoAuditReview,
   loadSeoAuditWorkspace,
+  reviewSeoFinding,
   setSeoAuditArchived,
   setSeoClientArchived,
   transitionSeoAudit,
@@ -22,6 +24,8 @@ const SEO_AUDIT_ACTIONS = [
   "addClient",
   "setClientArchived",
   "setAuditArchived",
+  "importReview",
+  "reviewFinding",
 ] as const;
 
 type SeoAuditBridgeRequest = {
@@ -70,6 +74,8 @@ function V2Frame() {
   const addClient = useServerFn(createSeoClient);
   const setClientArchived = useServerFn(setSeoClientArchived);
   const setAuditArchived = useServerFn(setSeoAuditArchived);
+  const importReview = useServerFn(importSeoAuditReview);
+  const reviewFinding = useServerFn(reviewSeoFinding);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const q = useQuery({
     queryKey: ["v2-shell"],
@@ -121,6 +127,12 @@ function V2Frame() {
         if (request.action === "setAuditArchived") {
           data = await setAuditArchived({ data: request.payload });
         }
+        if (request.action === "importReview") {
+          data = await importReview({ data: request.payload });
+        }
+        if (request.action === "reviewFinding") {
+          data = await reviewFinding({ data: request.payload });
+        }
         target.postMessage(
           { channel: SEO_AUDIT_CHANNEL, kind: "response", id: request.id, ok: true, data },
           window.location.origin,
@@ -141,7 +153,16 @@ function V2Frame() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [addClient, createDraft, loadWorkspace, setAuditArchived, setClientArchived, transition]);
+  }, [
+    addClient,
+    createDraft,
+    importReview,
+    loadWorkspace,
+    reviewFinding,
+    setAuditArchived,
+    setClientArchived,
+    transition,
+  ]);
 
   if (q.isError || (q.data && !q.data.allowed)) {
     return (

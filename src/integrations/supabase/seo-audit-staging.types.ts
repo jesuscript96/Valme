@@ -457,6 +457,10 @@ export type Database = {
           tenant_id: string;
           title: string;
           updated_at: string;
+          review_decision: string;
+          review_note: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
         };
         Insert: {
           audit_id: string;
@@ -483,6 +487,10 @@ export type Database = {
           tenant_id: string;
           title: string;
           updated_at?: string;
+          review_decision?: string;
+          review_note?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
         };
         Update: {
           audit_id?: string;
@@ -509,6 +517,10 @@ export type Database = {
           tenant_id?: string;
           title?: string;
           updated_at?: string;
+          review_decision?: string;
+          review_note?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
         };
         Relationships: [
           {

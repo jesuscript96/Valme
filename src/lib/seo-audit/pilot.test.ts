@@ -74,3 +74,36 @@ test("invalid reviews and oversized notes are rejected", () => {
   assert.equal(store.save("VALME-01", "priorizar", "x".repeat(3001)), false);
   assert.equal(Object.keys(store.snapshot()).length, 0);
 });
+
+test("the pilot import payload is accepted verbatim by the server contract", async () => {
+  const { importSeoAuditReviewInputSchema } = await import("./repository.server");
+  const evidenceJson = JSON.parse(
+    readFileSync(new URL("../../../public/v2/valme-pilot-evidence.json", import.meta.url), "utf8"),
+  ) as { pages: unknown[] };
+  const window = {} as {
+    ValmePilot: {
+      domain: string;
+      findingCount: number;
+      importPayload: (auditId: string, json: unknown) => unknown;
+    };
+  };
+  runInNewContext(code, { window, URL });
+  const auditId = "10000000-0000-4000-8000-000000000001";
+  // El objeto viene de otro contexto vm: normalizar antes de validar.
+  const payload = JSON.parse(
+    JSON.stringify(window.ValmePilot.importPayload(auditId, evidenceJson)),
+  );
+  const parsed = importSeoAuditReviewInputSchema.parse(payload);
+
+  assert.equal(window.ValmePilot.domain, "valmesolutions.com");
+  assert.equal(parsed.findings.length, window.ValmePilot.findingCount);
+  assert.equal(parsed.evidence.length, evidenceJson.pages.length);
+  assert.equal(parsed.reviewer.name, "Revisión externa (Codex)");
+  const keys = new Set(parsed.evidence.map((item) => item.key));
+  for (const finding of parsed.findings) {
+    assert.ok(finding.evidenceKeys.length > 0, `${finding.title} sin evidencia`);
+    for (const key of finding.evidenceKeys) assert.ok(keys.has(key), `${key} inexistente`);
+    assert.doesNotMatch(finding.impact, /\d+\s*%/, "Los impactos no inventan cifras");
+  }
+  assert.throws(() => window.ValmePilot.importPayload(auditId, { pages: [] }), /vacío/);
+});

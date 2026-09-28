@@ -9,6 +9,10 @@ import {
   createSeoAuditDraftInputSchema,
   createSeoAuditServerRepository,
   type CreateSeoAuditDraftInput,
+  type EvidenceSummary,
+  type FindingEvidenceLink,
+  type FindingSummary,
+  importSeoAuditReviewInputSchema,
   type SeoAuditStore,
 } from "./repository.server";
 import {
@@ -95,8 +99,13 @@ function fakeStore(initial: AuditRow = audit()) {
     projectInserted?: Record<string, unknown>;
     clientArchive?: { archived_at: string | null; archived_by: string | null };
     auditArchive?: { archived_at: string | null; archived_by: string | null };
+    findingsInserted?: Array<Record<string, unknown>>;
+    review?: { review_decision: string; review_note: string | null };
   } = {};
   let current: AuditRow | null = initial;
+  const findings: FindingSummary[] = [];
+  const evidence: EvidenceSummary[] = [];
+  const links: FindingEvidenceLink[] = [];
   const clients: ClientState[] = [
     {
       id: CLIENT_ID,
@@ -186,6 +195,75 @@ function fakeStore(initial: AuditRow = audit()) {
       current = current ? audit({ ...current, ...patch }) : null;
       return current;
     },
+    listFindings: async () => findings.map((item) => ({ ...item })),
+    listEvidence: async () => evidence.map((item) => ({ ...item })),
+    listFindingEvidence: async () => links.map((item) => ({ ...item })),
+    listPeople: async () => [{ user_id: "u-1", email: "pm@valme.test", full_name: "PM" }],
+    findFinding: async (findingId) => findings.find((item) => item.id === findingId) ?? null,
+    insertEvidence: async (rows) =>
+      rows
+        .map((row, index) => {
+          const created = {
+            id: `e0000000-0000-4000-8000-00000000000${evidence.length + index}`,
+            audit_id: row.audit_id,
+            url_or_resource: row.url_or_resource,
+            source: row.source,
+            observed_at: row.observed_at,
+            collection_method: row.collection_method,
+            observed_data: row.observed_data,
+            contains_external_untrusted_data: row.contains_external_untrusted_data ?? true,
+          };
+          return created;
+        })
+        .map((created) => {
+          evidence.push(created);
+          return { id: created.id, url_or_resource: created.url_or_resource };
+        }),
+    insertFindings: async (rows) => {
+      calls.findingsInserted = [...(calls.findingsInserted ?? []), ...rows];
+      return rows.map((row, index) => {
+        const created = {
+          id: `f0000000-0000-4000-8000-00000000000${findings.length + index}`,
+          audit_id: row.audit_id,
+          category: row.category,
+          related_service_id: row.related_service_id,
+          title: row.title,
+          description: row.description,
+          priority: row.priority,
+          impact: row.impact,
+          recommendation: row.recommendation,
+          state: "propuesto" as const,
+          confidence: row.confidence,
+          sources: row.sources,
+          observed_at: row.observed_at,
+          responsible_name: row.responsible_name,
+          limitations: row.limitations ?? [],
+          review_decision: "pendiente",
+          review_note: null,
+          reviewed_by: null,
+          reviewed_at: null,
+          created_at: "2026-09-28T00:00:00.000Z",
+        };
+        findings.push(created);
+        return { id: created.id, title: created.title };
+      });
+    },
+    linkFindingEvidence: async (rows) => {
+      for (const row of rows) {
+        links.push({
+          audit_id: row.audit_id,
+          finding_id: row.finding_id,
+          evidence_id: row.evidence_id,
+        });
+      }
+    },
+    updateFindingReview: async (findingId, patch) => {
+      calls.review = patch;
+      const finding = findings.find((item) => item.id === findingId);
+      if (!finding) return null;
+      Object.assign(finding, patch, { reviewed_by: "u-1", reviewed_at: "2026-09-28T10:00:00Z" });
+      return { ...finding };
+    },
   };
   return {
     store,
@@ -193,7 +271,43 @@ function fakeStore(initial: AuditRow = audit()) {
     clients,
     access,
     tenants,
+    findings,
+    evidence,
+    links,
     setCurrent: (value: AuditRow | null) => (current = value),
+  };
+}
+
+function reviewInput(auditId = audit().id) {
+  return {
+    auditId,
+    reviewer: { id: "codex-revision-externa", name: "Revisión externa (Codex)" },
+    evidence: [
+      {
+        key: "/",
+        url: "https://www.example.test/",
+        source: "Revisión externa (Codex)",
+        collectionMethod: "HTTP",
+        observedAt: "2026-09-27T21:23:21.334Z",
+        observedData: "HTTP 200 · Título: Inicio",
+      },
+    ],
+    findings: [
+      {
+        title: "Aclarar la oferta",
+        description: "El H1 usa un eslogan.",
+        impact: "Claridad de la oferta. Sin medición todavía.",
+        recommendation: "Probar un encabezado descriptivo.",
+        category: "contenido" as const,
+        serviceId: "Contenidos",
+        priority: "alta" as const,
+        confidence: "media" as const,
+        resultType: "observacion" as const,
+        sources: ["https://www.example.test/"],
+        evidenceKeys: ["/"],
+        limitations: ["Revisión HTTP sin renderizado."],
+      },
+    ],
   };
 }
 
@@ -449,6 +563,73 @@ describe("SEO audit authenticated server repository", () => {
     await assert.rejects(() => repository.createDraft(draftInput()), /cliente está archivado/);
     assert.equal(calls.inserted, undefined);
     assert.equal(calls.updated, undefined);
+  });
+
+  it("imports an external review once, linking each finding to its evidence", async () => {
+    const { store, calls, findings, evidence, links } = fakeStore();
+    const userId = "50000000-0000-4000-8000-000000000009";
+    const repository = createSeoAuditServerRepository(store, userId);
+    const input = importSeoAuditReviewInputSchema.parse(reviewInput());
+
+    const first = await repository.importReview(input);
+    assert.deepEqual(first, { evidence: 1, findings: 1, links: 1, skippedFindings: 0 });
+    assert.equal(calls.findingsInserted?.[0]?.["responsible_kind"], "tool");
+    assert.equal(calls.findingsInserted?.[0]?.["responsible_name"], "Revisión externa (Codex)");
+    assert.equal(calls.findingsInserted?.[0]?.["created_by"], userId);
+    assert.equal(calls.findingsInserted?.[0]?.["review_decision"], undefined);
+    assert.equal(links[0]?.finding_id, findings[0]?.id);
+    assert.equal(links[0]?.evidence_id, evidence[0]?.id);
+
+    const again = await repository.importReview(input);
+    assert.deepEqual(again, { evidence: 0, findings: 0, links: 0, skippedFindings: 1 });
+    assert.equal(findings.length, 1);
+    assert.equal(evidence.length, 1);
+  });
+
+  it("refuses incoherent or locked imports before writing", async () => {
+    const { store, calls, setCurrent } = fakeStore();
+    const repository = createSeoAuditServerRepository(store, "user");
+    const broken = reviewInput();
+    broken.findings[0]!.evidenceKeys = ["/no-existe"];
+    await assert.rejects(() => repository.importReview(broken), /no es coherente/);
+
+    setCurrent(audit({ state: "validado" }));
+    await assert.rejects(() => repository.importReview(reviewInput()), /no admite cambios/);
+    setCurrent(audit({ archived_at: "2026-09-28T10:00:00Z", archived_by: "u" }));
+    await assert.rejects(() => repository.importReview(reviewInput()), /no admite cambios/);
+    assert.equal(calls.findingsInserted, undefined);
+    assert.throws(() => importSeoAuditReviewInputSchema.parse({ ...reviewInput(), findings: [] }));
+  });
+
+  it("records the PM decision on a finding and reports locked audits", async () => {
+    const { store, calls, findings } = fakeStore();
+    const repository = createSeoAuditServerRepository(store, "user");
+    await repository.importReview(importSeoAuditReviewInputSchema.parse(reviewInput()));
+
+    const reviewed = await repository.reviewFinding({
+      findingId: findings[0]!.id,
+      decision: "priorizar",
+      note: "  Primero en septiembre  ",
+    });
+    assert.deepEqual(calls.review, {
+      review_decision: "priorizar",
+      review_note: "Primero en septiembre",
+    });
+    assert.equal(reviewed.review_decision, "priorizar");
+
+    store.updateFindingReview = async () => null;
+    await assert.rejects(
+      () => repository.reviewFinding({ findingId: findings[0]!.id, decision: "descartar" }),
+      /no admite cambios/,
+    );
+    await assert.rejects(
+      () =>
+        repository.reviewFinding({
+          findingId: "f0000000-0000-4000-8000-0000000000ff",
+          decision: "descartar",
+        }),
+      /hallazgo no existe/,
+    );
   });
 
   it("forwards only curated error messages to the browser", () => {

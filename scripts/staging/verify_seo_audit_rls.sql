@@ -1,5 +1,5 @@
 -- Verificacion reproducible de aislamiento y permisos de 0005_seo_audit_persistence.
--- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0006 aplicadas:
+-- Ejecutar SOLO en una base de staging con las migraciones 0000 a 0007 aplicadas:
 --   psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f scripts/staging/verify_seo_audit_rls.sql
 -- Todo ocurre dentro de una transaccion que termina en ROLLBACK: no deja datos.
 -- Cada escenario imprime "OK n: ..."; cualquier comprobacion fallida aborta con "FALLO: ...".
@@ -782,6 +782,59 @@ DO $$ BEGIN
   PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET state = 'devuelto', transition_reason = 'prueba de archivado'
     WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d7'$q$, 'transicion tras restaurar el cliente');
   RAISE NOTICE 'OK 13: solo managers archivan y restauran, siempre a su nombre y sin cambios combinados; lo archivado queda en solo lectura y un cliente archivado no admite trabajo nuevo';
+END $$;
+
+-- ---------- 14. Decision del PM sobre hallazgos y artefactos archivados (0007) ----------
+-- d8/b8: auditoria y hallazgo nuevos del cliente A. pmd (55555) es member desde el escenario 8.
+RESET ROLE;
+INSERT INTO public.seo_audits (id, tenant_id, client_id, project_id, service_ids, requested_by, primary_domain,
+  seed_urls, markets, languages, authorized_scope, requested_capability_ids, max_pages, max_duration_minutes,
+  max_cost_amount, currency, contract_version) VALUES
+  ('aaaaaaaa-0000-0000-0000-0000000000d8', 'aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000c1',
+   'aaaaaaaa-0000-0000-0000-0000000000e1', ARRAY['seo'], '11111111-0000-0000-0000-000000000001', 'a.test',
+   ARRAY['https://a.test/'], ARRAY['ES'], ARRAY['es'], '{}'::jsonb, ARRAY['technical'], 10, 10, 0, 'EUR', 'v1');
+INSERT INTO public.seo_audit_findings (id, tenant_id, audit_id, category, related_service_id, title, description, priority,
+  impact, recommendation, result_type, confidence, sources, observed_at, responsible_kind, responsible_id, responsible_name, created_by) VALUES
+  ('aaaaaaaa-0000-0000-0000-0000000000b8', 'aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8', 'contenido', 'seo',
+   'Hallazgo A8', 'desc', 'media', 'impacto', 'recomendacion', 'observacion', 'media', ARRAY['fixture'], now(), 'tool', 't1', 'Tool', '11111111-0000-0000-0000-000000000001');
+SET LOCAL ROLE authenticated;
+SELECT pg_temp.como('55555555-0000-0000-0000-000000000005');
+DO $$ BEGIN
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audit_findings SET review_decision = 'priorizar'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'member decide sobre un hallazgo', '42501');
+END $$;
+SELECT pg_temp.como('11111111-0000-0000-0000-000000000001');
+DO $$ BEGIN
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_audit_findings (tenant_id, audit_id, category, related_service_id, title, description,
+    priority, impact, recommendation, result_type, confidence, sources, observed_at, responsible_kind, responsible_id, responsible_name,
+    created_by, review_decision) VALUES
+    ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8', 'contenido', 'seo', 'x', 'x', 'media', 'x', 'x',
+     'observacion', 'media', ARRAY['fixture'], now(), 'tool', 't1', 'Tool', auth.uid(), 'priorizar')$q$,
+    'hallazgo nuevo con decision tomada', '23514');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audit_findings SET review_decision = 'priorizar', title = 'x'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'decision combinada con otros cambios', '23514');
+  PERFORM pg_temp.rechazado($q$UPDATE public.seo_audit_findings SET review_decision = 'aprobar'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'decision fuera del catalogo', '23514');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audit_findings
+    SET review_decision = 'priorizar', review_note = 'primero', reviewed_by = '22222222-0000-0000-0000-000000000002'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'PM decide (intentando firmar en nombre de otro)');
+  PERFORM pg_temp.ve($q$SELECT 1 FROM public.seo_audit_findings WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'
+    AND review_decision = 'priorizar' AND reviewed_by = '11111111-0000-0000-0000-000000000001' AND reviewed_at IS NOT NULL$q$,
+    'decision firmada por quien decide');
+
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = now(), archived_by = auth.uid()
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d8'$q$, 'PM archiva d8');
+  PERFORM pg_temp.sin_efecto($q$UPDATE public.seo_audit_findings SET review_decision = 'descartar'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'decision en auditoria archivada');
+  PERFORM pg_temp.rechazado($q$INSERT INTO public.seo_audit_evidence (tenant_id, audit_id, url_or_resource, source, observed_at,
+    collection_method, observed_data, created_by) VALUES
+    ('aaaaaaaa-0000-0000-0000-00000000000a', 'aaaaaaaa-0000-0000-0000-0000000000d8', 'https://a.test/x', 'fixture', now(), 'manual', 'x', auth.uid())$q$,
+    'evidencia en auditoria archivada', '42501', 'new row violates row-level security policy%');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audits SET archived_at = NULL, archived_by = NULL
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000d8'$q$, 'PM restaura d8');
+  PERFORM pg_temp.permitido($q$UPDATE public.seo_audit_findings SET review_decision = 'descartar'
+    WHERE id = 'aaaaaaaa-0000-0000-0000-0000000000b8'$q$, 'decision tras restaurar');
+  RAISE NOTICE 'OK 14: solo managers deciden sobre hallazgos, la firma la pone la base de datos, sin cambios combinados; los artefactos de una auditoria archivada quedan en solo lectura';
 END $$;
 
 RESET ROLE;

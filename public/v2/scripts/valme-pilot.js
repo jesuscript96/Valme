@@ -72,6 +72,119 @@
     },
   ];
 
+  // Traducción de la revisión externa al contrato de hallazgos y evidencias de Search OS.
+  // Impactos cualitativos: la revisión no midió tráfico ni conversiones y no se inventan cifras.
+  const REVIEWER = { id: "codex-revision-externa-2026-09-27", name: "Revisión externa (Codex)" };
+  const IMPORT = {
+    "VALME-01": {
+      category: "contenido",
+      serviceId: "Contenidos",
+      confidence: "alta",
+      impact: "Claridad de la oferta principal para visitantes y buscadores. Sin medición todavía.",
+      pages: "all",
+    },
+    "VALME-02": {
+      category: "contenido",
+      serviceId: "Contenidos",
+      confidence: "media",
+      impact:
+        "Comprensión inmediata de qué ofrece VALME al llegar a la portada. Sin medición todavía.",
+      pages: ["/"],
+    },
+    "VALME-03": {
+      category: "eeat",
+      serviceId: "Contenidos",
+      confidence: "alta",
+      impact:
+        "Credibilidad de los casos ante clientes potenciales y asistentes de IA. Sin medición todavía.",
+      pages: [
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/atribucion-canal-rentable",
+        "/casos/paid-con-seo-desde-cero",
+      ],
+    },
+    "VALME-04": {
+      category: "eeat",
+      serviceId: "Contenidos",
+      confidence: "media",
+      impact:
+        "Confianza para contratar: quién hay detrás y qué incluye el servicio. Sin medición todavía.",
+      pages: ["/"],
+    },
+    "VALME-05": {
+      category: "search_console",
+      serviceId: "Analítica",
+      confidence: "baja",
+      impact: "Sin línea base no se podrá demostrar el efecto de las mejoras.",
+      pages: ["/"],
+      limitations: ["No se consultaron Search Console, GA4 ni CRM."],
+    },
+  };
+
+  function evidenceKey(url) {
+    return new URL(url).pathname.replace(/\/$/, "") || "/";
+  }
+
+  function pageSummary(page) {
+    const h1 = (page.headings || []).find((h) => h.level === "h1")?.text || "sin H1";
+    const canonical = Array.isArray(page.canonical) ? page.canonical.join(", ") : page.canonical;
+    return [
+      `HTTP ${page.status}`,
+      `Título: ${page.title || "sin título"}`,
+      `H1: ${h1}`,
+      `Canonical: ${canonical || "sin canonical"}`,
+    ]
+      .join(" · ")
+      .slice(0, 4000);
+  }
+
+  // Carga preparada para importSeoAuditReview a partir del JSON de evidencias original.
+  function importPayload(auditId, evidenceJson) {
+    const pages = Array.isArray(evidenceJson?.pages) ? evidenceJson.pages : [];
+    if (!pages.length) throw new Error("El archivo de evidencias del piloto está vacío.");
+    const observedAt = new Date(evidenceJson.fetched_at).toISOString();
+    const evidence = pages.map((page) => ({
+      key: evidenceKey(page.url),
+      url: page.url,
+      source: REVIEWER.name,
+      collectionMethod: String(evidenceJson.method || "HTTP").slice(0, 300),
+      observedAt,
+      observedData: pageSummary(page),
+    }));
+    const keys = evidence.map((item) => item.key);
+    return {
+      auditId,
+      reviewer: REVIEWER,
+      evidence,
+      findings: findings.map((f) => {
+        const map = IMPORT[f.id];
+        return {
+          title: f.title,
+          description: f.observed,
+          impact: map.impact,
+          recommendation: f.recommendation,
+          category: map.category,
+          serviceId: map.serviceId,
+          priority: f.priority === "Alta" ? "alta" : "media",
+          confidence: map.confidence,
+          resultType: "observacion",
+          sources: [f.source],
+          evidenceKeys: map.pages === "all" ? keys : map.pages.filter((key) => keys.includes(key)),
+          limitations: [
+            "Revisión HTTP de ocho páginas públicas, sin renderizado ni Search Console.",
+            ...(map.limitations || []),
+          ],
+        };
+      }),
+    };
+  }
+
+  async function loadImportPayload(auditId) {
+    const response = await global.fetch("/v2/valme-pilot-evidence.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("No se pudo leer el archivo de evidencias del piloto.");
+    return importPayload(auditId, await response.json());
+  }
+
   function createReviewStore(storageFactory) {
     let raw;
     let reviews = {};
@@ -169,7 +282,16 @@
         .join("")}</section>`;
   }
 
-  global.ValmePilot = { id: ID, entry, detail, createReviewStore };
+  global.ValmePilot = {
+    id: ID,
+    domain: "valmesolutions.com",
+    findingCount: findings.length,
+    entry,
+    detail,
+    createReviewStore,
+    importPayload,
+    loadImportPayload,
+  };
   global.document?.addEventListener("input", (event) => {
     const form = event.target.closest("[data-pilot-review]");
     if (!form) return;

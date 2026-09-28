@@ -7,6 +7,7 @@ const ROOT = new URL("../../", import.meta.url);
 const SUPABASE_CONFIG = new URL("supabase/config.toml", ROOT);
 const MIGRATION = new URL("drizzle/migrations/0005_seo_audit_persistence.sql", ROOT);
 const ARCHIVE_MIGRATION = new URL("drizzle/migrations/0006_archive_clients_audits.sql", ROOT);
+const REVIEW_MIGRATION = new URL("drizzle/migrations/0007_finding_review.sql", ROOT);
 // Fase 1: solo se aplican sobre un staging completamente vacio (proyecto recien creado).
 export const BASELINE_MIGRATIONS = [
   "0000_valme_command_center.sql",
@@ -17,7 +18,7 @@ export const BASELINE_MIGRATIONS = [
 ];
 const BASELINE_TABLES = ["user_access", "user_client_access", "clients"];
 const PLATFORM_CHECKS = ["auth_uid", "authenticated_role", "service_role"];
-export const VERIFIER_SCENARIOS = 13;
+export const VERIFIER_SCENARIOS = 14;
 const VERIFIER = new URL("scripts/staging/verify_seo_audit_rls.sql", ROOT);
 
 export const AUDIT_TABLES = [
@@ -152,6 +153,13 @@ async function inspectDatabase(sql) {
     .map(([name]) => name);
   const presentAuditTables = rows.filter((row) => row.present).map((row) => row.name);
   const missingAuditTables = rows.filter((row) => !row.present).map((row) => row.name);
+  const [review] = await sql.unsafe(`
+    SELECT count(*)::int AS columns
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'seo_audit_findings'
+      AND column_name = 'review_decision'
+  `);
   const [archive] = await sql.unsafe(`
     SELECT count(*)::int AS columns
     FROM information_schema.columns
@@ -164,6 +172,7 @@ async function inspectDatabase(sql) {
     presentAuditTables,
     missingAuditTables,
     archiveApplied: archive.columns === 2,
+    reviewApplied: review.columns === 1,
   };
 }
 
@@ -229,6 +238,11 @@ async function preflight(sql, stagingProjectRef, { allowFresh = false } = {}) {
       ? "[staging] 0006 (archivado) ya esta aplicada."
       : "[staging] 0006 (archivado) todavia no esta aplicada.",
   );
+  console.log(
+    state.reviewApplied
+      ? "[staging] 0007 (decision sobre hallazgos) ya esta aplicada."
+      : "[staging] 0007 (decision sobre hallazgos) todavia no esta aplicada.",
+  );
   return state;
 }
 
@@ -282,6 +296,18 @@ async function applyMigration(sql, initialState) {
       ? "[staging] 0006 ya estaba aplicada; reglas de archivado reconciliadas."
       : "[staging] 0006 aplicada completamente.",
   );
+
+  // 0007 es idempotente (IF NOT EXISTS, CREATE OR REPLACE, DROP TRIGGER IF EXISTS).
+  const review = await readFile(REVIEW_MIGRATION, "utf8");
+  await sql.begin((transaction) => transaction.unsafe(review));
+  const reviewed = await inspectDatabase(sql);
+  if (!reviewed.reviewApplied)
+    throw new Error("0007 termino sin crear la decision sobre hallazgos.");
+  console.log(
+    state.reviewApplied
+      ? "[staging] 0007 ya estaba aplicada; reglas de decision reconciliadas."
+      : "[staging] 0007 aplicada completamente.",
+  );
 }
 
 async function verifyRls(sql, notices) {
@@ -292,6 +318,9 @@ async function verifyRls(sql, notices) {
   }
   if (!state.archiveApplied) {
     throw new Error("No se puede verificar el archivado antes de aplicar 0006.");
+  }
+  if (!state.reviewApplied) {
+    throw new Error("No se puede verificar la decision sobre hallazgos antes de aplicar 0007.");
   }
 
   notices.length = 0;
