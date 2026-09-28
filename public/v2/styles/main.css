@@ -1177,6 +1177,45 @@ body {
   text-align: right;
 }
 
+#valme-v2 .v-pilot-entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 20px;
+  border-block: 1px solid var(--v-line);
+}
+#valme-v2 .v-pilot-finding {
+  padding-block: 24px;
+  border-bottom: 1px solid var(--v-line);
+  overflow-wrap: anywhere;
+}
+#valme-v2 .v-pilot-finding h3 {
+  margin-block: 12px;
+}
+#valme-v2 .v-pilot-finding p {
+  margin-block: 10px;
+  max-width: 85ch;
+}
+#valme-v2 .v-pilot-review {
+  display: grid;
+  gap: 12px;
+  max-width: 760px;
+  margin-top: 16px;
+}
+#valme-v2 .v-pilot-review label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+#valme-v2 .v-pilot-review textarea,
+#valme-v2 .v-pilot-review select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 #valme-v2 .v-audit-form {
   border-top: 1px solid var(--v-line);
 }

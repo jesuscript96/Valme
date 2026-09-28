@@ -368,6 +368,7 @@ function seoAuditList() {
       "Alcance, evidencias y decisiones en un único expediente.",
       '<button class="v-primary" data-seo-new>+ Nueva auditoría</button>',
     ) +
+    (repositoryStatus.mode === ValmeSeoAuditRepository.LOCAL_MODE ? ValmePilot.entry() : "") +
     seoAuditSummary() +
     `<section class="v-section"><div class="v-tools v-audit-tools">
       <label class="v-search">Buscar<br><input id="v-seo-search" type="search" value="${safe(seoAuditQuery)}" placeholder="Cliente, dominio o ID"></label>
@@ -528,6 +529,11 @@ function auditsWorkspace() {
     );
   }
   if (seoAuditCreating) return seoAuditNew();
+  if (
+    seoAuditCurrent === ValmePilot.id &&
+    seoAuditRepository.status().mode === ValmeSeoAuditRepository.LOCAL_MODE
+  )
+    return ValmePilot.detail();
   const audit = seoAudits.find((a) => a.id === seoAuditCurrent);
   return audit ? seoAuditDetail(audit) : seoAuditList();
 }

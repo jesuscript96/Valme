@@ -1,0 +1,1179 @@
+{
+  "fetched_at": "2026-09-27T21:23:21.334759+00:00",
+  "method": "HTTP HTML parsing; no browser rendering or Search Console",
+  "pages": [
+    {
+      "url": "https://www.valmesolutions.com/",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/",
+      "title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+      "canonical": ["https://www.valmesolutions.com"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Un equipo de marketing 360 que se integra en tu pyme B2B: estrategia, paid, SEO, contenido, creatividad, web y datos. Las ocho funciones activas, un solo contrato y un solo interlocutor. Operativo en tres semanas.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "og:description": "Un equipo de marketing 360 que se integra en tu pyme B2B: estrategia, paid, SEO, contenido, creatividad, web y datos. Las ocho funciones activas, un solo contrato y un solo interlocutor. Operativo en tres semanas.",
+        "og:url": "https://www.valmesolutions.com",
+        "og:type": "website",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Hacer buen marketing es difícil.Tenerlo, no."
+        },
+        {
+          "level": "h2",
+          "text": "Ocho funciones. Ninguna es opcional."
+        },
+        {
+          "level": "h3",
+          "text": "Dirección y estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Paid media"
+        },
+        {
+          "level": "h3",
+          "text": "SEO, contenido y GEO"
+        },
+        {
+          "level": "h3",
+          "text": "Social orgánico"
+        },
+        {
+          "level": "h3",
+          "text": "Creatividad, diseño y vídeo"
+        },
+        {
+          "level": "h3",
+          "text": "Mensaje y copy"
+        },
+        {
+          "level": "h3",
+          "text": "Web, landings y CRO"
+        },
+        {
+          "level": "h3",
+          "text": "Datos, CRM y leads"
+        },
+        {
+          "level": "h3",
+          "text": "Cada mes ves qué se hizo, qué costó y qué entró. En un panel, no en un PDF de 40 páginas."
+        },
+        {
+          "level": "h2",
+          "text": "No es una agencia. Es tu departamento de marketing."
+        },
+        {
+          "level": "h3",
+          "text": "Holístico"
+        },
+        {
+          "level": "h3",
+          "text": "Expertise por función"
+        },
+        {
+          "level": "h3",
+          "text": "Operativa, no campañas"
+        },
+        {
+          "level": "h3",
+          "text": "Control y datos"
+        },
+        {
+          "level": "h2",
+          "text": "Señales de que tu marketing no es un departamento todavía."
+        },
+        {
+          "level": "h3",
+          "text": "Nadie lleva el marketing. Lo lleváis todos un rato."
+        },
+        {
+          "level": "h2",
+          "text": "Tres empresas, tres problemas distintos de marketing."
+        },
+        {
+          "level": "h3",
+          "text": "El CEO que dejó de preguntar en qué se iba el dinero de marketing"
+        },
+        {
+          "level": "h3",
+          "text": "Su mejor canal era el que menos leads traía"
+        },
+        {
+          "level": "h3",
+          "text": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él"
+        },
+        {
+          "level": "h2",
+          "text": "De la primera llamada a un departamento operando."
+        },
+        {
+          "level": "h3",
+          "text": "Diagnóstico"
+        },
+        {
+          "level": "h3",
+          "text": "Estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Construcción y adopción"
+        },
+        {
+          "level": "h3",
+          "text": "Medición"
+        },
+        {
+          "level": "h2",
+          "text": "Hacer buen marketing es difícil. Y montar el equipo que lo ejecute, también."
+        },
+        {
+          "level": "h2",
+          "text": "Dos puntos de partida. Según lo que ya tengas montado."
+        },
+        {
+          "level": "h3",
+          "text": "Si ya tienes operativa"
+        },
+        {
+          "level": "h3",
+          "text": "Si empiezas de cero"
+        },
+        {
+          "level": "h2",
+          "text": "Hablemos 30 minutos."
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [
+        {
+          "src": "/assets/stock/working.jpg",
+          "alt": "El CEO que dejó de preguntar en qué se iba el dinero de marketing"
+        },
+        {
+          "src": "/assets/stock/case-ia.jpg",
+          "alt": "Su mejor canal era el que menos leads traía"
+        },
+        {
+          "src": "/assets/stock/case-publicidad.jpg",
+          "alt": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él"
+        }
+      ],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Valme Solutions | Tu departamento de marketing, sin montarlo Valme Private Operations Firm 000 Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Departamento de marketing · Pymes B2B Hacer buen marketing es difícil. Tenerlo, no. Tu departamento de marketing 360, montado y operando dentro de tu empresa. Hablemos 30 minutos Ver las ocho funciones Scroll / Qué cubre Ocho funciones. Ninguna es opcional. El marketing no falla por hacer una cosa mal: falla por dejar siete sin hacer. Estas ocho están siempre activas en tu cuenta. Lo que se ajusta cada mes es el peso de cada una, no la cobertura. / 01 Dirección y estrategia Sin un plan con números, cada mes se decide por intuición y no se aprende nada. / 02 Paid media Una cuenta mal montada quema presupuesto rápido y en silencio. / 03 SEO, contenido y GEO Es lo único que sigue trayendo clientes cuando dejas de pagar. Tarda meses: empieza ya. / 04 Social orgánico Casi todos te investigan antes de escribirte. Un perfil muerto cuesta oportunidades. / 05 Creatividad, diseño y vídeo La creatividad decide más el resultado de una campaña que la segmentación. / 06 Mensaje y copy Si no dices por qué tú y no otro, da igual cuánto tráfico traigas. / 07 Web, landings y CRO Duplicar la conversión vale lo mismo que duplicar el presupuesto, y cuesta mucho menos. / 08 Datos, CRM y leads Se pierde más dinero tratando mal los leads que optimizando campañas. Responder tarde mata la venta. Las ocho están siempre activas. Se ajusta el peso, no la cobertura. Reparto por defecto · se revisa cada mes Dirección y estrategia 9 % Paid media 15 % SEO, contenido y GEO 16 % Social orgánico 15 % Creatividad y vídeo 15 % Mensaje y copy 5 % Web, landings y CRO 13 % Datos, CRM y leads 12 % / Y lo ves Cada mes ves qué se hizo, qué costó y qué entró. En un panel, no en un PDF de 40 páginas. Hablemos 30 minutos / Qué somos No es una agencia. Es tu departamento de marketing. Una agencia te entrega campañas y un informe. Un departamento opera: decide, ejecuta, mide y corrige cada semana, con las mismas personas, con nombre y cara, en tus reuniones y en tu chat. Eso es lo que montamos dentro de tu empresa, sin la maquinaria de montarlo ni de sostenerlo. / Cuatro principios / 01 Holístico Las ocho funciones activas desde el primer mes. No elegimos tres y dejamos el resto para más adelante: el marketing solo funciona completo. / 02 Expertise por función Cada función la lleva quien sabe de esa función. No un generalista que hace de todo a medias ni alguien aprendiendo con tu presupuesto. / 03 Operativa, no campañas Un calendario, un proceso y un ritmo. Lo que hoy se decide en un grupo de WhatsApp pasa a ser un sistema que funciona sin ti. / 04 Control y datos Un panel con lo que se ha gastado, lo que ha entrado y cuánto te cuesta cada lead. Decides con números, no con la sensación de que algo se mueve. / ¿Te suena esto? Señales de que tu marketing no es un departamento todavía. Marketing sin dueño Campañas sueltas Presupuesto a ciegas Leads que se enfrían Contratar da vértigo 01 / 05 Marketing sin dueño Nadie lleva el marketing. Lo lleváis todos un rato. Una parte la hace el comercial, otra un diseñador freelance, otra tú un domingo. Nadie tiene la foto completa ni responde de los resultados. Pasa a haber un responsable y un equipo detrás, con un plan mensual y un número al que rendir cuentas. Tú dejas de ser el director de marketing por defecto. Hablemos 30 minutos / Casos Tres empresas, tres problemas distintos de marketing. Un gerente que no sabía en qué se le iba la inversión, una empresa que llevaba un año optimizando el canal equivocado y un arranque desde cero. Qué había, qué montamos y en qué se tradujo. / 01 Servicios B2B · 35 personas · Dirección general El CEO que dejó de preguntar en qué se iba el dinero de marketing Invertía todos los meses y solo recibía un informe con impresiones y alcance. Montamos la medición y el panel que le dicen qué entra, por dónde y a qué coste. Ver caso completo El punto de partida El gerente llevaba dos años invirtiendo en marketing y no sabía decir si funcionaba. Cada mes recibía un informe lleno de impresiones, alcance y crecimiento de seguidores, y ni una sola línea sobre lo único que le importaba: cuántas oportunidades reales habían entrado y cuánto le había costado cada una. Los formularios de la web caían en un correo compartido, los de LinkedIn los descargaba alguien a mano y las llamadas no se registraban en ningún sitio. Cuando su socio le preguntaba cuánto de la facturación venía de marketing, la respuesta honesta era que no lo sabía. Así que decidía por sensación: recortaba donde le parecía caro y subía donde le habían dicho que había que estar. El resultado Sabe cada semana cuánto ha invertido y cuántas oportunidades ha traído El coste por oportunidad dejó de ser una incógnita y pasó a ser un objetivo Las decisiones de presupuesto se toman sobre la tabla, no sobre la sensación / 02 Industrial B2B · Ticket alto · Ciclo de venta largo Su mejor canal era el que menos leads traía Optimizaban el canal que más volumen daba. Al medir hasta el cierre resultó ser el que menos vendía, y el presupuesto se movió al que sí. Ver caso completo El punto de partida Repartían el presupuesto por intuición y por volumen: el canal que más formularios traía se llevaba la mayor parte, porque parecía el que funcionaba. El problema es que nadie había mirado nunca qué pasaba con esos contactos después. El equipo comercial se quejaba de que la mayoría no tenían ni presupuesto ni proyecto, pero esa queja no llegaba nunca a la decisión de inversión. Mientras tanto, otro canal traía bastantes menos contactos, no llamaba la atención de nadie en el informe mensual y llevaba meses infrafinanciado. Estaban optimizando para conseguir más de lo que no vendía. El resultado El presupuesto dejó de premiar el volumen y pasó a premiar el cierre El equipo comercial recibe menos contactos y bastantes más aprovechables El coste por cliente bajó sin subir ni un euro la inversión total / 03 B2B de servicios · Sin presencia previa · Arranque Empezaron de cero: paid para vender ya, SEO para dejar de depender de él No tenían nada montado. Paid para que entraran oportunidades desde el primer mes y SEO en paralelo para que sigan entrando el día que se apague la inversión. Ver caso completo El punto de partida Vendían bien por recomendación y por la agenda de los socios, pero esa vía tenía techo y ellos lo sabían. No había web que convirtiera, ni medición, ni un sitio donde aterrizaran los contactos. El riesgo de arrancar solo con paid era evidente: funciona desde el primer día, pero el día que dejas de pagar se acaba, y cuanto más creces con él más caro se vuelve depender de él. El riesgo de arrancar solo con SEO era el contrario: es lo único que sigue trayendo clientes cuando cierras el grifo, pero tarda meses en dar señales y no aguantaban ese silencio. El resultado Oportunidades entrando desde el primer mes gracias al paid El contenido empezó a traer tráfico propio antes de acabar el arranque El paid se usó también como laboratorio: qué mensaje funciona antes de escribirlo Hablemos 30 minutos / Cómo trabajamos De la primera llamada a un departamento operando. Cuatro fases que van del diagnóstico a una operativa que se revisa con datos cada mes. Lo llamamos The Valme Mandate . Auditamos lo que ya tienes: cuentas de paid, web, medición, CRM y contenido. Sale un mapa de qué está montado, qué está roto y qué no existe. / 01 Diagnóstico De ahí sale el plan a 90 días: mensaje, canales, reparto de peso entre las ocho funciones y los números a los que vamos. Con fechas. / 02 Estrategia Montamos lo que falte —web, medición, circuito de leads— y el equipo entra en tus reuniones y en tu chat hasta que operar así es lo normal. / 03 Construcción y adopción Revisión mensual con los datos delante: qué funcionó, qué no y cómo se reparte el peso el mes siguiente. El marketing deja de decidirse por intuición. / 04 Medición / Por qué así Hacer buen marketing es difícil. Y montar el equipo que lo ejecute, también. No es que no sepas lo que hay que hacer. Es que montarlo por dentro son ocho contrataciones, ocho relaciones laborales y todo el riesgo de acertar a la primera. Esa parte ya la hicimos nosotros. Si lo montas tú Ocho funciones son ocho procesos de selección: redactar, filtrar, entrevistar y decidir. Normalmente, tú. Cada contratación es una relación laboral: nóminas, periodo de prueba, formación, vacaciones, bajas y rotación. Y no se acierta a la primera: un perfil que no encaja cuesta meses de salario y volver a empezar. Y el día que haya que reducir el equipo, es un despido. Con nosotros Esa parte ya la hicimos: el equipo está montado, ya ha trabajado junto y es operativo en tres semanas. Un contrato de servicios y un solo interlocutor. Sin nóminas y sin gestión de personal. Si un perfil no encaja, lo cambiamos nosotros. El riesgo de acertar es nuestro, no tuyo. Subes o bajas el equipo cuando lo necesites, con un mes de aviso. / Por dónde empezar Dos puntos de partida. Según lo que ya tengas montado. El primer paso no es el mismo si ya tienes cuentas y web funcionando que si empiezas de cero. En los dos casos sales de la primera conversación sabiendo qué se hace y cuándo. / M/01 Si ya tienes operativa Ya inviertes en marketing: tienes cuentas montadas, web y algo de medición. El problema no es empezar, es que nadie lo está dirigiendo entero. Auditoría de cuentas, web, medición y CRM Mapa de qué está montado, roto o sin hacer Plan a 90 días con números y fechas En tres semanas tienes el plan y el equipo dentro Quiero la auditoría / M/02 Si empiezas de cero No hay nada montado, o lo que hay no sirve. Construimos la base entera —mensaje, web, medición y circuito de leads— y a partir de ahí se capta. Mensaje y propuesta de valor Web y landings que convierten Medición y CRM desde el primer día Circuito de leads completo Captando en ocho semanas Quiero empezar Un contrato de servicios, no una relación laboral: sin nóminas, sin gestión de personal y con un mes de aviso para subir o bajar el equipo. Encajamos mejor con empresas B2B de 10 a 50 personas y ticket por encima de 1.500 €. / El primer paso Hablemos 30 minutos. Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra y por dónde empezaríamos. Sin presentación de agencia y sin compromiso. Hablemos 30 minutos Respondemos en menos de 24 horas laborables. Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/areas/revenue-operations",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/areas/revenue-operations",
+      "title": "Revenue Operations | Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/areas/revenue-operations"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Desde la entrada de una oportunidad hasta el cierre y la facturación.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Revenue Operations | Valme Solutions",
+        "og:description": "Desde la entrada de una oportunidad hasta el cierre y la facturación.",
+        "og:url": "https://www.valmesolutions.com/areas/revenue-operations",
+        "og:type": "website",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Revenue Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Diagnóstico"
+        },
+        {
+          "level": "h3",
+          "text": "Estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Construcción"
+        },
+        {
+          "level": "h3",
+          "text": "Adopción"
+        },
+        {
+          "level": "h2",
+          "text": "Cómo se manifiesta la exposición en revenue operations."
+        },
+        {
+          "level": "h3",
+          "text": "Pipeline fuera de control"
+        },
+        {
+          "level": "h3",
+          "text": "Propuestas y presupuestos manuales"
+        },
+        {
+          "level": "h3",
+          "text": "Comercial gestiona su propia administración"
+        },
+        {
+          "level": "h3",
+          "text": "Ingresos sin visibilidad"
+        },
+        {
+          "level": "h3",
+          "text": "Handoff roto entre ventas y entrega"
+        },
+        {
+          "level": "h3",
+          "text": "Cobro dependiente del recordatorio"
+        },
+        {
+          "level": "h2",
+          "text": "Lo que se restablece al intervenir."
+        },
+        {
+          "level": "h3",
+          "text": "Control sobre el ingreso"
+        },
+        {
+          "level": "h3",
+          "text": "Ciclos más cortos"
+        },
+        {
+          "level": "h3",
+          "text": "Estructura sin depender de personas"
+        },
+        {
+          "level": "h2",
+          "text": "¿Intervenir en revenue operations?"
+        },
+        {
+          "level": "h3",
+          "text": "Internal Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Administrative Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Executive Intelligence"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Revenue Operations | Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Intervención / Revenue Operations Revenue Operations Desde la entrada de una oportunidad hasta el cierre y la facturación. Intervenimos el sistema completo por el que una organización convierte una oportunidad en un ingreso cobrado. Donde el pipeline vive en correos, en hojas o en la cabeza de un comercial, restauramos control sobre el proceso de generación de ingresos. / The Valme Mandate / 01 Diagnóstico Auditamos cómo funciona hoy esta capa de tu operación. / 02 Estrategia Definimos qué debe hacer la tecnología para que vendas y entregues mejor. / 03 Construcción Integramos herramientas y automatización a medida. / 04 Adopción Formamos al equipo hasta que lo usa sin esfuerzo. / Escenarios Cómo se manifiesta la exposición en revenue operations . Los siguientes escenarios son situaciones que encontramos habitualmente en empresas B2B como la tuya. Describen el tipo de problema en el que intervenimos. 01 Pipeline fuera de control El estado real de cada oportunidad no está disponible para dirección sin pedirlo. Nadie opera sobre una visión completa del pipeline. 02 Propuestas y presupuestos manuales Cada oferta se construye desde cero, se copia de otra, se envía por correo y se persigue para firmar. El ciclo depende del recuerdo. 03 Comercial gestiona su propia administración El tiempo del equipo comercial se consume en rellenar sistemas, no en relación con el cliente. La estructura crece al ritmo de los ingresos. 04 Ingresos sin visibilidad No se puede responder con criterio a cuánto se facturará, qué está parado ni dónde se pierde margen entre oportunidad y cobro. 05 Handoff roto entre ventas y entrega Lo vendido y lo entregado no coinciden porque el traspaso depende de mensajes sueltos y de personas concretas. 06 Cobro dependiente del recordatorio El ingreso no se cierra al firmar, sino cuando alguien recuerda perseguirlo. La tesorería se gestiona reactivamente. / Resultado de la intervención Lo que se restablece al intervenir. /0. 1 Control sobre el ingreso Dirección opera con visibilidad real del pipeline sin pedir informes. /0. 2 Ciclos más cortos La fricción administrativa deja de estar dentro del ciclo comercial. /0. 3 Estructura sin depender de personas El proceso sigue funcionando aunque cambie un comercial o un gestor. ¿Intervenir en revenue operations ? Hablemos 30 minutos / Otras áreas de intervención Volver al inicio / 02 Internal Operations / 03 Administrative Operations / 04 Executive Intelligence Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/areas/internal-operations",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/areas/internal-operations",
+      "title": "Internal Operations | Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/areas/internal-operations"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Coordinación, asignación de trabajo, entregas, documentación y control.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Internal Operations | Valme Solutions",
+        "og:description": "Coordinación, asignación de trabajo, entregas, documentación y control.",
+        "og:url": "https://www.valmesolutions.com/areas/internal-operations",
+        "og:type": "website",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Internal Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Diagnóstico"
+        },
+        {
+          "level": "h3",
+          "text": "Estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Construcción"
+        },
+        {
+          "level": "h3",
+          "text": "Adopción"
+        },
+        {
+          "level": "h2",
+          "text": "Cómo se manifiesta la exposición en internal operations."
+        },
+        {
+          "level": "h3",
+          "text": "El trabajo se asigna en reuniones"
+        },
+        {
+          "level": "h3",
+          "text": "Dependencia de una sola persona"
+        },
+        {
+          "level": "h3",
+          "text": "Información duplicada en varios sistemas"
+        },
+        {
+          "level": "h3",
+          "text": "Entregas sin trazabilidad"
+        },
+        {
+          "level": "h3",
+          "text": "Documentación dispersa"
+        },
+        {
+          "level": "h3",
+          "text": "Crecimiento sin sistema"
+        },
+        {
+          "level": "h2",
+          "text": "Lo que se restablece al intervenir."
+        },
+        {
+          "level": "h3",
+          "text": "Operación que no depende de personas"
+        },
+        {
+          "level": "h3",
+          "text": "Visibilidad de la ejecución"
+        },
+        {
+          "level": "h3",
+          "text": "Crecimiento sin proporcionalidad"
+        },
+        {
+          "level": "h2",
+          "text": "¿Intervenir en internal operations?"
+        },
+        {
+          "level": "h3",
+          "text": "Revenue Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Administrative Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Executive Intelligence"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Internal Operations | Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Intervención / Internal Operations Internal Operations Coordinación, asignación de trabajo, entregas, documentación y control. Intervenimos la operativa interna por la que el trabajo se asigna, se ejecuta, se entrega y se controla. Donde cada nuevo encargo exige reunión, correo y recordatorio, construimos el sistema que sostiene la operación sin depender de la improvisación. / The Valme Mandate / 01 Diagnóstico Auditamos cómo funciona hoy esta capa de tu operación. / 02 Estrategia Definimos qué debe hacer la tecnología para que vendas y entregues mejor. / 03 Construcción Integramos herramientas y automatización a medida. / 04 Adopción Formamos al equipo hasta que lo usa sin esfuerzo. / Escenarios Cómo se manifiesta la exposición en internal operations . Los siguientes escenarios son situaciones que encontramos habitualmente en empresas B2B como la tuya. Describen el tipo de problema en el que intervenimos. 01 El trabajo se asigna en reuniones Cada encargo requiere coordinación presencial para repartirlo. No existe un sistema de asignación: existe una conversación. 02 Dependencia de una sola persona Una operación crítica descansa sobre el conocimiento de alguien concreto. Si esa persona falla, la operación se detiene. 03 Información duplicada en varios sistemas El mismo dato se introduce en tres herramientas distintas. La versión correcta no es evidente y los errores se acumulan. 04 Entregas sin trazabilidad No se puede reconstruir el estado real de un encargo sin preguntar. Lo entregado y lo comprometido no siempre coinciden. 05 Documentación dispersa Los documentos viven en correos, en carpetas locales y en mensajería. El conocimiento de la operación no está documentado. 06 Crecimiento sin sistema Cada nuevo cliente obliga a aumentar estructura casi al mismo ritmo. La operación no escala porque no está sistematizada. / Resultado de la intervención Lo que se restablece al intervenir. /0. 1 Operación que no depende de personas El sistema sigue ejecutándose aunque cambien los responsables. /0. 2 Visibilidad de la ejecución El estado del trabajo está disponible sin perseguirlo por correo. /0. 3 Crecimiento sin proporcionalidad Atender más volumen no exige sumar estructura al mismo ritmo. ¿Intervenir en internal operations ? Hablemos 30 minutos / Otras áreas de intervención Volver al inicio / 01 Revenue Operations / 03 Administrative Operations / 04 Executive Intelligence Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/areas/administrative-operations",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/areas/administrative-operations",
+      "title": "Administrative Operations | Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/areas/administrative-operations"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Facturación, cobros, conciliación, aprobaciones y gestión documental.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Administrative Operations | Valme Solutions",
+        "og:description": "Facturación, cobros, conciliación, aprobaciones y gestión documental.",
+        "og:url": "https://www.valmesolutions.com/areas/administrative-operations",
+        "og:type": "website",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Administrative Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Diagnóstico"
+        },
+        {
+          "level": "h3",
+          "text": "Estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Construcción"
+        },
+        {
+          "level": "h3",
+          "text": "Adopción"
+        },
+        {
+          "level": "h2",
+          "text": "Cómo se manifiesta la exposición en administrative operations."
+        },
+        {
+          "level": "h3",
+          "text": "Cierre contable manual"
+        },
+        {
+          "level": "h3",
+          "text": "Facturas procesadas una a una"
+        },
+        {
+          "level": "h3",
+          "text": "Aprobaciones por correo"
+        },
+        {
+          "level": "h3",
+          "text": "Conciliación reactiva"
+        },
+        {
+          "level": "h3",
+          "text": "Cobros gestionados por la memoria"
+        },
+        {
+          "level": "h3",
+          "text": "Cumplimiento documental costoso"
+        },
+        {
+          "level": "h2",
+          "text": "Lo que se restablece al intervenir."
+        },
+        {
+          "level": "h3",
+          "text": "Cierre más rápido"
+        },
+        {
+          "level": "h3",
+          "text": "Trazabilidad total"
+        },
+        {
+          "level": "h3",
+          "text": "Detección temprana"
+        },
+        {
+          "level": "h2",
+          "text": "¿Intervenir en administrative operations?"
+        },
+        {
+          "level": "h3",
+          "text": "Revenue Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Internal Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Executive Intelligence"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Administrative Operations | Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Intervención / Administrative Operations Administrative Operations Facturación, cobros, conciliación, aprobaciones y gestión documental. Intervenimos la capa administrativa que sostiene el cumplimiento de la compañía. Donde el cierre, la facturación y los cobros se gestionan con hojas y recordatorios, restauramos gobierno sobre el flujo documental y financiero. / The Valme Mandate / 01 Diagnóstico Auditamos cómo funciona hoy esta capa de tu operación. / 02 Estrategia Definimos qué debe hacer la tecnología para que vendas y entregues mejor. / 03 Construcción Integramos herramientas y automatización a medida. / 04 Adopción Formamos al equipo hasta que lo usa sin esfuerzo. / Escenarios Cómo se manifiesta la exposición en administrative operations . Los siguientes escenarios son situaciones que encontramos habitualmente en empresas B2B como la tuya. Describen el tipo de problema en el que intervenimos. 01 Cierre contable manual El cierre de periodo consume semanas de trabajo intensivo porque se reconstruye a mano cada vez, no porque sea complejo. 02 Facturas procesadas una a una La entrada de facturas, albaranes y abonos depende de transcripción manual. El error no es excepción: es consecuencia del método. 03 Aprobaciones por correo Las solicitudes se persiguen, se aprueban en cadena de mensajes y se registran después. La traza no existe mientras se ejecuta. 04 Conciliación reactiva Los movimientos se cuadran tarde, cuando ya hay un problema. La detección de desviaciones llega después del impacto. 05 Cobros gestionados por la memoria El seguimiento de impagados depende de quien recuerda insistir. La tesorería no está bajo control, está bajo costumbre. 06 Cumplimiento documental costoso La preparación de auditorías, certificaciones y archivos consume un coste desproporcionado respecto al valor que aporta. / Resultado de la intervención Lo que se restablece al intervenir. /0. 1 Cierre más rápido El cierre deja de ser un evento intensivo y pasa a ser un estado del sistema. /0. 2 Trazabilidad total Cada aprobación, factura y movimiento queda registrado en el momento. /0. 3 Detección temprana Las desviaciones se ven antes de que se conviertan en un incidente. ¿Intervenir en administrative operations ? Hablemos 30 minutos / Otras áreas de intervención Volver al inicio / 01 Revenue Operations / 02 Internal Operations / 04 Executive Intelligence Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/areas/executive-intelligence",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/areas/executive-intelligence",
+      "title": "Executive Intelligence | Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/areas/executive-intelligence"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Información, alertas, desviaciones, previsiones y control para dirección.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Executive Intelligence | Valme Solutions",
+        "og:description": "Información, alertas, desviaciones, previsiones y control para dirección.",
+        "og:url": "https://www.valmesolutions.com/areas/executive-intelligence",
+        "og:type": "website",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Executive Intelligence"
+        },
+        {
+          "level": "h3",
+          "text": "Diagnóstico"
+        },
+        {
+          "level": "h3",
+          "text": "Estrategia"
+        },
+        {
+          "level": "h3",
+          "text": "Construcción"
+        },
+        {
+          "level": "h3",
+          "text": "Adopción"
+        },
+        {
+          "level": "h2",
+          "text": "Cómo se manifiesta la exposición en executive intelligence."
+        },
+        {
+          "level": "h3",
+          "text": "Varias reuniones para entender el estado"
+        },
+        {
+          "level": "h3",
+          "text": "Decisiones con datos antiguos"
+        },
+        {
+          "level": "h3",
+          "text": "Sin alertas sobre desviaciones"
+        },
+        {
+          "level": "h3",
+          "text": "Previsiones basadas en intuición"
+        },
+        {
+          "level": "h3",
+          "text": "Dirección sin visibilidad de capacidad"
+        },
+        {
+          "level": "h3",
+          "text": "Información fragmentada por departamento"
+        },
+        {
+          "level": "h2",
+          "text": "Lo que se restablece al intervenir."
+        },
+        {
+          "level": "h3",
+          "text": "Decisión con criterio"
+        },
+        {
+          "level": "h3",
+          "text": "Alerta antes que reacción"
+        },
+        {
+          "level": "h3",
+          "text": "Una sola versión de la operación"
+        },
+        {
+          "level": "h2",
+          "text": "¿Intervenir en executive intelligence?"
+        },
+        {
+          "level": "h3",
+          "text": "Revenue Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Internal Operations"
+        },
+        {
+          "level": "h3",
+          "text": "Administrative Operations"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Executive Intelligence | Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Intervención / Executive Intelligence Executive Intelligence Información, alertas, desviaciones, previsiones y control para dirección. Intervenimos el sistema por el que la dirección conoce qué ocurre en la organización. Donde entender el estado real del negocio exige varias reuniones, construimos el gobierno de información que permite decidir con criterio. / The Valme Mandate / 01 Diagnóstico Auditamos cómo funciona hoy esta capa de tu operación. / 02 Estrategia Definimos qué debe hacer la tecnología para que vendas y entregues mejor. / 03 Construcción Integramos herramientas y automatización a medida. / 04 Adopción Formamos al equipo hasta que lo usa sin esfuerzo. / Escenarios Cómo se manifiesta la exposición en executive intelligence . Los siguientes escenarios son situaciones que encontramos habitualmente en empresas B2B como la tuya. Describen el tipo de problema en el que intervenimos. 01 Varias reuniones para entender el estado Comprender qué ocurre exige convocar, preguntar y reconstruir. La información no está disponible: se solicita. 02 Decisiones con datos antiguos Los informes llegan con días o semanas de retraso. La decisión se toma sobre el pasado, no sobre la situación actual. 03 Sin alertas sobre desviaciones La organización reacciona cuando el impacto ya se ha producido. No existen avisos sobre lo que se sale de patrón. 04 Previsiones basadas en intuición Las previsiones se construyen sobre suposiciones optimistas, no sobre el comportamiento real del negocio. 05 Dirección sin visibilidad de capacidad No se sabe con criterio cuánta carga soporta la operación, dónde está el cuello ni cuándo se romperá. 06 Información fragmentada por departamento Cada área mantiene su versión de la realidad. La dirección integra manualmente lo que el sistema debería integrar. / Resultado de la intervención Lo que se restablece al intervenir. /0. 1 Decisión con criterio La dirección opera sobre la situación actual, no sobre reconstrucciones tardías. /0. 2 Alerta antes que reacción Las desviaciones se detectan cuando aún se pueden corregir. /0. 3 Una sola versión de la operación La información deja de ser territorio de cada departamento. ¿Intervenir en executive intelligence ? Hablemos 30 minutos / Otras áreas de intervención Volver al inicio / 01 Revenue Operations / 02 Internal Operations / 03 Administrative Operations Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/casos/ceo-sin-visibilidad-marketing",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/casos/ceo-sin-visibilidad-marketing",
+      "title": "El CEO que dejó de preguntar en qué se iba el dinero de marketing | Casos de éxito · Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/casos/ceo-sin-visibilidad-marketing"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Invertía todos los meses y solo recibía un informe con impresiones y alcance. Montamos la medición y el panel que le dicen qué entra, por dónde y a qué coste.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "El CEO que dejó de preguntar en qué se iba el dinero de marketing | Casos de éxito · Valme Solutions",
+        "og:description": "Invertía todos los meses y solo recibía un informe con impresiones y alcance. Montamos la medición y el panel que le dicen qué entra, por dónde y a qué coste.",
+        "og:url": "https://www.valmesolutions.com/casos/ceo-sin-visibilidad-marketing",
+        "og:type": "article",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "El CEO que dejó de preguntar en qué se iba el dinero de marketing"
+        },
+        {
+          "level": "h2",
+          "text": "La intervención, paso a paso."
+        },
+        {
+          "level": "h2",
+          "text": "En qué se tradujo."
+        },
+        {
+          "level": "h2",
+          "text": "¿Tu empresa se parece a esta?"
+        },
+        {
+          "level": "h3",
+          "text": "Su mejor canal era el que menos leads traía"
+        },
+        {
+          "level": "h3",
+          "text": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [
+        {
+          "src": "/assets/stock/working.jpg",
+          "alt": ""
+        }
+      ],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "El CEO que dejó de preguntar en qué se iba el dinero de marketing | Casos de éxito · Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Casos de éxito / 01 Servicios B2B · 35 personas · Dirección general El CEO que dejó de preguntar en qué se iba el dinero de marketing Invertía todos los meses y solo recibía un informe con impresiones y alcance. Montamos la medición y el panel que le dicen qué entra, por dónde y a qué coste. / El punto de partida El gerente llevaba dos años invirtiendo en marketing y no sabía decir si funcionaba. Cada mes recibía un informe lleno de impresiones, alcance y crecimiento de seguidores, y ni una sola línea sobre lo único que le importaba: cuántas oportunidades reales habían entrado y cuánto le había costado cada una. Los formularios de la web caían en un correo compartido, los de LinkedIn los descargaba alguien a mano y las llamadas no se registraban en ningún sitio. Cuando su socio le preguntaba cuánto de la facturación venía de marketing, la respuesta honesta era que no lo sabía. Así que decidía por sensación: recortaba donde le parecía caro y subía donde le habían dicho que había que estar. / Qué hicimos La intervención, paso a paso. 01 Auditamos qué se estaba midiendo y encontramos que casi nada llegaba al CRM 02 Montamos el seguimiento de punta a punta: anuncio, web, formulario, llamada y oportunidad 03 Unificamos los leads de todos los canales en una sola entrada, sin descargas manuales 04 Conectamos el CRM para que cada oportunidad arrastre de dónde vino 05 Construimos un panel de dirección con gasto, leads, coste por lead y cierres 06 Fijamos una revisión mensual de 45 minutos con los datos delante / El resultado En qué se tradujo. Sabe cada semana cuánto ha invertido y cuántas oportunidades ha traído El coste por oportunidad dejó de ser una incógnita y pasó a ser un objetivo Las decisiones de presupuesto se toman sobre la tabla, no sobre la sensación Puede responder a su socio cuánta facturación viene de marketing, con el dato Dejó de pagar dos canales que no habían traído ni una sola oportunidad ¿Tu empresa se parece a esta? Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra y por dónde empezaríamos. Hablemos 30 minutos / Otros casos de éxito Volver al inicio / 02 Su mejor canal era el que menos leads traía Industrial B2B · Ticket alto · Ciclo de venta largo / 03 Empezaron de cero: paid para vender ya, SEO para dejar de depender de él B2B de servicios · Sin presencia previa · Arranque Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/casos/atribucion-canal-rentable",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/casos/atribucion-canal-rentable",
+      "title": "Su mejor canal era el que menos leads traía | Casos de éxito · Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/casos/atribucion-canal-rentable"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "Optimizaban el canal que más volumen daba. Al medir hasta el cierre resultó ser el que menos vendía, y el presupuesto se movió al que sí.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Su mejor canal era el que menos leads traía | Casos de éxito · Valme Solutions",
+        "og:description": "Optimizaban el canal que más volumen daba. Al medir hasta el cierre resultó ser el que menos vendía, y el presupuesto se movió al que sí.",
+        "og:url": "https://www.valmesolutions.com/casos/atribucion-canal-rentable",
+        "og:type": "article",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Su mejor canal era el que menos leads traía"
+        },
+        {
+          "level": "h2",
+          "text": "La intervención, paso a paso."
+        },
+        {
+          "level": "h2",
+          "text": "En qué se tradujo."
+        },
+        {
+          "level": "h2",
+          "text": "¿Tu empresa se parece a esta?"
+        },
+        {
+          "level": "h3",
+          "text": "El CEO que dejó de preguntar en qué se iba el dinero de marketing"
+        },
+        {
+          "level": "h3",
+          "text": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [
+        {
+          "src": "/assets/stock/case-ia.jpg",
+          "alt": ""
+        }
+      ],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Su mejor canal era el que menos leads traía | Casos de éxito · Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Casos de éxito / 02 Industrial B2B · Ticket alto · Ciclo de venta largo Su mejor canal era el que menos leads traía Optimizaban el canal que más volumen daba. Al medir hasta el cierre resultó ser el que menos vendía, y el presupuesto se movió al que sí. / El punto de partida Repartían el presupuesto por intuición y por volumen: el canal que más formularios traía se llevaba la mayor parte, porque parecía el que funcionaba. El problema es que nadie había mirado nunca qué pasaba con esos contactos después. El equipo comercial se quejaba de que la mayoría no tenían ni presupuesto ni proyecto, pero esa queja no llegaba nunca a la decisión de inversión. Mientras tanto, otro canal traía bastantes menos contactos, no llamaba la atención de nadie en el informe mensual y llevaba meses infrafinanciado. Estaban optimizando para conseguir más de lo que no vendía. / Qué hicimos La intervención, paso a paso. 01 Medimos cada canal hasta el final: no hasta el lead, sino hasta el contrato firmado 02 Cruzamos seis meses de histórico entre campañas y oportunidades cerradas del CRM 03 Calculamos coste por oportunidad cualificada y por cliente, canal a canal 04 Salió a la luz que el canal de más volumen tenía la peor tasa de cierre con diferencia 05 Movimos el peso del presupuesto al canal que sí traía clientes 06 Rehicimos los anuncios y la landing del canal bueno, que llevaba meses sin tocarse 07 Cambiamos el informe mensual: de volumen de leads a coste por cliente / El resultado En qué se tradujo. El presupuesto dejó de premiar el volumen y pasó a premiar el cierre El equipo comercial recibe menos contactos y bastantes más aprovechables El coste por cliente bajó sin subir ni un euro la inversión total Las campañas se juzgan por lo que facturan, no por lo que aparentan Se dejó de invertir en un canal que llevaba un año pareciendo el mejor ¿Tu empresa se parece a esta? Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra y por dónde empezaríamos. Hablemos 30 minutos / Otros casos de éxito Volver al inicio / 01 El CEO que dejó de preguntar en qué se iba el dinero de marketing Servicios B2B · 35 personas · Dirección general / 03 Empezaron de cero: paid para vender ya, SEO para dejar de depender de él B2B de servicios · Sin presencia previa · Arranque Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    },
+    {
+      "url": "https://www.valmesolutions.com/casos/paid-con-seo-desde-cero",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/casos/paid-con-seo-desde-cero",
+      "title": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él | Casos de éxito · Valme Solutions",
+      "canonical": ["https://www.valmesolutions.com/casos/paid-con-seo-desde-cero"],
+      "robots_header": null,
+      "meta": {
+        "": "",
+        "viewport": "width=device-width, initial-scale=1",
+        "description": "No tenían nada montado. Paid para que entraran oportunidades desde el primer mes y SEO en paralelo para que sigan entrando el día que se apague la inversión.",
+        "author": "Valme Solutions",
+        "robots": "index, follow",
+        "og:title": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él | Casos de éxito · Valme Solutions",
+        "og:description": "No tenían nada montado. Paid para que entraran oportunidades desde el primer mes y SEO en paralelo para que sigan entrando el día que se apague la inversión.",
+        "og:url": "https://www.valmesolutions.com/casos/paid-con-seo-desde-cero",
+        "og:type": "article",
+        "twitter:card": "summary_large_image",
+        "twitter:title": "Valme Solutions | Tu departamento de marketing, sin montarlo",
+        "twitter:description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+        "twitter:image": "https://www.valmesolutions.com/assets/airplane_pov_realistic_sunset.png"
+      },
+      "headings": [
+        {
+          "level": "h1",
+          "text": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él"
+        },
+        {
+          "level": "h2",
+          "text": "La intervención, paso a paso."
+        },
+        {
+          "level": "h2",
+          "text": "En qué se tradujo."
+        },
+        {
+          "level": "h2",
+          "text": "¿Tu empresa se parece a esta?"
+        },
+        {
+          "level": "h3",
+          "text": "El CEO que dejó de preguntar en qué se iba el dinero de marketing"
+        },
+        {
+          "level": "h3",
+          "text": "Su mejor canal era el que menos leads traía"
+        },
+        {
+          "level": "h4",
+          "text": "Casos"
+        },
+        {
+          "level": "h4",
+          "text": "También hacemos"
+        },
+        {
+          "level": "h4",
+          "text": "Empresa"
+        },
+        {
+          "level": "h3",
+          "text": "Solicitar una revisión privada"
+        }
+      ],
+      "links": [
+        "/",
+        "/#casos",
+        "/#contacto",
+        "/#intervencion",
+        "/#mandato",
+        "/#tesis",
+        "/areas/administrative-operations",
+        "/areas/executive-intelligence",
+        "/areas/internal-operations",
+        "/areas/revenue-operations",
+        "/casos/atribucion-canal-rentable",
+        "/casos/ceo-sin-visibilidad-marketing",
+        "/casos/paid-con-seo-desde-cero",
+        "https://www.linkedin.com/company/valme-solutions"
+      ],
+      "images": [
+        {
+          "src": "/assets/stock/case-publicidad.jpg",
+          "alt": ""
+        }
+      ],
+      "schema": [
+        {
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "name": "Valme Solutions",
+          "url": "https://www.valmesolutions.com",
+          "logo": "https://www.valmesolutions.com/favicon.svg",
+          "description": "Un equipo de marketing 360 que se integra en tu pyme B2B. Las ocho funciones activas, un solo contrato y un solo interlocutor.",
+          "sameAs": ["https://www.linkedin.com/company/valme-solutions"],
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "email": "hola@valmesolutions.com",
+            "telephone": "+34600412492"
+          }
+        }
+      ],
+      "text": "Empezaron de cero: paid para vender ya, SEO para dejar de depender de él | Casos de éxito · Valme Solutions Qué cubre Qué somos Casos Cómo trabajamos Hablemos 30 minutos Qué cubre Qué somos Casos Cómo trabajamos Contacto Valme Solutions — Tu departamento de marketing Valme / Casos de éxito / 03 B2B de servicios · Sin presencia previa · Arranque Empezaron de cero: paid para vender ya, SEO para dejar de depender de él No tenían nada montado. Paid para que entraran oportunidades desde el primer mes y SEO en paralelo para que sigan entrando el día que se apague la inversión. / El punto de partida Vendían bien por recomendación y por la agenda de los socios, pero esa vía tenía techo y ellos lo sabían. No había web que convirtiera, ni medición, ni un sitio donde aterrizaran los contactos. El riesgo de arrancar solo con paid era evidente: funciona desde el primer día, pero el día que dejas de pagar se acaba, y cuanto más creces con él más caro se vuelve depender de él. El riesgo de arrancar solo con SEO era el contrario: es lo único que sigue trayendo clientes cuando cierras el grifo, pero tarda meses en dar señales y no aguantaban ese silencio. / Qué hicimos La intervención, paso a paso. 01 Definimos el mensaje y la propuesta de valor antes de gastar un euro en tráfico 02 Montamos web y landings pensadas para convertir, no para lucir 03 Instalamos medición y CRM desde el primer día, antes de encender campañas 04 Arrancamos paid acotado a las búsquedas de intención clara de compra 05 En paralelo, atacamos con contenido y SEO las mismas búsquedas que compraba el paid 06 Usamos los datos del paid para saber qué palabras merecían contenido propio 07 Montamos el circuito de leads: entra, se cualifica, se asigna y se persigue solo / El resultado En qué se tradujo. Oportunidades entrando desde el primer mes gracias al paid El contenido empezó a traer tráfico propio antes de acabar el arranque El paid se usó también como laboratorio: qué mensaje funciona antes de escribirlo A medida que el SEO sube, el coste de captación deja de depender de la inversión Dejaron de crecer solo por recomendación y por la agenda de los socios ¿Tu empresa se parece a esta? Nos cuentas cómo está tu marketing hoy y te decimos qué falta, qué sobra y por dónde empezaríamos. Hablemos 30 minutos / Otros casos de éxito Volver al inicio / 01 El CEO que dejó de preguntar en qué se iba el dinero de marketing Servicios B2B · 35 personas · Dirección general / 02 Su mejor canal era el que menos leads traía Industrial B2B · Ticket alto · Ciclo de venta largo Valme Solutions — Tu departamento de marketing, sin necesidad de montarlo.\nOcho funciones siempre activas, un solo contrato y un solo interlocutor. LinkedIn Contactar Casos Un CEO sin visibilidad El canal que sí vendía Paid con SEO desde cero También hacemos Revenue Operations Internal Operations Administrative Operations Executive Intelligence Empresa Qué cubre Cómo trabajamos Hablemos 30 minutos WhatsApp Solicitar una revisión privada Va a hablar con Jesús, que dirige Valme Solutions y responde personalmente por cada mandato admitido. Será dirigido a WhatsApp para concretar la revisión. Sí, abrir WhatsApp Cancelar"
+    }
+  ],
+  "checks": [
+    {
+      "url": "http://valmesolutions.com",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/"
+    },
+    {
+      "url": "https://valmesolutions.com",
+      "status": 200,
+      "final_url": "https://www.valmesolutions.com/"
+    },
+    {
+      "url": "https://www.valmesolutions.com/valme-pilot-not-found-check",
+      "status": 404,
+      "final_url": "https://www.valmesolutions.com/valme-pilot-not-found-check"
+    }
+  ]
+}
