@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { runFindingProbe } from "./agent-run.server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -21,6 +23,17 @@ function createStore(client: unknown) {
   // Runtime identity is unchanged; this narrows the generated schema view to staging audit tables.
   return createSupabaseSeoAuditStore(client as SupabaseClient<SeoAuditDatabase>);
 }
+
+export const runFindingAgent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ actionId: z.uuid() }).strict().parse(input))
+  .handler(async ({ data, context }) =>
+    runFindingProbe(
+      context.supabase as unknown as SupabaseClient<SeoAuditDatabase>,
+      context.userId,
+      data.actionId,
+    ),
+  );
 
 export const listSeoAudits = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
