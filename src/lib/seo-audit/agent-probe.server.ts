@@ -59,7 +59,6 @@ export async function probeHomepage(domain: string): Promise<string> {
         method: "GET",
         agent: false,
         family: 4,
-        autoSelectFamily: false,
         lookup: (_host, _options, callback) => callback(null, address, 4),
         headers: {
           "user-agent": "VALME-Staging-Probe/1.0",

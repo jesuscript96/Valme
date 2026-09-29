@@ -5,13 +5,13 @@ import type { SeoAuditDatabase } from "./repository.server";
 import { runFindingProbe } from "./agent-run.server";
 
 test("agent fails closed before touching storage when remote mode is off", async () => {
-  const previous = process.env.SEO_AUDIT_REMOTE_ENABLED;
-  process.env.SEO_AUDIT_REMOTE_ENABLED = "false";
+  const previous = process.env["SEO_AUDIT_REMOTE_ENABLED"];
+  process.env["SEO_AUDIT_REMOTE_ENABLED"] = "false";
   try {
     await assert.rejects(runFindingProbe({} as SupabaseClient<SeoAuditDatabase>, "user", "action"));
   } finally {
-    if (previous === undefined) delete process.env.SEO_AUDIT_REMOTE_ENABLED;
-    else process.env.SEO_AUDIT_REMOTE_ENABLED = previous;
+    if (previous === undefined) delete process.env["SEO_AUDIT_REMOTE_ENABLED"];
+    else process.env["SEO_AUDIT_REMOTE_ENABLED"] = previous;
   }
 });
 
