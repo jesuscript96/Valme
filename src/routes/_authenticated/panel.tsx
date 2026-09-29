@@ -15,6 +15,7 @@ import {
   setSeoClientArchived,
   transitionSeoAudit,
   updateFindingAction,
+  runFindingAgent,
 } from "@/lib/seo-audit/repository.functions";
 import { publicSeoAuditErrorMessage } from "@/lib/seo-audit/public-errors";
 
@@ -30,6 +31,7 @@ const SEO_AUDIT_ACTIONS = [
   "reviewFinding",
   "createAction",
   "updateAction",
+  "runAgent",
 ] as const;
 
 type SeoAuditBridgeRequest = {
@@ -82,6 +84,7 @@ function V2Frame() {
   const reviewFinding = useServerFn(reviewSeoFinding);
   const createAction = useServerFn(createFindingAction);
   const updateAction = useServerFn(updateFindingAction);
+  const runAgent = useServerFn(runFindingAgent);
   const frameRef = useRef<HTMLIFrameElement>(null);
   const q = useQuery({
     queryKey: ["v2-shell"],
@@ -145,6 +148,7 @@ function V2Frame() {
         if (request.action === "updateAction") {
           data = await updateAction({ data: request.payload });
         }
+        if (request.action === "runAgent") data = await runAgent({ data: request.payload });
         target.postMessage(
           { channel: SEO_AUDIT_CHANNEL, kind: "response", id: request.id, ok: true, data },
           window.location.origin,
@@ -168,6 +172,7 @@ function V2Frame() {
   }, [
     addClient,
     createAction,
+    runAgent,
     createDraft,
     importReview,
     loadWorkspace,

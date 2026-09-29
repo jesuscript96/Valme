@@ -463,6 +463,7 @@
       reviewFinding: (input) => write("reviewFinding", input),
       createAction: (input) => write("createAction", input),
       updateAction: (input) => write("updateAction", input),
+      runAgent: (input) => write("runAgent", input),
       team,
       projects: projectOptions,
       clients: clientList,

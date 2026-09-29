@@ -575,6 +575,8 @@ function seoAuditActionRow(action, locked) {
     ? ""
     : `<p class="v-small"><b>${action.status === "hecha" ? "Conclusión" : "Cancelada"}:</b> ${safe(action.conclusion || "Sin comentario")}${action.outcome ? ` → hallazgo marcado como <b>${safe(SEO_FINDING_DECISIONS[action.outcome])}</b>` : ""}</p><p class="v-small v-muted">Cerrada por ${safe(action.closedBy || "—")} · ${safe(action.closedAt || "")}</p>`;
   return `<div class="v-action-row" id="tarea-${safe(action.id)}">
+    ${!locked && action.kind === "investigacion" && action.status === "pendiente" ? `<button data-seo-run-agent="${safe(action.id)}">Probar agente HTTP VALME</button>` : ""}
+    ${action.open && action.conclusion ? `<p class="v-small">${safe(action.conclusion)}</p>` : ""}
     <div class="v-flex">${tag(action.kindLabel)}${tag(action.overdue ? "Vencida" : action.statusLabel, action.overdue ? "bad" : SEO_ACTION_STATUS_TONE[action.status])}</div>
     <strong>${safe(action.title)}</strong>
     <p class="v-small">${safe(action.detail)}</p>
@@ -864,6 +866,21 @@ root.addEventListener("click", async (event) => {
   const button = event.target.closest("button");
   if (!button) return;
   const data = button.dataset;
+  if (data.seoRunAgent) {
+    button.disabled = true;
+    button.textContent = "Comprobando portada…";
+    try {
+      await seoAuditRepository.runAgent({ actionId: data.seoRunAgent });
+      await seoAuditLoadRepository(
+        "Prueba completada. Revisa la evidencia; la tarea sigue en curso.",
+      );
+    } catch (error) {
+      await seoAuditLoadRepository("No se pudo completar la prueba. Revisa el estado de la tarea.");
+    } finally {
+      button.disabled = false;
+    }
+    return;
+  }
   if (data.seoNew !== undefined) {
     seoAuditCreating = true;
     seoAuditCurrent = null;
