@@ -416,7 +416,8 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
         .select(
           "id, audit_id, url_or_resource, source, observed_at, collection_method, observed_data, contains_external_untrusted_data",
         )
-        .order("observed_at");
+        .order("observed_at")
+        .order("created_at");
       if (error) throwStoreError("listar evidencias", error);
       return data;
     },
@@ -448,25 +449,37 @@ export function createSupabaseSeoAuditStore(supabase: SupabaseClient<Database>):
       return data;
     },
 
+    // Una fila por petición: cada una recibe su propio created_at y la revisión conserva su
+    // orden (H-01, E-01…). La importación es idempotente, así que un fallo a medias se
+    // completa al repetirla.
     async insertEvidence(rows) {
-      if (!rows.length) return [];
-      const { data, error } = await supabase
-        .from("seo_audit_evidence")
-        .insert(rows)
-        .select("id, url_or_resource");
-      if (error)
-        throwArtifactError("registrar evidencias", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
-      return data;
+      const inserted = [];
+      for (const row of rows) {
+        const { data, error } = await supabase
+          .from("seo_audit_evidence")
+          .insert(row)
+          .select("id, url_or_resource")
+          .single();
+        if (error)
+          throwArtifactError("registrar evidencias", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+        inserted.push(data);
+      }
+      return inserted;
     },
 
     async insertFindings(rows) {
-      const { data, error } = await supabase
-        .from("seo_audit_findings")
-        .insert(rows)
-        .select("id, title");
-      if (error)
-        throwArtifactError("registrar hallazgos", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
-      return data;
+      const inserted = [];
+      for (const row of rows) {
+        const { data, error } = await supabase
+          .from("seo_audit_findings")
+          .insert(row)
+          .select("id, title")
+          .single();
+        if (error)
+          throwArtifactError("registrar hallazgos", error, SEO_AUDIT_PUBLIC_ERRORS.auditLocked);
+        inserted.push(data);
+      }
+      return inserted;
     },
 
     async linkFindingEvidence(rows) {

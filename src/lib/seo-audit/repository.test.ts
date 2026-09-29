@@ -222,6 +222,83 @@ describe("SEO audit browser repository", () => {
     assert.equal(repository.status().source, "remote");
   });
 
+  it("keeps finding references stable when the database returns ties in another order", async () => {
+    const api = loadApi();
+    const audit = {
+      id: "10000000-0000-4000-8000-000000000001",
+      project_id: "40000000-0000-4000-8000-000000000001",
+      client_id: "30000000-0000-4000-8000-000000000001",
+      primary_domain: "example.test",
+      state: "borrador",
+      service_ids: ["seo_tecnico"],
+      requested_capability_ids: [],
+      markets: ["España"],
+      languages: ["es"],
+      created_at: "2026-09-26T00:00:00.000Z",
+      updated_at: "2026-09-26T00:00:00.000Z",
+      max_pages: 100,
+      max_duration_minutes: 30,
+      max_cost_amount: 0,
+      currency: "EUR",
+      authorized_scope: { includedDomains: ["example.test"], includedPaths: ["/"] },
+      transition_reason: null,
+    };
+    const batch = "2026-09-28T12:00:00.000Z";
+    const finding = (id: string, title: string, priority: string, created_at = batch) => ({
+      id,
+      audit_id: audit.id,
+      category: "contenido",
+      title,
+      description: "",
+      priority,
+      impact: "",
+      recommendation: "",
+      state: "propuesto",
+      confidence: "alta",
+      limitations: [],
+      responsible_name: "Revisión externa",
+      created_at,
+    });
+    const workspace = (findings: unknown[]) => ({
+      audits: [audit],
+      clients: [{ id: audit.client_id, nombre: "Cliente" }],
+      projects: [
+        {
+          id: audit.project_id,
+          client_id: audit.client_id,
+          nombre: "Proyecto",
+          primary_domain: audit.primary_domain,
+        },
+      ],
+      findings,
+    });
+    const page = finding("f1", "Dar una página propia", "alta");
+    const faq = finding("f2", "Resolver preguntas", "media");
+    const heading = finding("f3", "Explicar la oferta", "alta");
+    const later = finding("f4", "Añadido después", "alta", "2026-09-29T09:00:00.000Z");
+    let response = workspace([faq, page, heading, later]);
+    const repository = api.create({
+      mode: api.REMOTE_MODE,
+      key: "unused",
+      seed: [],
+      transport: async () => response,
+    });
+    const refs = async () =>
+      (
+        (await repository.load())[0] as { findings: Array<{ id: string; title: string }> }
+      ).findings.map((item) => `${item.id} ${item.title}`);
+
+    const expected = [
+      "H-01 Dar una página propia",
+      "H-02 Explicar la oferta",
+      "H-03 Resolver preguntas",
+      "H-04 Añadido después",
+    ];
+    assert.deepEqual(await refs(), expected);
+    response = workspace([later, heading, faq, page]);
+    assert.deepEqual(await refs(), expected);
+  });
+
   it("talks to the parent from a srcdoc iframe, whose location.origin is null", async () => {
     const listeners: Array<(event: unknown) => void> = [];
     const posted: Array<{ message: { channel: string }; target: string }> = [];
