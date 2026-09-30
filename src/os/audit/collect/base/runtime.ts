@@ -219,10 +219,13 @@ export async function recogerRuntime(
       const forms = Array.from(document.querySelectorAll("form"));
       const link = document.querySelector('link[rel="canonical"]');
       const desc = document.querySelector('meta[name="description"]');
+      const robots = document.querySelector('meta[name="robots"]');
       return {
         h1: Array.from(document.querySelectorAll("h1")).map((h) => txt(h).slice(0, 120)),
         canonical: link ? link.href : null,
         descripcion: desc ? desc.content : null,
+        robots: robots ? robots.content : null,
+        lang: document.documentElement.getAttribute("lang") || null,
         hreflang: Array.from(document.querySelectorAll('link[rel="alternate"][hreflang]'))
           .map((l) => l.getAttribute("hreflang")).filter(Boolean),
         jsonLdTipos: Array.from(document.querySelectorAll('script[type="application/ld+json"]'))
@@ -248,6 +251,7 @@ export async function recogerRuntime(
       };
     })()`)) as {
       h1: string[]; canonical: string | null; descripcion: string | null;
+      robots: string | null; lang: string | null;
       hreflang: string[]; jsonLdTipos: string[]; formularios: number;
       campos: { campos: number; obligatorios: number; consentimiento: boolean; destino: string | null }[];
       social: string[]; telefono: boolean; cookies: boolean; palabras: number;
@@ -260,6 +264,9 @@ export async function recogerRuntime(
       pagina.h1.length !== 1 ? "Debería haber exactamente uno" : undefined);
     s("seo.canonical", "Canonical declarada", pagina.canonical, 3);
     s("seo.descripcion", "Meta description", pagina.descripcion, 3);
+    s("seo.title", "Title de la home", titulo.trim() || null, 3);
+    s("seo.meta_robots", "Meta robots", pagina.robots, 3);
+    s("seo.lang", "Idioma declarado en <html lang>", pagina.lang, 3);
     s("seo.hreflang", "Idiomas declarados con hreflang", pagina.hreflang.length ? pagina.hreflang : null, 3);
     s("seo.jsonld", "Tipos de datos estructurados", [...new Set(pagina.jsonLdTipos)], 3);
     s("web.formularios", "Formularios en la home", pagina.formularios, 7);

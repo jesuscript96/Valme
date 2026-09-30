@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { referencias, seoDe } from "@/os/seo";
+import { referencias, rutaAuditoria, seoModulo } from "@/os/seo";
 import { coberturaAccion, editarAlcanceAccion } from "@/os/seo/acciones";
 import { seguimientoAbierto, soloLectura } from "@/os/seo/estados";
 import { SERVICIOS } from "@/os/seo/tipos";
@@ -29,21 +29,21 @@ type Pestaña = (typeof PESTAÑAS)[number][0];
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ client: string; auditoria: string }> }) {
-  const { client, auditoria } = await params;
-  const d = (await seoDe(client)).detalle(auditoria);
+}: { params: Promise<{ auditoria: string }> }) {
+  const { auditoria } = await params;
+  const d = (await seoModulo()).detalle(auditoria);
   return { title: `${d?.auditoria.ref ?? "Auditoría"} · Valme OS` };
 }
 
 export default async function AuditoriaSeo({
   params, searchParams,
 }: {
-  params: Promise<{ client: string; auditoria: string }>;
+  params: Promise<{ auditoria: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const { client: slug, auditoria: id } = await params;
+  const { auditoria: id } = await params;
   const { tab } = await searchParams;
-  const seo = await seoDe(slug);
+  const seo = await seoModulo();
   const d = seo.detalle(id);
   if (!d) notFound();
 
@@ -52,12 +52,14 @@ export default async function AuditoriaSeo({
   const bloqueada = soloLectura(a);
   const refH = referencias(hallazgos, "H");
   const refE = referencias(evidencias, "E");
-  const base = `/app/c/${slug}/seo/${a.id}`;
+  const base = rutaAuditoria(a.id);
+  const cliente = seo.cliente(a.clientId);
+  const pms = seo.pmsDe(a.clientId);
 
   return (
     <>
       <nav className="mb-3 text-[13px] text-os-muted">
-        <Link href={`/app/c/${slug}/seo`} className="hover:text-os-text">SEO · GEO · AEO</Link>
+        <Link href="/app/seo/auditorias" className="hover:text-os-text">Auditorías</Link>
         <span className="mx-1.5 text-os-faint">/</span>
         <span className="os-num">{a.ref}</span>
       </nav>
@@ -66,7 +68,7 @@ export default async function AuditoriaSeo({
         <div>
           <p className="os-num text-[11px] uppercase tracking-wide text-os-faint">{a.ref}</p>
           <h1 className="font-display text-xl font-semibold tracking-tight text-os-text">
-            {seo.scope.client.name} · {proyecto?.nombre ?? "Proyecto"}
+            {cliente?.name ?? "Cliente"} · {proyecto?.nombre ?? "Proyecto"}
           </h1>
           <p className="mt-1 text-[13px] text-os-muted">{a.dominio}</p>
         </div>
@@ -77,7 +79,7 @@ export default async function AuditoriaSeo({
       </header>
 
       <Pista estado={a.estado} />
-      <Decisiones slug={slug} a={a} actor={seo.actor} hallazgos={hallazgos.length} />
+      <Decisiones a={a} actor={seo.actor} hallazgos={hallazgos.length} />
 
       <nav className="mb-5 flex gap-1 overflow-x-auto border-b border-os-border">
         {PESTAÑAS.map(([k, label]) => (
@@ -109,7 +111,7 @@ export default async function AuditoriaSeo({
             <Card>
               <CardHeader title="Contrato" />
               <dl className="grid gap-x-6 gap-y-4 px-4 py-4 text-[13px] sm:grid-cols-2">
-                <Dato k="Cliente / proyecto" v={`${seo.scope.client.name} / ${proyecto?.nombre ?? "—"}`} />
+                <Dato k="Cliente / proyecto" v={`${cliente?.name ?? "—"} / ${proyecto?.nombre ?? "—"}`} />
                 <Dato k="Dominio" v={a.dominio} />
                 <Dato k="Servicios" v={a.servicios.join(" · ")} />
                 <Dato k="Solicitado por" v={`${a.solicitadaPor} · ${fmtDia(a.creadaEn)}`} />
@@ -136,11 +138,10 @@ export default async function AuditoriaSeo({
             </Card>
           </div>
           <ProximasAcciones
-            slug={slug}
             tareas={tareas}
             auditorias={[a]}
             hallazgos={hallazgos}
-            pms={seo.pms}
+            pms={pms}
             refHallazgo={refH}
           />
         </div>
@@ -158,7 +159,7 @@ export default async function AuditoriaSeo({
           {!bloqueada && (a.estado === "borrador" || a.estado === "devuelto") ? (
             <div className="mt-4">
               <Desplegable titulo="Editar alcance">
-                <Formulario accion={editarAlcanceAccion.bind(null, slug, a.id)} boton="Guardar alcance">
+                <Formulario accion={editarAlcanceAccion.bind(null, a.id)} boton="Guardar alcance">
                   <div className="flex flex-wrap gap-4 text-[13px]">
                     {SERVICIOS.map((s) => (
                       <label key={s} className="inline-flex items-center gap-2">
@@ -222,10 +223,9 @@ export default async function AuditoriaSeo({
 
       {pestaña === "hallazgos" ? (
         <Hallazgos
-          slug={slug}
           a={a}
           actor={seo.actor}
-          pms={seo.pms}
+          pms={pms}
           bloqueada={!seguimientoAbierto(a)}
           hallazgos={hallazgos}
           tareas={tareas}
@@ -258,7 +258,7 @@ export default async function AuditoriaSeo({
           </p>
           {!bloqueada ? (
             <Desplegable titulo="Declarar cobertura de un servicio">
-              <Formulario accion={coberturaAccion.bind(null, slug, a.id)} boton="Guardar declaración">
+              <Formulario accion={coberturaAccion.bind(null, a.id)} boton="Guardar declaración">
                 <div className="grid gap-3 sm:grid-cols-2">
                   <Field label="Servicio">
                     <Select name="servicio">

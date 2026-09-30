@@ -1,67 +1,102 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { MEMBERS } from "@/os/data/members";
+import { forClient, listVisibleClients, memberHasAccess } from "@/os/repo";
+import * as seed from "@/os/repo/seed.data";
 import {
   ErrorSeo, actualizarTarea, archivarAuditoria, cambiarEstado, crearAuditoria, crearProyecto,
   crearTarea, declararCobertura, decidirHallazgo, editarAlcance, importarPiloto,
-  registrarEjecucion, registrarSondeo, reservarParaAgente,
+  registrarEjecucion, registrarMedicionGeo, registrarSondeo, reservarParaAgente,
 } from "./herramientas";
-import { seoDe } from "./index";
+import { COOKIE_CLIENTE, rutaAuditoria } from "./index";
 import { guardar, leer } from "./store";
 import type {
   Actor, Datos, Decision, EstadoAuditoria, EstadoTarea, Resultado, TipoTarea,
 } from "./tipos";
 
 /**
- * ESCRITURAS DEL MÓDULO SEO.
+ * ESCRITURAS DEL MÓDULO SEO · GEO · AEO.
  *
- * Cada acción resuelve el cliente con `seoDe()` (sesión + acceso), llama a una
- * herramienta y guarda. Un Server Action es un endpoint público: la autorización está
- * aquí y en la herramienta, no en que el botón se vea o no.
+ * Las acciones reciben ids, no clientes: el cliente se deduce del propio registro y se
+ * valida con `forClient()` (sesión + acceso), igual que en el resto del área. Un Server
+ * Action es un endpoint público: la autorización está aquí y en la herramienta, no en
+ * que el botón se vea o no.
  */
 
-type Ctx = Awaited<ReturnType<typeof seoDe>>;
+type Ctx = { clientId: string; actor: Actor; pms: string[] };
+
+/** Resuelve el cliente de un registro, comprueba el acceso y prepara quién actúa. */
+async function contexto(clientId: string | undefined): Promise<Ctx> {
+  const client = seed.clients.find((c) => c.id === clientId);
+  if (!client) throw new ErrorSeo("El registro no existe.");
+  const scope = await forClient(client.slug);
+  return {
+    clientId: client.id,
+    actor: { id: scope.member.id, nombre: scope.member.name, pm: scope.role !== "operator" },
+    pms: MEMBERS.filter((m) => m.role !== "operator" && memberHasAccess(m, client.slug)).map((m) => m.id),
+  };
+}
+
+const clienteDe = {
+  auditoria: (d: Datos, id: string) => d.auditorias.find((a) => a.id === id)?.clientId,
+  proyecto: (d: Datos, id: string) => d.proyectos.find((p) => p.id === id)?.clientId,
+  hallazgo: (d: Datos, id: string) =>
+    clienteDe.auditoria(d, d.hallazgos.find((h) => h.id === id)?.auditoriaId ?? ""),
+  tarea: (d: Datos, id: string) =>
+    clienteDe.auditoria(d, d.tareas.find((t) => t.id === id)?.auditoriaId ?? ""),
+};
 
 async function ejecutar(
-  slug: string,
-  fn: (d: Datos, actor: Actor, ctx: Ctx) => void,
+  clientId: string | undefined,
+  fn: (d: Datos, ctx: Ctx) => void,
 ): Promise<Resultado> {
-  const ctx = await seoDe(slug);
   try {
-    fn(leer(), ctx.actor, ctx);
+    const ctx = await contexto(clientId);
+    fn(leer(), ctx);
   } catch (e) {
     if (e instanceof ErrorSeo) return { ok: false, error: e.message };
     throw e;
   }
   guardar();
-  revalidatePath(`/app/c/${slug}/seo`, "layout");
+  revalidatePath("/app/seo", "layout");
   return { ok: true };
 }
 
 const texto = (f: FormData, k: string) => String(f.get(k) ?? "");
 const numero = (f: FormData, k: string) => Number(f.get(k) ?? NaN);
 
-/** Comprueba que el id pertenece a este cliente antes de tocar nada. */
-function delCliente(ctx: Ctx, auditoriaId: string) {
-  if (!ctx.auditorias.some((a) => a.id === auditoriaId)) {
-    throw new ErrorSeo("La auditoría no existe o no es de este cliente.");
+// --- Filtro de cliente -----------------------------------------------------
+
+export async function elegirClienteAccion(slug: string): Promise<Resultado> {
+  const visibles = await listVisibleClients();
+  const jar = await cookies();
+  if (slug && visibles.some((c) => c.slug === slug)) {
+    jar.set(COOKIE_CLIENTE, slug, { httpOnly: true, sameSite: "lax", path: "/app/seo" });
+  } else {
+    jar.delete({ name: COOKIE_CLIENTE, path: "/app/seo" });
   }
+  revalidatePath("/app/seo", "layout");
+  return { ok: true };
 }
 
 // --- Proyectos y auditorías ------------------------------------------------
 
-export async function crearProyectoAccion(slug: string, f: FormData): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    crearProyecto(d, actor, ctx.scope.client.id, { nombre: texto(f, "nombre"), dominio: texto(f, "dominio") });
+export async function crearProyectoAccion(f: FormData): Promise<Resultado> {
+  const clientId = texto(f, "clientId");
+  return ejecutar(clientId, (d, ctx) => {
+    crearProyecto(d, ctx.actor, ctx.clientId, { nombre: texto(f, "nombre"), dominio: texto(f, "dominio") });
   });
 }
 
-export async function crearAuditoriaAccion(slug: string, f: FormData): Promise<Resultado> {
+export async function crearAuditoriaAccion(f: FormData): Promise<Resultado> {
+  const proyectoId = texto(f, "proyectoId");
   let nueva = "";
-  const r = await ejecutar(slug, (d, actor, ctx) => {
-    nueva = crearAuditoria(d, actor, ctx.scope.client.id, {
-      proyectoId: texto(f, "proyectoId"),
+  const r = await ejecutar(clienteDe.proyecto(leer(), proyectoId), (d, ctx) => {
+    nueva = crearAuditoria(d, ctx.actor, ctx.clientId, {
+      proyectoId,
       servicios: f.getAll("servicios").map(String),
       alcance: texto(f, "alcance"),
       paginas: numero(f, "paginas"),
@@ -69,14 +104,13 @@ export async function crearAuditoriaAccion(slug: string, f: FormData): Promise<R
       costeEur: numero(f, "coste"),
     }).id;
   });
-  if (r.ok) redirect(`/app/c/${slug}/seo/${nueva}`);
+  if (r.ok) redirect(rutaAuditoria(nueva));
   return r;
 }
 
-export async function editarAlcanceAccion(slug: string, auditoriaId: string, f: FormData): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    delCliente(ctx, auditoriaId);
-    editarAlcance(d, actor, auditoriaId, {
+export async function editarAlcanceAccion(auditoriaId: string, f: FormData): Promise<Resultado> {
+  return ejecutar(clienteDe.auditoria(leer(), auditoriaId), (d, ctx) => {
+    editarAlcance(d, ctx.actor, auditoriaId, {
       servicios: f.getAll("servicios").map(String),
       alcance: texto(f, "alcance"),
       paginas: numero(f, "paginas"),
@@ -87,51 +121,52 @@ export async function editarAlcanceAccion(slug: string, auditoriaId: string, f: 
 }
 
 export async function cambiarEstadoAccion(
-  slug: string, auditoriaId: string, destino: EstadoAuditoria, f: FormData,
+  auditoriaId: string, destino: EstadoAuditoria, f: FormData,
 ): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    delCliente(ctx, auditoriaId);
-    cambiarEstado(d, actor, auditoriaId, {
+  return ejecutar(clienteDe.auditoria(leer(), auditoriaId), (d, ctx) => {
+    cambiarEstado(d, ctx.actor, auditoriaId, {
       a: destino, motivo: texto(f, "motivo"), referencia: texto(f, "referencia"),
     });
   });
 }
 
-export async function archivarAccion(slug: string, auditoriaId: string, archivar: boolean): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    delCliente(ctx, auditoriaId);
-    archivarAuditoria(d, actor, auditoriaId, archivar);
+export async function archivarAccion(auditoriaId: string, archivar: boolean): Promise<Resultado> {
+  return ejecutar(clienteDe.auditoria(leer(), auditoriaId), (d, ctx) => {
+    archivarAuditoria(d, ctx.actor, auditoriaId, archivar);
   });
 }
 
-export async function importarPilotoAccion(slug: string, auditoriaId: string): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    delCliente(ctx, auditoriaId);
-    importarPiloto(d, actor, auditoriaId);
+export async function importarPilotoAccion(auditoriaId: string): Promise<Resultado> {
+  return ejecutar(clienteDe.auditoria(leer(), auditoriaId), (d, ctx) => {
+    importarPiloto(d, ctx.actor, auditoriaId);
   });
 }
 
 /** Lanza el motor de auditoría de Valme sobre el dominio y guarda lo que encuentra. */
-export async function ejecutarMotorAccion(slug: string, auditoriaId: string): Promise<Resultado> {
-  const ctx = await seoDe(slug);
-  const a = ctx.auditorias.find((x) => x.id === auditoriaId);
-  if (!a) return { ok: false, error: "La auditoría no existe o no es de este cliente." };
-  if (a.estado !== "en_ejecucion" || a.archivadaEn) {
+export async function ejecutarMotorAccion(auditoriaId: string): Promise<Resultado> {
+  const a = leer().auditorias.find((x) => x.id === auditoriaId);
+  try {
+    await contexto(a?.clientId);
+  } catch (e) {
+    if (e instanceof ErrorSeo) return { ok: false, error: e.message };
+    throw e;
+  }
+  if (!a || a.estado !== "en_ejecucion" || a.archivadaEn) {
     return { ok: false, error: "Solo se ejecuta una auditoría en ejecución." };
   }
   const { auditar } = await import("@/os/audit/run");
-  const resultado = await auditar(a.dominio, ["seo"]);
-  return ejecutar(slug, (d, actor) => {
-    registrarEjecucion(d, actor, auditoriaId, resultado);
+  // Con el servicio AEO/GEO contratado, además se pregunta a un asistente si cita a la empresa.
+  const resultado = await auditar(a.dominio, a.servicios.includes("AEO/GEO") ? ["seo", "geo"] : ["seo"]);
+  return ejecutar(a.clientId, (d, ctx) => {
+    registrarEjecucion(d, ctx.actor, auditoriaId, resultado);
   });
 }
 
 // --- Cobertura -------------------------------------------------------------
 
-export async function coberturaAccion(slug: string, auditoriaId: string, f: FormData): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    delCliente(ctx, auditoriaId);
-    declararCobertura(d, actor, auditoriaId, {
+export async function coberturaAccion(auditoriaId: string, f: FormData): Promise<Resultado> {
+  return ejecutar(clienteDe.auditoria(leer(), auditoriaId), (d, ctx) => {
+    declararCobertura(d, ctx.actor, auditoriaId, {
       servicio: texto(f, "servicio"),
       estado: texto(f, "estado") === "ausencia_declarada" ? "ausencia_declarada" : "pendiente_justificado",
       motivo: texto(f, "motivo"),
@@ -141,22 +176,20 @@ export async function coberturaAccion(slug: string, auditoriaId: string, f: Form
 
 // --- Hallazgos y tareas ----------------------------------------------------
 
-export async function decidirAccion(slug: string, hallazgoId: string, f: FormData): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
+export async function decidirAccion(hallazgoId: string, f: FormData): Promise<Resultado> {
+  return ejecutar(clienteDe.hallazgo(leer(), hallazgoId), (d, ctx) => {
     decidirHallazgo(
-      d, actor, hallazgoId,
+      d, ctx.actor, hallazgoId,
       { decision: texto(f, "decision") as Decision, nota: texto(f, "nota") },
-      ctx.scope.client.id,
+      ctx.clientId,
     );
   });
 }
 
-export async function crearTareaAccion(
-  slug: string, hallazgoId: string, tipo: TipoTarea, f: FormData,
-): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
+export async function crearTareaAccion(hallazgoId: string, tipo: TipoTarea, f: FormData): Promise<Resultado> {
+  return ejecutar(clienteDe.hallazgo(leer(), hallazgoId), (d, ctx) => {
     crearTarea(
-      d, actor, hallazgoId,
+      d, ctx.actor, hallazgoId,
       {
         tipo,
         titulo: texto(f, "titulo"),
@@ -166,38 +199,39 @@ export async function crearTareaAccion(
         agenteId: texto(f, "agenteId"),
         fecha: texto(f, "fecha"),
       },
-      ctx.pms.map((p) => p.id),
-      ctx.scope.client.id,
+      ctx.pms,
+      ctx.clientId,
     );
   });
 }
 
-export async function moverTareaAccion(slug: string, tareaId: string, estado: EstadoTarea): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
-    actualizarTarea(d, actor, tareaId, { estado }, ctx.scope.client.id);
+export async function moverTareaAccion(tareaId: string, estado: EstadoTarea): Promise<Resultado> {
+  return ejecutar(clienteDe.tarea(leer(), tareaId), (d, ctx) => {
+    actualizarTarea(d, ctx.actor, tareaId, { estado }, ctx.clientId);
   });
 }
 
-export async function cerrarTareaAccion(slug: string, tareaId: string, f: FormData): Promise<Resultado> {
-  return ejecutar(slug, (d, actor, ctx) => {
+export async function cerrarTareaAccion(tareaId: string, f: FormData): Promise<Resultado> {
+  return ejecutar(clienteDe.tarea(leer(), tareaId), (d, ctx) => {
     const resultado = texto(f, "resultado");
     actualizarTarea(
-      d, actor, tareaId,
+      d, ctx.actor, tareaId,
       {
         estado: "hecha",
         conclusion: texto(f, "conclusion"),
         resultado: resultado === "priorizar" || resultado === "descartar" ? resultado : "",
       },
-      ctx.scope.client.id,
+      ctx.clientId,
     );
   });
 }
 
 /** Agente HTTP: reserva la tarea, hace una petición a la portada y enlaza la evidencia. */
-export async function agenteAccion(slug: string, tareaId: string): Promise<Resultado> {
+export async function agenteAccion(tareaId: string): Promise<Resultado> {
+  const clientId = clienteDe.tarea(leer(), tareaId);
   let url = "";
-  const reserva = await ejecutar(slug, (d, actor, ctx) => {
-    url = reservarParaAgente(d, actor, tareaId, ctx.scope.client.id).url;
+  const reserva = await ejecutar(clientId, (d, ctx) => {
+    url = reservarParaAgente(d, ctx.actor, tareaId, ctx.clientId).url;
   });
   if (!reserva.ok) return reserva;
   const { sondearPortada } = await import("./sonda");
@@ -205,6 +239,28 @@ export async function agenteAccion(slug: string, tareaId: string): Promise<Resul
     (r) => ({ ok: true as const, ...r }),
     () => ({ ok: false as const }),
   );
-  await ejecutar(slug, (d, actor) => registrarSondeo(d, actor, tareaId, sondeo));
+  await ejecutar(clientId, (d, ctx) => registrarSondeo(d, ctx.actor, tareaId, sondeo));
   return sondeo.ok ? { ok: true } : { ok: false, error: "La prueba no se completó. Revisa la tarea." };
+}
+
+// --- Visibilidad en IA (GEO) -----------------------------------------------
+
+/** Mide si los asistentes citan al dominio del proyecto y lo guarda en su histórico. */
+export async function medirGeoAccion(proyectoId: string): Promise<Resultado> {
+  const p = leer().proyectos.find((x) => x.id === proyectoId);
+  try {
+    await contexto(p?.clientId);
+  } catch (e) {
+    if (e instanceof ErrorSeo) return { ok: false, error: e.message };
+    throw e;
+  }
+  if (!p) return { ok: false, error: "El proyecto no existe." };
+  const { auditar } = await import("@/os/audit/run");
+  const resultado = await auditar(p.dominio, ["geo"]);
+  let error: string | null = null;
+  const r = await ejecutar(p.clientId, (d, ctx) => {
+    const m = registrarMedicionGeo(d, ctx.actor, proyectoId, resultado);
+    if (m.estado === "no_disponible") error = m.motivo;
+  });
+  return r.ok && error ? { ok: false, error } : r;
 }

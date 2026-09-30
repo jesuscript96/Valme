@@ -5,7 +5,7 @@ import { calcularCobertura } from "../cobertura";
 import {
   ErrorSeo, actualizarTarea, archivarAuditoria, cambiarEstado, crearAuditoria, crearProyecto,
   crearTarea, declararCobertura, decidirHallazgo, importarPiloto, normalizarDominio,
-  registrarEjecucion, registrarSondeo, reservarParaAgente,
+  registrarEjecucion, registrarMedicionGeo, registrarSondeo, reservarParaAgente,
 } from "../herramientas";
 import { ipv4Publica, urlDeSondeo } from "../red";
 import type { Actor, Datos } from "../tipos";
@@ -16,7 +16,7 @@ const equipo: Actor = { id: "u_ejecutor", nombre: "Operaciones", pm: false };
 function datos(dominio = "www.valmesolutions.com"): Datos {
   return {
     proyectos: [{ id: "pr_1", clientId: "c_1", nombre: "Web", dominio, creadoEn: "2026-09-01T00:00:00Z" }],
-    auditorias: [], evidencias: [], hallazgos: [], tareas: [], eventos: [], declaraciones: [],
+    auditorias: [], evidencias: [], hallazgos: [], tareas: [], eventos: [], declaraciones: [], mediciones: [],
   };
 }
 
@@ -217,6 +217,23 @@ test("la sonda solo admite la portada HTTPS y descarta IPs privadas", () => {
   for (const ip of ["10.0.0.1", "127.0.0.1", "169.254.169.254", "192.168.1.1", "172.16.0.1", "100.64.0.1"]) {
     assert.equal(ipv4Publica(ip), false, ip);
   }
+});
+
+test("una medición GEO se guarda con su resultado o con el motivo de no poder medir", () => {
+  const d = datos();
+  const base = { dominio: "x", urlFinal: "https://x/", iniciadaEn: "", duracionMs: 1, hallazgos: [], cobertura: [] };
+  const sig = (id: string, valor: unknown) => ({ id, valor, estado: "verificado" as const, funcion: 3 as const, que: id, fuente: "t", observadoEn: "" });
+  const m = registrarMedicionGeo(d, pm, "pr_1", {
+    ...base, fuentesNoDisponibles: [],
+    señales: [sig("geo.categoria", "marketing · España"), sig("geo.consultas", ["a", "b", "c"]), sig("geo.menciones", 1), sig("geo.posicion", 4), sig("geo.competidores", ["Acme"])] as never,
+  });
+  assert.deepEqual([m.estado, m.menciones, m.posicion, m.clientId], ["medida", 1, 4, "c_1"]);
+  const n = registrarMedicionGeo(d, pm, "pr_1", {
+    ...base, señales: [], fuentesNoDisponibles: [{ fuente: "Modelo de lenguaje", motivo: "Falta OS_LLM_API_KEY." }],
+  });
+  assert.equal(n.estado, "no_disponible");
+  assert.match(n.motivo ?? "", /OS_LLM_API_KEY/);
+  assert.equal(d.mediciones.length, 2);
 });
 
 test("la cobertura cuenta evidencia registrada e ignora lo descartado", () => {

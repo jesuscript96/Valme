@@ -36,14 +36,17 @@ export default async function ToolPage({
   if (!CLAVES.includes(tool as Herramienta["clave"])) notFound();
   const h = HERRAMIENTAS[tool as Herramienta["clave"]];
 
-  // Qué le falta a ESTA herramienta, no a todas. Las tres son deterministas y no usan
-  // modelo de lenguaje, así que pedir la clave del LLM aquí sería desinformar.
+  // Qué le falta a ESTA herramienta, no a todas. Solo GEO usa modelo de lenguaje; pedir
+  // la clave del LLM en las demás sería desinformar.
   const faltan: string[] = [];
   if (h.colectores.includes("adlib") && !process.env.META_ADLIB_TOKEN) {
     faltan.push("META_ADLIB_TOKEN");
   }
   if (h.colectores.includes("web") && !process.env.PAGESPEED_API_KEY) {
     faltan.push("PAGESPEED_API_KEY");
+  }
+  if (h.colectores.includes("geo") && !process.env.OS_LLM_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+    faltan.push("OS_LLM_API_KEY");
   }
 
   return (

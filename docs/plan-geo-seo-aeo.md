@@ -10,7 +10,13 @@ Rama de trabajo: `port/geo-seo-aeo`, en local hasta que se decida subir.
 >
 > **Hecho:** F2 (herramientas en `src/os/seo/`), F3 (pantallas en `/app/c/[client]/seo`), F5
 > (agente HTTP) y F8 (revisión de VALME), más la parte de F4 que conecta el motor existente.
-> **Pendiente:** resto de F4 (nuevas reglas y herramienta GEO) y F7.
+> **Pendiente:** F7.
+>
+> **Estructura (30 sep 2026):** SEO · GEO · AEO es un **módulo** propio, elegido en el selector de
+> módulos de la barra lateral (`src/os/ui/modulos.ts`: añadir un módulo es una línea). Vive en
+> `/app/seo` con filtro de cliente y menú propio: Panel, Auditorías, Plan y tareas, Visibilidad IA
+> (GEO), Herramientas y Proyectos. F4 hecho: nuevas reglas de Search OS en `03-seo.ts` y
+> herramienta `geo` en el motor.
 
 ---
 

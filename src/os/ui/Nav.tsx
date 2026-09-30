@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Activity, FileText, Home, Image as ImageIcon, Inbox, Layers, Rocket, Search,
-  Settings, Users, Wrench,
+  Activity, FileText, Globe, Home, Image as ImageIcon, Inbox, LayoutDashboard, Layers,
+  ListChecks, Rocket, Search, Settings, Sparkles, Users, Wrench,
 } from "lucide-react";
 import { cx } from "./primitives";
 
 const ICONS = {
   home: Home, kit: FileText, offers: Layers, studio: ImageIcon,
   launch: Rocket, landings: Activity, leads: Inbox, settings: Settings, clients: Users,
-  tools: Wrench, audit: Search,
+  tools: Wrench, audit: Search, panel: LayoutDashboard, plan: ListChecks, geo: Sparkles,
+  projects: Globe,
 } as const;
 
 export type NavItem = {
@@ -25,14 +26,17 @@ export type NavItem = {
 
 export function Nav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  // Activa solo la entrada más concreta: en /app/seo/plan se marca «Plan», no también «Panel».
+  const coincide = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const activa = items
+    .filter((i) => coincide(i.href))
+    .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
     <nav className="space-y-0.5">
       {items.map((item) => {
         const Icon = ICONS[item.icon];
-        const active =
-          pathname === item.href ||
-          (item.href !== "/app" && pathname.startsWith(item.href + "/"));
+        const active = item.href === activa;
 
         if (item.blockedBecause) {
           return (

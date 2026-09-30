@@ -35,8 +35,8 @@ export function Pista({ estado }: { estado: EstadoAuditoria }) {
 
 /** La siguiente decisión del encargo y el resto de salidas permitidas. */
 export function Decisiones({
-  slug, a, actor, hallazgos,
-}: { slug: string; a: Auditoria; actor: Actor; hallazgos: number }) {
+  a, actor, hallazgos,
+}: { a: Auditoria; actor: Actor; hallazgos: number }) {
   if (soloLectura(a)) {
     return (
       <Card className="mb-6 px-4 py-4">
@@ -47,7 +47,7 @@ export function Decisiones({
         </p>
         {a.archivadaEn && actor.pm ? (
           <div className="mt-3">
-            <ActionButton action={archivarAccion.bind(null, slug, a.id, false)} size="sm">
+            <ActionButton action={archivarAccion.bind(null, a.id, false)} size="sm">
               Restaurar auditoría
             </ActionButton>
           </div>
@@ -55,7 +55,7 @@ export function Decisiones({
         {!a.archivadaEn && actor.pm ? (
           <div className="mt-3">
             <ActionButton
-              action={archivarAccion.bind(null, slug, a.id, true)}
+              action={archivarAccion.bind(null, a.id, true)}
               size="sm"
               confirm="¿Archivar la auditoría? Queda en solo lectura y se puede restaurar."
             >
@@ -90,14 +90,14 @@ export function Decisiones({
             <span className="rounded-md bg-os-sunken px-2.5 py-1.5 text-[13px] text-os-muted">Espera a un PM</span>
           ) : null}
           {siguiente && !esperaPM ? (
-            <Transicion slug={slug} a={a} destino={siguiente.a} label={siguiente.label} principal />
+            <Transicion a={a} destino={siguiente.a} label={siguiente.label} principal />
           ) : null}
           {otras.map((e) => (
-            <Transicion key={e} slug={slug} a={a} destino={e} label={ACCION_LABEL[e] ?? ESTADO_LABEL[e]} />
+            <Transicion key={e} a={a} destino={e} label={ACCION_LABEL[e] ?? ESTADO_LABEL[e]} />
           ))}
           {actor.pm ? (
             <ActionButton
-              action={archivarAccion.bind(null, slug, a.id, true)}
+              action={archivarAccion.bind(null, a.id, true)}
               size="sm"
               variant="ghost"
               confirm="¿Archivar la auditoría? Queda en solo lectura y se puede restaurar."
@@ -112,10 +112,11 @@ export function Decisiones({
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-os-border px-4 py-3">
           <p className="max-w-2xl text-[13px] text-os-muted">
             <span className="font-medium text-os-text">Motor SEO de Valme.</span> Recoge DNS, HTTP, robots,
-            sitemap, llms.txt, encabezados, canonical, JSON-LD y un rastreo del sitemap. Guarda las señales como
-            evidencias y lo que falla como hallazgos pendientes de decisión.
+            sitemap, llms.txt, bots de IA, indexación, title, descripción, JSON-LD y un rastreo del sitemap
+            {a.servicios.includes("AEO/GEO") ? "; con AEO/GEO, además pregunta a un asistente si cita a la empresa" : ""}.
+            Guarda las señales como evidencias y lo que falla como hallazgos pendientes de decisión.
           </p>
-          <ActionButton action={ejecutarMotorAccion.bind(null, slug, a.id)} size="sm" pendingLabel="Auditando… (hasta 1 min)">
+          <ActionButton action={ejecutarMotorAccion.bind(null, a.id)} size="sm" pendingLabel="Auditando… (hasta 1 min)">
             Ejecutar motor SEO
           </ActionButton>
         </div>
@@ -129,7 +130,7 @@ export function Decisiones({
             automática; después decides sobre cada hallazgo.
           </p>
           <ActionButton
-            action={importarPilotoAccion.bind(null, slug, a.id)}
+            action={importarPilotoAccion.bind(null, a.id)}
             size="sm"
             confirm="¿Cargar la revisión externa de VALME en esta auditoría?"
           >
@@ -142,9 +143,9 @@ export function Decisiones({
 }
 
 function Transicion({
-  slug, a, destino, label, principal,
-}: { slug: string; a: Auditoria; destino: EstadoAuditoria; label: string; principal?: boolean }) {
-  const accion = cambiarEstadoAccion.bind(null, slug, a.id, destino);
+  a, destino, label, principal,
+}: { a: Auditoria; destino: EstadoAuditoria; label: string; principal?: boolean }) {
+  const accion = cambiarEstadoAccion.bind(null, a.id, destino);
   const motivo = PIDE_MOTIVO.includes(destino);
   const referencia = destino === "autorizado";
 

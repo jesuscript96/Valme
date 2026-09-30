@@ -2,42 +2,53 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { ChevronsUpDown } from "lucide-react";
+import { MODULOS, moduloDe } from "./modulos";
 import { cx } from "./primitives";
 
 /**
- * Conmutador entre las dos mitades de la aplicación.
+ * Selector de módulo.
  *
- * Va arriba del todo y no dentro de la navegación lateral, porque no son dos secciones:
- * son dos contextos con datos distintos y permisos distintos. En Diagnóstico los datos
- * son de Valme; en Cuentas, del cliente.
+ * Va arriba del todo y no dentro de la navegación lateral, porque no son secciones: son
+ * espacios con datos, menú y permisos propios. Cuentas es del cliente, Diagnóstico es de
+ * Valme y SEO · GEO · AEO reúne todo lo de buscadores y asistentes.
  */
 export function ContextSwitcher() {
   const pathname = usePathname();
-  const enDx = pathname.startsWith("/app/dx");
+  const actual = moduloDe(pathname);
+  const ref = useRef<HTMLDetailsElement>(null);
 
-  const items = [
-    { href: "/app/dx", label: "Diagnóstico", activo: enDx },
-    { href: "/app/clients", label: "Cuentas", activo: !enDx },
-  ];
+  // Al cambiar de ruta se cierra el desplegable.
+  useEffect(() => {
+    ref.current?.removeAttribute("open");
+  }, [pathname]);
 
   return (
-    <div className="flex gap-0.5 rounded-md bg-os-sunken p-0.5" role="tablist">
-      {items.map((i) => (
-        <Link
-          key={i.href}
-          href={i.href}
-          role="tab"
-          aria-selected={i.activo}
-          className={cx(
-            "flex-1 rounded px-2 py-1 text-center text-[12px] font-medium transition-colors",
-            i.activo
-              ? "bg-os-surface text-os-text shadow-sm"
-              : "text-os-muted hover:text-os-text",
-          )}
-        >
-          {i.label}
-        </Link>
-      ))}
-    </div>
+    <details ref={ref} className="relative">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-md border border-os-border bg-os-surface px-2.5 py-2 hover:bg-os-sunken [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0">
+          <span className="block text-[10px] font-semibold uppercase tracking-wide text-os-faint">Módulo</span>
+          <span className="block truncate text-[13px] font-medium text-os-text">{actual.nombre}</span>
+        </span>
+        <ChevronsUpDown className="size-3.5 shrink-0 text-os-faint" aria-hidden />
+      </summary>
+      <div className="absolute left-0 right-0 z-20 mt-1 overflow-hidden rounded-md border border-os-border bg-os-surface shadow-lg">
+        {MODULOS.map((m) => (
+          <Link
+            key={m.clave}
+            href={m.href}
+            aria-current={m.clave === actual.clave ? "page" : undefined}
+            className={cx(
+              "block px-3 py-2 hover:bg-os-sunken",
+              m.clave === actual.clave && "bg-os-sunken",
+            )}
+          >
+            <span className="block text-[13px] font-medium text-os-text">{m.nombre}</span>
+            <span className="block text-[11px] text-os-muted">{m.descripcion}</span>
+          </Link>
+        ))}
+      </div>
+    </details>
   );
 }

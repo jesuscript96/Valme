@@ -36,6 +36,7 @@ function inicial(): Datos {
     tareas: [],
     eventos: [],
     declaraciones: [],
+    mediciones: [],
   };
 }
 
@@ -43,7 +44,14 @@ function inicial(): Datos {
 const g = globalThis as unknown as { __valmeSeo?: Datos };
 
 export function leer(): Datos {
-  if (g.__valmeSeo) return g.__valmeSeo;
+  if (g.__valmeSeo) {
+    // Datos de una versión anterior (en memoria o en el fichero): se completan las colecciones nuevas.
+    for (const [k, v] of Object.entries(inicial())) {
+      const clave = k as keyof Datos;
+      if (!Array.isArray(g.__valmeSeo[clave])) (g.__valmeSeo as Record<string, unknown>)[clave] = v;
+    }
+    return g.__valmeSeo;
+  }
   if (PERSISTE && existsSync(FICHERO)) {
     try {
       g.__valmeSeo = { ...inicial(), ...(JSON.parse(readFileSync(FICHERO, "utf8")) as Datos) };

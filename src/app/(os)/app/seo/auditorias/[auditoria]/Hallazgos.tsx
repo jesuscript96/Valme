@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   agenteAccion, cerrarTareaAccion, crearTareaAccion, decidirAccion, moverTareaAccion,
 } from "@/os/seo/acciones";
-import { vencida, type Persona } from "@/os/seo";
+import { rutaAuditoria, vencida, type Persona } from "@/os/seo";
 import {
   AGENTES, CATEGORIA_LABEL, CONFIANZA_LABEL, DECISIONES, DECISION_LABEL, TIPO_TAREA_LABEL,
   type Actor, type Auditoria, type Hallazgo, type Tarea, type TipoTarea,
@@ -13,7 +13,6 @@ import { ActionButton } from "@/os/ui/ActionButton";
 import { Card, EmptyState, Field, Input, Select, Textarea } from "@/os/ui/primitives";
 
 type Props = {
-  slug: string;
   a: Auditoria;
   actor: Actor;
   pms: Persona[];
@@ -49,7 +48,7 @@ export function Hallazgos(p: Props) {
   );
 }
 
-function FichaHallazgo({ h, slug, a, actor, pms, bloqueada, tareas, refH, refE }: Props & { h: Hallazgo }) {
+function FichaHallazgo({ h, a, actor, pms, bloqueada, tareas, refH, refE }: Props & { h: Hallazgo }) {
   const propias = tareas.filter((t) => t.hallazgoId === h.id);
   return (
     <Card id={`h-${h.id}`} className="scroll-mt-6">
@@ -63,7 +62,10 @@ function FichaHallazgo({ h, slug, a, actor, pms, bloqueada, tareas, refH, refE }
         </div>
         <h3 className="text-sm font-semibold text-os-text">{h.titulo}</h3>
         <p className="text-xs text-os-muted">
-          {CATEGORIA_LABEL[h.categoria] ?? h.categoria} · {h.servicio} · {CONFIANZA_LABEL[h.confianza]} ·{" "}
+          {[CATEGORIA_LABEL[h.categoria] ?? h.categoria, h.servicio]
+            .filter((x, i, todos) => todos.indexOf(x) === i)
+            .join(" · ")}{" "}
+          · {CONFIANZA_LABEL[h.confianza]} ·{" "}
           {h.responsable}
         </p>
         <p className="text-[13px] leading-relaxed text-os-text">{h.descripcion}</p>
@@ -80,7 +82,7 @@ function FichaHallazgo({ h, slug, a, actor, pms, bloqueada, tareas, refH, refE }
                 <span key={id}>
                   {i ? ", " : ""}
                   <Link
-                    href={`/app/c/${slug}/seo/${a.id}?tab=evidencias#e-${id}`}
+                    href={`${rutaAuditoria(a.id)}?tab=evidencias#e-${id}`}
                     className="os-num underline-offset-2 hover:underline"
                   >
                     {refE.get(id) ?? "—"}
@@ -98,7 +100,7 @@ function FichaHallazgo({ h, slug, a, actor, pms, bloqueada, tareas, refH, refE }
 
       <div className="border-t border-os-border bg-os-sunken/40 px-4 py-3">
         {actor.pm && !bloqueada ? (
-          <Formulario accion={decidirAccion.bind(null, slug, h.id)} boton="Guardar decisión" variante="secondary">
+          <Formulario accion={decidirAccion.bind(null, h.id)} boton="Guardar decisión" variante="secondary">
             <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
               <Field label="Decisión del PM">
                 <Select name="decision" defaultValue={h.decision.valor}>
@@ -123,14 +125,14 @@ function FichaHallazgo({ h, slug, a, actor, pms, bloqueada, tareas, refH, refE }
         </p>
       </div>
 
-      <Seguimiento h={h} tareas={propias} slug={slug} actor={actor} pms={pms} bloqueada={bloqueada} />
+      <Seguimiento h={h} tareas={propias} actor={actor} pms={pms} bloqueada={bloqueada} />
     </Card>
   );
 }
 
 function Seguimiento({
-  h, tareas, slug, actor, pms, bloqueada,
-}: { h: Hallazgo; tareas: Tarea[]; slug: string; actor: Actor; pms: Persona[]; bloqueada: boolean }) {
+  h, tareas, actor, pms, bloqueada,
+}: { h: Hallazgo; tareas: Tarea[]; actor: Actor; pms: Persona[]; bloqueada: boolean }) {
   // La decisión abre el camino: investigar pide una investigación; priorizar, una acción.
   const sugerida: TipoTarea | null =
     h.decision.valor === "investigar" ? "investigacion" : h.decision.valor === "priorizar" ? "accion" : null;
@@ -176,13 +178,13 @@ function Seguimiento({
                 {!cerrada && !bloqueada ? (
                   <div className="mt-2 flex flex-wrap items-start gap-2">
                     {t.estado === "pendiente" ? (
-                      <ActionButton action={moverTareaAccion.bind(null, slug, t.id, "en_curso")} size="sm">
+                      <ActionButton action={moverTareaAccion.bind(null, t.id, "en_curso")} size="sm">
                         Empezar
                       </ActionButton>
                     ) : null}
                     {t.estado === "pendiente" && t.tipo === "investigacion" && actor.pm ? (
                       <ActionButton
-                        action={agenteAccion.bind(null, slug, t.id)}
+                        action={agenteAccion.bind(null, t.id)}
                         size="sm"
                         pendingLabel="Consultando…"
                         confirm="El agente hará una sola petición HTTPS a la portada del dominio y enlazará el resultado como evidencia. ¿Seguir?"
@@ -191,7 +193,7 @@ function Seguimiento({
                       </ActionButton>
                     ) : null}
                     <Desplegable titulo="Cerrar…">
-                      <Formulario accion={cerrarTareaAccion.bind(null, slug, t.id)} boton="Cerrar tarea" className="w-96">
+                      <Formulario accion={cerrarTareaAccion.bind(null, t.id)} boton="Cerrar tarea" className="w-96">
                         <Field label={t.tipo === "investigacion" ? "Conclusión de la investigación" : "Qué se ha hecho"}>
                           <Textarea
                             name="conclusion"
@@ -211,7 +213,7 @@ function Seguimiento({
                       </Formulario>
                     </Desplegable>
                     <ActionButton
-                      action={moverTareaAccion.bind(null, slug, t.id, "cancelada")}
+                      action={moverTareaAccion.bind(null, t.id, "cancelada")}
                       size="sm"
                       variant="ghost"
                       confirm="¿Cancelar la tarea? Una tarea cerrada no se puede reabrir."
@@ -233,7 +235,7 @@ function Seguimiento({
               key={tipo}
               tipo={tipo}
               h={h}
-              slug={slug}
+             
               pms={pms}
               actor={actor}
               abierta={sugerida === tipo && !tareas.some((t) => t.tipo === tipo)}
@@ -246,8 +248,8 @@ function Seguimiento({
 }
 
 function NuevaTarea({
-  tipo, h, slug, pms, actor, abierta,
-}: { tipo: TipoTarea; h: Hallazgo; slug: string; pms: Persona[]; actor: Actor; abierta: boolean }) {
+  tipo, h, pms, actor, abierta,
+}: { tipo: TipoTarea; h: Hallazgo; pms: Persona[]; actor: Actor; abierta: boolean }) {
   const investigacion = tipo === "investigacion";
   return (
     <details open={abierta} className="w-full">
@@ -258,7 +260,7 @@ function NuevaTarea({
         <p className="mb-3 text-[13px] font-medium text-os-text">
           Nueva {investigacion ? "tarea de investigación" : "acción del plan"}
         </p>
-        <Formulario accion={crearTareaAccion.bind(null, slug, h.id, tipo)} boton="Crear tarea">
+        <Formulario accion={crearTareaAccion.bind(null, h.id, tipo)} boton="Crear tarea">
           <Field label="Título">
             <Input
               name="titulo"

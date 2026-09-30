@@ -220,6 +220,26 @@ export type Declaracion = {
   en: string;
 };
 
+/**
+ * Una medición de visibilidad en asistentes (GEO) sobre un proyecto. Se repite en el
+ * tiempo: lo que importa es la tendencia, no una foto.
+ */
+export type MedicionGeo = {
+  id: string;
+  proyectoId: string;
+  clientId: string;
+  en: string;
+  por: string;
+  /** "no_disponible": no se pudo medir (sin clave, sin texto en la web…). */
+  estado: "medida" | "no_disponible";
+  categoria: string | null;
+  consultas: string[];
+  menciones: number;
+  posicion: number | null;
+  competidores: string[];
+  motivo: string | null;
+};
+
 export type Datos = {
   proyectos: Proyecto[];
   auditorias: Auditoria[];
@@ -228,6 +248,7 @@ export type Datos = {
   tareas: Tarea[];
   eventos: Evento[];
   declaraciones: Declaracion[];
+  mediciones: MedicionGeo[];
 };
 
 /** Quien actúa. `pm` = puede decidir: admin o estratega. */

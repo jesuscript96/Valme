@@ -1,24 +1,27 @@
 import Link from "next/link";
 import { Card, CardHeader } from "@/os/ui/primitives";
-import { abierta, vencida, type Persona } from "../index";
+import { abierta, rutaAuditoria, vencida, type Persona } from "../index";
 import { AGENTES, TIPO_TAREA_LABEL, type Auditoria, type Hallazgo, type Tarea } from "../tipos";
 import { TareaBadge, fmtDia } from "./etiquetas";
 
 /** Tareas abiertas, las vencidas y las más próximas primero. */
 export function ProximasAcciones({
-  slug, tareas, auditorias, hallazgos, pms, refHallazgo,
+  tareas, auditorias, hallazgos, pms, refHallazgo, clienteDe, limite,
 }: {
-  slug: string;
   tareas: Tarea[];
   auditorias: Auditoria[];
   hallazgos: Hallazgo[];
   pms: Persona[];
   /** Referencia visible (H-01) de cada hallazgo, si se conoce. */
   refHallazgo?: Map<string, string>;
+  /** Nombre del cliente de una auditoría, cuando la lista mezcla clientes. */
+  clienteDe?: (clientId: string) => string | undefined;
+  limite?: number;
 }) {
   const abiertas = tareas
     .filter(abierta)
     .sort((a, b) => (a.fecha ?? "9999").localeCompare(b.fecha ?? "9999"));
+  const visibles = limite ? abiertas.slice(0, limite) : abiertas;
   const nombre = (id: string) => pms.find((p) => p.id === id)?.nombre ?? "PM asignado";
 
   return (
@@ -27,9 +30,9 @@ export function ProximasAcciones({
         title="Próximas acciones"
         action={<span className="os-num text-[11px] uppercase tracking-wide text-os-faint">{abiertas.length} abiertas</span>}
       />
-      {abiertas.length ? (
+      {visibles.length ? (
         <ul className="divide-y divide-os-border">
-          {abiertas.map((t) => {
+          {visibles.map((t) => {
             const a = auditorias.find((x) => x.id === t.auditoriaId);
             const h = hallazgos.find((x) => x.id === t.hallazgoId);
             const agente = AGENTES.find((x) => x.id === t.agenteId);
@@ -42,6 +45,7 @@ export function ProximasAcciones({
                     </span>
                     <TareaBadge e={t.estado} vencida={vencida(t)} />
                     <span className="os-num">
+                      {a && clienteDe ? `${clienteDe(a.clientId)} · ` : ""}
                       {a?.ref}
                       {refHallazgo?.get(t.hallazgoId) ? ` · ${refHallazgo.get(t.hallazgoId)}` : ""}
                     </span>
@@ -54,7 +58,7 @@ export function ProximasAcciones({
                   </p>
                 </div>
                 <Link
-                  href={`/app/c/${slug}/seo/${t.auditoriaId}?tab=hallazgos#h-${t.hallazgoId}`}
+                  href={`${rutaAuditoria(t.auditoriaId)}?tab=hallazgos#h-${t.hallazgoId}`}
                   className="shrink-0 text-[13px] font-medium text-os-text underline-offset-2 hover:underline"
                 >
                   Ver hallazgo →
@@ -68,6 +72,11 @@ export function ProximasAcciones({
           No hay acciones abiertas. Las tareas nacen de decidir «Investigar» o «Priorizar» un hallazgo.
         </p>
       )}
+      {limite && abiertas.length > limite ? (
+        <Link href="/app/seo/plan" className="block border-t border-os-border px-4 py-2.5 text-[13px] text-os-muted hover:text-os-text">
+          Ver las {abiertas.length} en Plan y tareas →
+        </Link>
+      ) : null}
     </Card>
   );
 }

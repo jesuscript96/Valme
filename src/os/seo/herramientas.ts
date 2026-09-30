@@ -7,7 +7,7 @@ import { PILOTO, PILOTO_DOMINIOS } from "./piloto";
 import {
   AGENTES, DECISION_LABEL, ESTADO_LABEL, SERVICIOS, TIPO_TAREA_LABEL,
   type Actor, type Auditoria, type Datos, type Decision, type EstadoAuditoria,
-  type EstadoTarea, type Hallazgo, type Prioridad, type Proyecto, type Servicio,
+  type EstadoTarea, type Hallazgo, type MedicionGeo, type Prioridad, type Proyecto, type Servicio,
   type Tarea, type TipoTarea,
 } from "./tipos";
 
@@ -339,7 +339,9 @@ export function registrarEjecucion(
   anotar(
     d, a, actor,
     `Ejecución del motor: ${porSeñal.size} evidencias y ${nuevos} hallazgos nuevos` +
-      (r.fuentesNoDisponibles.length ? ` · ${r.fuentesNoDisponibles.length} fuentes no disponibles` : ""),
+      (r.fuentesNoDisponibles.length
+        ? ` · no disponible: ${r.fuentesNoDisponibles.map((f) => `${f.fuente} (${f.motivo})`).join("; ")}`
+        : ""),
   );
   return { evidencias: porSeñal.size, hallazgos: nuevos, noDisponibles: r.fuentesNoDisponibles.length };
 }
@@ -455,6 +457,38 @@ export function actualizarTarea(
     t.cerradaEn = ahora();
   }
   anotar(d, a, actor, `Tarea «${t.titulo}»: ${input.estado.replace("_", " ")}`);
+}
+
+// --- Visibilidad en IA (GEO) -----------------------------------------------
+
+/** Guarda una medición GEO a partir de lo que devuelve la herramienta «geo» del motor. */
+export function registrarMedicionGeo(
+  d: Datos, actor: Actor, proyectoId: string, r: ResultadoMotor,
+): MedicionGeo {
+  const proyecto = d.proyectos.find((p) => p.id === proyectoId);
+  if (!proyecto) throw new ErrorSeo("El proyecto no existe.");
+  const señal = (id: string) => r.señales.find((s) => s.id === id);
+  const lista = (id: string) => {
+    const v = señal(id)?.valor;
+    return Array.isArray(v) ? v.map(String) : [];
+  };
+  const menciones = señal("geo.menciones");
+  const medida = menciones?.estado === "verificado" && typeof menciones.valor === "number";
+  const m: MedicionGeo = {
+    id: id("geo"), proyectoId, clientId: proyecto.clientId, en: ahora(), por: actor.nombre,
+    estado: medida ? "medida" : "no_disponible",
+    categoria: typeof señal("geo.categoria")?.valor === "string" ? (señal("geo.categoria")?.valor as string) : null,
+    consultas: lista("geo.consultas"),
+    menciones: medida ? (menciones?.valor as number) : 0,
+    posicion: typeof señal("geo.posicion")?.valor === "number" ? (señal("geo.posicion")?.valor as number) : null,
+    competidores: lista("geo.competidores"),
+    motivo: medida
+      ? null
+      : r.fuentesNoDisponibles.map((f) => `${f.fuente}: ${f.motivo}`).join(" ") ||
+        menciones?.limite || "No se pudo medir.",
+  };
+  d.mediciones.push(m);
+  return m;
 }
 
 // --- Agente de investigación ----------------------------------------------
