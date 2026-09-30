@@ -54,6 +54,9 @@ No hay una tercera. Por eso son dos mitades y no dos menús.
   /c/[cliente]/…              todo lo que ya existe, sin tocar
 ```
 
+> **Actualizado (30 sep 2026):** en la interfaz se llaman **Ventas** y **Clientes**, y cada
+> espacio tiene sus áreas con dos niveles de menú. Las rutas no cambian. Ver `docs/navegacion.md`.
+
 En la interfaz: **Diagnóstico** y **Cuentas**. Un conmutador arriba del todo, no un
 elemento más de la navegación lateral: son dos contextos, no dos secciones.
 

@@ -17,8 +17,12 @@ Rama de trabajo: `port/geo-seo-aeo`, en local hasta que se decida subir.
 > versionado con decisión del PM, Agentes, Supervisión, Operaciones, Informes (aprobar contenido y
 > autorizar envío) y Configuración. Código en `src/os/seo/operacion/`.
 >
-> **Estructura (30 sep 2026):** SEO · GEO · AEO es un **módulo** propio, elegido en el selector de
-> módulos de la barra lateral (`src/os/ui/modulos.ts`: añadir un módulo es una línea). Vive en
+> **Navegación (30 sep 2026):** el selector de módulos (`modulos.ts`) se ha sustituido por dos
+> niveles de menú: SEO · GEO · AEO es un área del espacio Clientes, y su menú es el secundario
+> que pinta `seo/layout.tsx`. El filtro de cliente es el cliente activo del menú principal. Ver
+> `docs/navegacion.md`.
+>
+> **Estructura (30 sep 2026):** SEO · GEO · AEO es un **módulo** propio. Vive en
 > `/app/seo` con filtro de cliente y menú propio: Panel, Auditorías, Plan y tareas, Visibilidad IA
 > (GEO), Herramientas y Proyectos. F4 hecho: nuevas reglas de Search OS en `03-seo.ts` y
 > herramienta `geo` en el motor.
