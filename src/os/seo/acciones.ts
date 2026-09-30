@@ -1,16 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { listVisibleClients } from "@/os/repo";
 import { contexto, type Ctx } from "./ambito";
 import {
   ErrorSeo, actualizarTarea, archivarAuditoria, cambiarEstado, crearAuditoria, crearProyecto,
   crearTarea, declararCobertura, decidirHallazgo, editarAlcance, importarPiloto,
   registrarEjecucion, registrarMedicionGeo, registrarSondeo, reservarParaAgente,
 } from "./herramientas";
-import { COOKIE_CLIENTE, rutaAuditoria } from "./index";
+import { rutaAuditoria } from "./index";
 import { guardar, leer } from "./store";
 import type { Datos, Decision, EstadoAuditoria, EstadoTarea, Resultado, TipoTarea } from "./tipos";
 
@@ -50,20 +48,6 @@ async function ejecutar(
 
 const texto = (f: FormData, k: string) => String(f.get(k) ?? "");
 const numero = (f: FormData, k: string) => Number(f.get(k) ?? NaN);
-
-// --- Filtro de cliente -----------------------------------------------------
-
-export async function elegirClienteAccion(slug: string): Promise<Resultado> {
-  const visibles = await listVisibleClients();
-  const jar = await cookies();
-  if (slug && visibles.some((c) => c.slug === slug)) {
-    jar.set(COOKIE_CLIENTE, slug, { httpOnly: true, sameSite: "lax", path: "/app/seo" });
-  } else {
-    jar.delete({ name: COOKIE_CLIENTE, path: "/app/seo" });
-  }
-  revalidatePath("/app/seo", "layout");
-  return { ok: true };
-}
 
 // --- Proyectos y auditorías ------------------------------------------------
 

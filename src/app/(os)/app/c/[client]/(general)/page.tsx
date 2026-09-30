@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { forClient } from "@/os/repo";
+import { resumenSeo } from "@/os/seo/resumen";
+import { Estado } from "@/os/seo/ui/etiquetas";
+import { Atajos, Cifra, Cifras, type Atajo } from "@/os/ui/Inicio";
 import { Button, Card, CardHeader, EmptyState, PageHeader } from "@/os/ui/primitives";
 import { CreativeStatusBadge, EmailStatusBadge, KitStatus, fmtDateTime, fmtUsd } from "@/os/ui/labels";
 
@@ -9,7 +12,10 @@ export async function generateMetadata({ params }: { params: Promise<{ client: s
   return { title: `${scope.client.name} · Valme OS` };
 }
 
-/** Pantalla 3 del MD: pendiente de aprobar, últimos leads, campañas, accesos rápidos. */
+/**
+ * INICIO DE UN CLIENTE. Pantalla 3 del MD: pendiente de aprobar, últimos leads, lo que
+ * espera en SEO y accesos directos a cada área.
+ */
 export default async function ClientHome({ params }: { params: Promise<{ client: string }> }) {
   const { client: slug } = await params;
   const scope = await forClient(slug);
@@ -27,11 +33,20 @@ export default async function ClientHome({ params }: { params: Promise<{ client:
     .flat()
     .filter((c) => c.status === "generated" || c.status === "reviewed");
 
-  const stats = [
-    { label: "Leads (30 días)", value: String(await scope.leads.countSince(30)) },
-    { label: "Ofertas activas", value: String(offers.length) },
-    { label: "Por aprobar", value: String(pending.length) },
-    { label: "Coste IA acumulado", value: fmtUsd(cost) },
+  const leads30 = await scope.leads.countSince(30);
+  const seo = resumenSeo(new Set([scope.client.id]));
+  const kitOk = kit.status === "approved";
+  const base = `/app/c/${slug}`;
+
+  const atajos: Atajo[] = [
+    kitOk
+      ? { area: "Paid", href: `${base}/offers`, titulo: "Nueva oferta", detalle: "Ángulo, CTA y anuncios" }
+      : { area: "Marca", href: `${base}/brand-kit`, titulo: "Aprobar el Brand Kit", detalle: "Lo necesita todo lo demás" },
+    offers[0]
+      ? { area: "Paid", href: `${base}/offers/${offers[0].id}/studio`, titulo: "Estudio de anuncios", detalle: offers[0].name }
+      : { area: "Paid", href: `${base}/landings`, titulo: "Landings", detalle: "Las páginas de captación" },
+    { area: "SEO", href: "/app/seo/auditorias/nueva", titulo: "Nueva auditoría SEO", detalle: "Para este cliente" },
+    { area: "CRM", href: `${base}/leads`, titulo: "Leads", detalle: `${leads30} en los últimos 30 días` },
   ];
 
   return (
@@ -42,14 +57,19 @@ export default async function ClientHome({ params }: { params: Promise<{ client:
         action={<KitStatus s={kit.status} />}
       />
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((s) => (
-          <Card key={s.label} className="px-4 py-3">
-            <p className="text-[11px] uppercase tracking-wide text-os-faint">{s.label}</p>
-            <p className="os-num mt-1 font-display text-xl font-semibold text-os-text">{s.value}</p>
-          </Card>
-        ))}
-      </div>
+      <Atajos atajos={atajos} />
+
+      <Cifras>
+        <Cifra etiqueta="Leads (30 días)" valor={String(leads30)} href={`${base}/leads`} />
+        <Cifra etiqueta="Ofertas activas" valor={String(offers.length)} nota={`${pending.length} anuncios por aprobar`} href={`${base}/offers`} />
+        <Cifra
+          etiqueta="SEO · por decidir"
+          valor={String(seo.porDecidir)}
+          nota={`${seo.tareasAbiertas} tareas abiertas${seo.tareasVencidas ? `, ${seo.tareasVencidas} vencidas` : ""}`}
+          href="/app/seo"
+        />
+        <Cifra etiqueta="Coste IA acumulado" valor={fmtUsd(cost)} />
+      </Cifras>
 
       {kit.status !== "approved" ? (
         <Card className="mb-6 border-os-warn/30 bg-os-warn-soft px-4 py-3">
@@ -114,6 +134,36 @@ export default async function ClientHome({ params }: { params: Promise<{ client:
                     <span className="block text-[11px] text-os-faint">{fmtDateTime(l.createdAt)}</span>
                   </span>
                   <EmailStatusBadge s={l.emailStatus} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader
+            title="SEO · pide una decisión"
+            action={
+              <Link href="/app/seo">
+                <Button size="sm" variant="ghost">Abrir SEO</Button>
+              </Link>
+            }
+          />
+          {seo.cola.length === 0 ? (
+            <p className="px-4 py-6 text-[13px] text-os-muted">
+              Nada esperando una decisión{seo.auditoriasEnCurso ? "" : ", y ninguna auditoría en curso"}.
+            </p>
+          ) : (
+            <ul className="divide-y divide-os-border">
+              {seo.cola.slice(0, 5).map((x) => (
+                <li key={x.id}>
+                  <Link href={x.enlace} className="flex items-start justify-between gap-3 px-4 py-2.5 hover:bg-os-sunken/50">
+                    <span className="min-w-0">
+                      <span className="block text-[13px] font-medium text-os-text">{x.titulo}</span>
+                      <span className="block text-xs text-os-muted">{x.detalle}</span>
+                    </span>
+                    <Estado t={x.estado} />
+                  </Link>
                 </li>
               ))}
             </ul>

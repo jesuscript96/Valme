@@ -26,7 +26,11 @@ export type NavItem = {
   badge?: string;
 };
 
-export function Nav({ items }: { items: NavItem[] }) {
+/**
+ * Lista de entradas de un menú de área. En vertical va en el menú secundario; en
+ * horizontal la usa ese mismo menú en pantallas estrechas, encima del contenido.
+ */
+export function Nav({ items, horizontal = false }: { items: NavItem[]; horizontal?: boolean }) {
   const pathname = usePathname();
   // Activa solo la entrada más concreta: en /app/seo/plan se marca «Plan», no también «Panel».
   const coincide = (href: string) => pathname === href || pathname.startsWith(href + "/");
@@ -35,7 +39,7 @@ export function Nav({ items }: { items: NavItem[] }) {
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
 
   return (
-    <nav className="space-y-0.5">
+    <nav className={horizontal ? "-mx-1 flex gap-1 overflow-x-auto pb-1" : "space-y-0.5"}>
       {items.map((item) => {
         const Icon = ICONS[item.icon];
         const active = item.href === activa;
@@ -46,10 +50,13 @@ export function Nav({ items }: { items: NavItem[] }) {
               key={item.href}
               title={item.blockedBecause}
               aria-disabled
-              className="flex cursor-not-allowed items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] text-os-faint"
+              className={cx(
+                "flex cursor-not-allowed items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] text-os-faint",
+                horizontal && "shrink-0",
+              )}
             >
               <Icon className="size-4 shrink-0" aria-hidden />
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              <span className={cx("min-w-0 truncate", !horizontal && "flex-1")}>{item.label}</span>
             </span>
           );
         }
@@ -61,13 +68,14 @@ export function Nav({ items }: { items: NavItem[] }) {
             aria-current={active ? "page" : undefined}
             className={cx(
               "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors",
+              horizontal && "shrink-0 whitespace-nowrap",
               active
                 ? "bg-os-sunken font-medium text-os-text"
                 : "text-os-muted hover:bg-os-sunken hover:text-os-text",
             )}
           >
             <Icon className="size-4 shrink-0" aria-hidden />
-            <span className="min-w-0 flex-1 truncate">{item.label}</span>
+            <span className={cx("min-w-0 truncate", !horizontal && "flex-1")}>{item.label}</span>
             {item.badge ? (
               <span className="os-num rounded bg-os-border px-1.5 text-[11px] text-os-muted">
                 {item.badge}

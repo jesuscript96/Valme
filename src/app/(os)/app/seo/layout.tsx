@@ -1,7 +1,6 @@
 import { abierta, seoModulo } from "@/os/seo";
 import { colaSupervision } from "@/os/seo/operacion/panel";
-import { FiltroCliente } from "@/os/seo/ui/FiltroCliente";
-import { Shell } from "@/os/ui/Shell";
+import { MenuArea } from "@/os/ui/Shell";
 
 /**
  * Layout del módulo SEO · GEO · AEO.
@@ -9,7 +8,8 @@ import { Shell } from "@/os/ui/Shell";
  * Todo lo del servicio de buscadores y asistentes vive aquí, como en VALME Search OS:
  * centro de mando, alta de clientes, cartera, auditorías, plan, agentes, supervisión,
  * operaciones, informes y visibilidad en IA. Trabaja sobre todos los clientes visibles,
- * con un filtro de cliente arriba. NO autoriza: cada página y cada acción pasa por el DAL.
+ * filtrados por el cliente activo del menú principal. Este layout pinta su menú
+ * secundario. NO autoriza: cada página y cada acción pasa por el DAL.
  */
 export default async function SeoLayout({ children }: { children: React.ReactNode }) {
   const seo = await seoModulo();
@@ -20,17 +20,9 @@ export default async function SeoLayout({ children }: { children: React.ReactNod
   const n = (x: number) => (x ? String(x) : undefined);
 
   return (
-    <Shell
-      contexto="seo"
-      user={{ name: seo.member.name, email: seo.member.email, role: seo.member.role }}
-      clients={[]}
-      current={null}
-      lateral={
-        <FiltroCliente
-          clientes={seo.clientes.map((c) => ({ slug: c.slug, name: c.name }))}
-          actual={seo.filtro?.slug ?? null}
-        />
-      }
+    <MenuArea
+      titulo="SEO · GEO · AEO"
+      ambito={seo.filtro?.name ?? "Todos los clientes"}
       nav={[
         { href: "/app/seo", label: "Centro de mando", icon: "command" },
         { href: "/app/seo/onboarding", label: "Onboarding", icon: "onboarding", badge: n(borradores) },
@@ -48,6 +40,6 @@ export default async function SeoLayout({ children }: { children: React.ReactNod
       ]}
     >
       {children}
-    </Shell>
+    </MenuArea>
   );
 }

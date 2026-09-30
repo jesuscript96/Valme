@@ -3,8 +3,12 @@
 import { useState, useRef, useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { signOut } from "@/os/auth/actions";
+import { cx } from "./primitives";
 
-export function UserMenu({ name, email, role }: { name: string; email: string; role: string }) {
+/** Plegado muestra solo la inicial y abre el menú hacia la derecha. */
+export function UserMenu({
+  name, email, role, plegado = false,
+}: { name: string; email: string; role: string; plegado?: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -26,21 +30,31 @@ export function UserMenu({ name, email, role }: { name: string; email: string; r
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-os-sunken"
+        aria-label={plegado ? `${name} · ${role}` : undefined}
+        title={plegado ? name : undefined}
+        className={cx(
+          "flex w-full items-center gap-2 rounded-md py-1.5 text-left hover:bg-os-sunken",
+          plegado ? "justify-center px-0" : "px-2",
+        )}
       >
         <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-os-text text-[11px] font-semibold text-white">
           {initials}
         </span>
-        <span className="min-w-0">
-          <span className="block truncate text-[13px] text-os-text">{name}</span>
-          <span className="block text-[11px] text-os-faint">{role}</span>
-        </span>
+        {plegado ? null : (
+          <span className="min-w-0">
+            <span className="block truncate text-[13px] text-os-text">{name}</span>
+            <span className="block text-[11px] text-os-faint">{role}</span>
+          </span>
+        )}
       </button>
 
       {open ? (
         <div
           role="menu"
-          className="absolute bottom-full left-0 right-0 mb-1 overflow-hidden rounded-md border border-os-border bg-os-surface shadow-lg"
+          className={cx(
+            "absolute z-50 overflow-hidden rounded-md border border-os-border bg-os-surface shadow-lg",
+            plegado ? "bottom-0 left-full ml-2 w-56" : "bottom-full left-0 right-0 mb-1",
+          )}
         >
           <p className="truncate border-b border-os-border px-2.5 py-2 text-[11px] text-os-faint">
             {email}

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { requireMember } from "@/os/auth/dal";
 import { MEMBERS } from "@/os/data/members";
 import { listVisibleClients, memberHasAccess } from "@/os/repo";
+import { LAST_CLIENT_COOKIE } from "@/os/tenancy/lastClient";
 import { calcularCobertura } from "./cobertura";
 import { leer } from "./store";
 import type { Actor, Datos, Tarea } from "./tipos";
@@ -11,12 +12,12 @@ import type { Actor, Datos, Tarea } from "./tipos";
 /**
  * LECTURAS DEL MÓDULO SEO · GEO · AEO.
  *
- * El módulo trabaja sobre todos los clientes que la persona puede ver, con un filtro de
- * cliente opcional que se guarda en una cookie (los layouts no reciben los parámetros de
- * la URL, y el filtro tiene que valer en todas las pantallas del módulo).
+ * El módulo trabaja sobre todos los clientes que la persona puede ver, filtrados por el
+ * cliente activo del menú principal, que se guarda en una cookie (los layouts no reciben
+ * los parámetros de la URL, y el filtro tiene que valer en todas las pantallas del módulo).
  */
 
-export const COOKIE_CLIENTE = "valme_seo_cliente";
+export const COOKIE_CLIENTE = LAST_CLIENT_COOKIE;
 
 export type Persona = { id: string; nombre: string };
 
