@@ -1,0 +1,63 @@
+import "server-only";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import * as seed from "@/os/repo/seed.data";
+import type { Datos, Proyecto } from "./tipos";
+
+/**
+ * ALMACÉN DEL MÓDULO SEO.
+ *
+ * En memoria, como el resto del área mientras no haya base de datos. En local además se
+ * guarda en `.valme-data/seo.json` para que lo que se prueba no se pierda al reiniciar
+ * el servidor. En Vercel (sistema de ficheros de solo lectura) se queda solo en memoria.
+ *
+ * Cuando exista la base de datos, este fichero es el único que cambia: `leer()` y
+ * `guardar()` pasan a consultas. Las herramientas trabajan sobre `Datos` y no saben de dónde vienen.
+ */
+
+const FICHERO = join(process.cwd(), ".valme-data", "seo.json");
+const PERSISTE = !process.env.VERCEL && process.env.NODE_ENV !== "production";
+
+function inicial(): Datos {
+  const proyectos: Proyecto[] = seed.clients
+    .filter((c) => c.websiteUrl)
+    .map((c) => ({
+      id: `pr_${c.slug}`,
+      clientId: c.id,
+      nombre: "Web principal",
+      dominio: new URL(c.websiteUrl as string).hostname,
+      creadoEn: c.createdAt,
+    }));
+  return {
+    proyectos,
+    auditorias: [],
+    evidencias: [],
+    hallazgos: [],
+    tareas: [],
+    eventos: [],
+    declaraciones: [],
+  };
+}
+
+// En globalThis para sobrevivir a la recarga en caliente de `next dev`.
+const g = globalThis as unknown as { __valmeSeo?: Datos };
+
+export function leer(): Datos {
+  if (g.__valmeSeo) return g.__valmeSeo;
+  if (PERSISTE && existsSync(FICHERO)) {
+    try {
+      g.__valmeSeo = { ...inicial(), ...(JSON.parse(readFileSync(FICHERO, "utf8")) as Datos) };
+      return g.__valmeSeo;
+    } catch {
+      // Un fichero corrupto no tumba el área: se empieza de cero y se sobrescribe.
+    }
+  }
+  g.__valmeSeo = inicial();
+  return g.__valmeSeo;
+}
+
+export function guardar(): void {
+  if (!PERSISTE || !g.__valmeSeo) return;
+  mkdirSync(join(process.cwd(), ".valme-data"), { recursive: true });
+  writeFileSync(FICHERO, JSON.stringify(g.__valmeSeo, null, 2));
+}

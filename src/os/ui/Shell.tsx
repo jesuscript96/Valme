@@ -93,6 +93,7 @@ export function clientNav(
       href: `${base}/leads`, label: "Leads", icon: "leads",
       badge: state.leadCount ? String(state.leadCount) : undefined,
     },
+    { href: `${base}/seo`, label: "SEO · GEO · AEO", icon: "audit" },
   ];
 
   if (state.isAdmin) {
