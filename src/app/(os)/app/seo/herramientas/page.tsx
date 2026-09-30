@@ -17,6 +17,18 @@ export default async function Herramientas() {
         description="Informes rápidos sobre cualquier dominio, sin crear un encargo. Para dejar constancia y decidir sobre los hallazgos, crea una auditoría."
       />
       <div className="grid gap-4 md:grid-cols-2">
+        <Link href="/app/seo/herramientas/generadores">
+          <Card className="h-full space-y-2 p-4 hover:border-os-border-strong">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-os-text">Generadores GEO: llms.txt y JSON-LD</h2>
+              <Badge tone="ok">Lista</Badge>
+            </div>
+            <p className="text-[13px] leading-relaxed text-os-muted">
+              Prepara el llms.txt y los datos estructurados de un cliente con lo que ya se sabe de él, y lee sus páginas
+              clave del sitio. Se copia y se publica en su web.
+            </p>
+          </Card>
+        </Link>
         {DEL_MODULO.map((c) => {
           const h = HERRAMIENTAS[c];
           return (

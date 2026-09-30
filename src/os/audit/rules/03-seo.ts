@@ -9,7 +9,8 @@ import { H, type Regla } from "./tipos";
  *   seo.descripcion · seo.hreflang · seo.jsonld · seo.title · seo.meta_robots · seo.lang
  *   seo.x_robots · seo.robots_bots_ia
  *   Rastreo: seo.crawl · seo.titles_duplicados · seo.titles_vacios · seo.desc_vacias
- *            seo.sin_h1 · seo.varios_h1
+ *            seo.sin_h1 · seo.varios_h1 · seo.enlaces_rotos · seo.enlaces_a_redireccion
+ *            seo.profundidad_max · seo.paginas_profundas · seo.huerfanas · seo.noindex_en_sitemap
  *   GEO (herramienta «geo»): geo.categoria · geo.consultas · geo.menciones · geo.posicion
  *            geo.competidores
  *
@@ -173,6 +174,63 @@ export const REGLAS: Regla[] = [
       "Varios encabezados principales compiten por decir de qué va la página.",
       "Dejar uno y pasar el resto a H2.",
       "p3") : null,
+  },
+  {
+    id: "enlaces_rotos", funcion: 3, necesita: ["seo.enlaces_rotos", "seo.crawl"],
+    evaluar: (v) => {
+      const rotos = v.lista("seo.enlaces_rotos");
+      return rotos.length ? H(
+        `${rotos.length} enlaces internos llevan a un error`,
+        `Al rastrear ${v.num("seo.crawl")} páginas, estos enlaces devuelven error: ${rotos.slice(0, 3).join("; ")}${rotos.length > 3 ? "…" : ""}`,
+        "Quien pulsa llega a una página de error y se va; el buscador gasta rastreo en callejones sin salida y la página de destino no recibe la señal del enlace.",
+        "Corregir cada enlace para que apunte a la página correcta, o redirigir la URL antigua a su sustituta.",
+        "p1") : null;
+    },
+  },
+  {
+    id: "paginas_huerfanas", funcion: 3, necesita: ["seo.huerfanas"],
+    evaluar: (v) => {
+      const h = v.lista("seo.huerfanas");
+      return h.length ? H(
+        `${h.length} páginas del sitemap sin ningún enlace interno`,
+        `Están en el sitemap pero ninguna página rastreada enlaza a ellas: ${h.slice(0, 3).join(", ")}${h.length > 3 ? "…" : ""}`,
+        "Una página huérfana solo la encuentra quien ya conoce la URL. El buscador la considera poco importante y el visitante nunca llega a ella navegando.",
+        "Enlazarlas desde las páginas de su tema (menú, categoría o artículos relacionados), o retirarlas del sitemap si ya no sirven.",
+        "p2") : null;
+    },
+  },
+  {
+    id: "paginas_profundas", funcion: 3, necesita: ["seo.paginas_profundas", "seo.profundidad_max"],
+    evaluar: (v) => {
+      const p = v.lista("seo.paginas_profundas");
+      return p.length ? H(
+        `${p.length} páginas a más de 3 clics de la home`,
+        `La página más profunda está a ${v.num("seo.profundidad_max")} clics. Por ejemplo: ${p.slice(0, 3).join(", ")}`,
+        "Cuanto más lejos de la home, menos rastreo y menos autoridad recibe una página. Si son páginas de servicio o de producto, es visibilidad perdida.",
+        "Acercar las importantes: enlazarlas desde la home, el menú o páginas de categoría.",
+        "p2", "media") : null;
+    },
+  },
+  {
+    id: "enlaces_a_redireccion", funcion: 3, necesita: ["seo.enlaces_a_redireccion", "seo.crawl"],
+    evaluar: (v) => v.num("seo.enlaces_a_redireccion") > 0 ? H(
+      `${v.num("seo.enlaces_a_redireccion")} enlaces internos pasan por una redirección`,
+      "Hay enlaces internos que apuntan a una URL que redirige a otra.",
+      "Cada salto añade espera y diluye un poco la señal del enlace. Es fácil de evitar porque los enlaces son propios.",
+      "Actualizar los enlaces para que apunten directamente a la URL final.",
+      "p3") : null,
+  },
+  {
+    id: "noindex_en_sitemap", funcion: 3, necesita: ["seo.noindex_en_sitemap"],
+    evaluar: (v) => {
+      const n = v.lista("seo.noindex_en_sitemap");
+      return n.length ? H(
+        `${n.length} páginas del sitemap están marcadas noindex`,
+        `El sitemap pide indexarlas, pero la propia página dice que no: ${n.slice(0, 3).join(", ")}`,
+        "Señales contradictorias: el buscador rastrea algo que luego no puede mostrar, y si el noindex es un error, esas páginas no aparecen.",
+        "Decidir en cada una: quitar el noindex si debe aparecer, o sacarla del sitemap si no.",
+        "p2") : null;
+    },
   },
   {
     id: "geo_no_aparece", funcion: 3, necesita: ["geo.menciones", "geo.consultas", "geo.competidores"],
