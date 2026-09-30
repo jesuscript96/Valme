@@ -17,6 +17,7 @@ function datos(dominio = "www.valmesolutions.com"): Datos {
   return {
     proyectos: [{ id: "pr_1", clientId: "c_1", nombre: "Web", dominio, creadoEn: "2026-09-01T00:00:00Z" }],
     auditorias: [], evidencias: [], hallazgos: [], tareas: [], eventos: [], declaraciones: [], mediciones: [],
+    altas: [], encargos: [], informes: [], actividad: [], clientesNuevos: [],
   };
 }
 

@@ -10,7 +10,12 @@ Rama de trabajo: `port/geo-seo-aeo`, en local hasta que se decida subir.
 >
 > **Hecho:** F2 (herramientas en `src/os/seo/`), F3 (pantallas en `/app/c/[client]/seo`), F5
 > (agente HTTP) y F8 (revisión de VALME), más la parte de F4 que conecta el motor existente.
-> **Pendiente:** F7.
+> **F7 hecho (30 sep 2026):** todas las secciones de Search OS dentro del módulo, como funcionalidad
+> real sobre los datos (no demo): Centro de mando, Onboarding (8 pasos, requisitos, excepciones,
+> vista del cliente, activación que da de alta al cliente en Valme), Clientes (ficha con 12 pestañas),
+> Diagnóstico (encargo, evidencia por hallazgo, bloqueos por acceso, calidad), Plan de trabajo
+> versionado con decisión del PM, Agentes, Supervisión, Operaciones, Informes (aprobar contenido y
+> autorizar envío) y Configuración. Código en `src/os/seo/operacion/`.
 >
 > **Estructura (30 sep 2026):** SEO · GEO · AEO es un **módulo** propio, elegido en el selector de
 > módulos de la barra lateral (`src/os/ui/modulos.ts`: añadir un módulo es una línea). Vive en

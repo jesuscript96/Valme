@@ -2,7 +2,7 @@ import "server-only";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import * as seed from "@/os/repo/seed.data";
-import type { Datos, Proyecto } from "./tipos";
+import type { ClienteNuevo, Datos, Proyecto } from "./tipos";
 
 /**
  * ALMACÉN DEL MÓDULO SEO.
@@ -37,7 +37,37 @@ function inicial(): Datos {
     eventos: [],
     declaraciones: [],
     mediciones: [],
+    altas: [],
+    encargos: [],
+    informes: [],
+    actividad: [],
+    clientesNuevos: [],
   };
+}
+
+/**
+ * Registra en los datos de Valme (en memoria) un cliente creado desde el onboarding, con
+ * su Brand Kit en borrador, que el módulo de Cuentas necesita para abrir la ficha.
+ */
+export function inyectarCliente(c: ClienteNuevo): void {
+  if (!seed.clients.some((x) => x.id === c.id)) {
+    seed.clients.push({ id: c.id, slug: c.slug, name: c.name, websiteUrl: c.websiteUrl, status: "onboarding", createdAt: c.createdAt });
+  }
+  if (!seed.brandKits.some((k) => k.clientId === c.id)) {
+    seed.brandKits.push({
+      id: `bk_${c.slug}`, clientId: c.id, status: "draft", version: 1,
+      identity: {
+        logoLightPath: null, logoDarkPath: null,
+        colors: { primary: "#14161A", secondary: "#F4F2EE", accent: "#FF3B21", background: "#FFFFFF", textPrimary: "#14161A" },
+        fonts: { heading: "Inter", body: "Inter" }, colorScheme: "light", borderRadius: "4px", photoStyle: null, imageModel: null,
+      },
+      voice: { tone: [], address: "tu", wordsToUse: [], wordsToAvoid: [], sampleCopy: [] },
+      business: { valueProposition: null, services: [], differentiators: [], proof: [], geo: null },
+      personas: [],
+      legal: { privacyUrl: null, controller: null, consentText: null, capiLegalBasis: "consent" },
+      origins: {}, approvedAt: null, approvedBy: null,
+    });
+  }
 }
 
 // En globalThis para sobrevivir a la recarga en caliente de `next dev`.
@@ -50,6 +80,7 @@ export function leer(): Datos {
       const clave = k as keyof Datos;
       if (!Array.isArray(g.__valmeSeo[clave])) (g.__valmeSeo as Record<string, unknown>)[clave] = v;
     }
+    g.__valmeSeo.clientesNuevos.forEach(inyectarCliente);
     return g.__valmeSeo;
   }
   if (PERSISTE && existsSync(FICHERO)) {

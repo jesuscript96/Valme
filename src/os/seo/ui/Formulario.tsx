@@ -13,9 +13,15 @@ import type { Resultado } from "../tipos";
  */
 export function Formulario({
   accion, boton, children, variante = "primary", confirmar, className, pendiente = "Guardando…",
+  botones, reiniciar = true, deshabilitado,
 }: {
   accion: (datos: FormData) => Promise<Resultado>;
   boton: string;
+  /** Varios botones de envío: cada uno manda `ir=<valor>` para que la acción sepa cuál fue. */
+  botones?: { valor: string; label: string; variante?: "primary" | "secondary" | "danger" | "ghost"; disabled?: boolean }[];
+  /** Vaciar el formulario al terminar bien. No en asistentes que siguen mostrando lo guardado. */
+  reiniciar?: boolean;
+  deshabilitado?: boolean;
   children?: ReactNode;
   variante?: "primary" | "secondary" | "danger" | "ghost";
   confirmar?: string;
@@ -36,7 +42,8 @@ export function Formulario({
         e.preventDefault();
         const form = e.currentTarget;
         if (confirmar && !window.confirm(confirmar)) return;
-        const datos = new FormData(form);
+        // Con el botón pulsado: un mismo formulario puede guardar y avanzar, o guardar y volver.
+        const datos = new FormData(form, (e.nativeEvent as SubmitEvent).submitter);
         setError(null);
         empezar(async () => {
           const r = await accion(datos);
@@ -44,16 +51,33 @@ export function Formulario({
             setError(r.error);
             return;
           }
-          form.reset();
+          if (reiniciar) form.reset();
           form.closest("details")?.removeAttribute("open");
         });
       }}
     >
       {children}
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="submit" variant={variante} size="sm" disabled={!listo || enCurso}>
-          {enCurso ? pendiente : boton}
-        </Button>
+        {botones ? (
+          botones.map((b) => (
+            <Button
+              key={b.valor}
+              type="submit"
+              name="ir"
+              value={b.valor}
+              variant={b.variante ?? "secondary"}
+              size="sm"
+              disabled={!listo || enCurso || deshabilitado || b.disabled}
+            >
+              {b.label}
+            </Button>
+          ))
+        ) : (
+          <Button type="submit" variant={variante} size="sm" disabled={!listo || enCurso || deshabilitado}>
+            {enCurso ? pendiente : boton}
+          </Button>
+        )}
+        {enCurso && botones ? <span className="text-[12px] text-os-muted">{pendiente}</span> : null}
         {error ? (
           <span role="alert" className="text-[12px] leading-snug text-os-accent">
             {error}

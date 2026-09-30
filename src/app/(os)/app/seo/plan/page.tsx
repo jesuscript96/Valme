@@ -4,8 +4,10 @@ import { moverTareaAccion } from "@/os/seo/acciones";
 import { seguimientoAbierto } from "@/os/seo/estados";
 import { AGENTES, DECISION_LABEL, TIPO_TAREA_LABEL, type Tarea } from "@/os/seo/tipos";
 import { TareaBadge, fmtDia } from "@/os/seo/ui/etiquetas";
+import { rutaPlan, ultimoPlan } from "@/os/seo/operacion/diagnostico";
+import { Estado } from "@/os/seo/ui/etiquetas";
 import { ActionButton } from "@/os/ui/ActionButton";
-import { Card, EmptyState, PageHeader, cx } from "@/os/ui/primitives";
+import { Card, CardHeader, EmptyState, PageHeader, cx } from "@/os/ui/primitives";
 
 export const metadata = { title: "Plan y tareas · SEO · Valme OS" };
 
@@ -58,8 +60,35 @@ export default async function Plan({
     <>
       <PageHeader
         title="Plan y tareas"
-        description="Lo que se ha decidido hacer con cada hallazgo, con responsable, agente y fecha. Las vencidas salen marcadas."
+        description="Los planes de trabajo que salen de cada diagnóstico y las tareas de seguimiento de cada hallazgo, con responsable, agente y fecha."
       />
+
+      <Card className="mb-6">
+        <CardHeader title="Planes de trabajo" action={<span className="text-[11px] uppercase text-os-faint">Aprobar · cambios · rechazo</span>} />
+        {seo.encargos.filter((e) => e.planes.length).length ? (
+          <ul className="divide-y divide-os-border">
+            {seo.encargos.filter((e) => e.planes.length).map((e) => {
+              const pl = ultimoPlan(e)!;
+              return (
+                <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-[13px]"><Estado t={pl.estado} /> <span className="os-num ml-1 text-xs text-os-faint">{e.id} · v{pl.version}</span></p>
+                    <p className="text-[13px] font-medium">Plan de trabajo · {seo.cliente(e.clientId)?.name}</p>
+                    <p className="text-xs text-os-muted">{pl.acciones.length} acciones · {e.servicios.join(", ") || "servicio sin definir"}</p>
+                  </div>
+                  <Link href={rutaPlan(e.id)} className="text-[13px] font-medium hover:underline">
+                    {pl.estado === "Pendiente de aprobación" ? "Revisar plan →" : "Abrir →"}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="px-4 py-5 text-[13px] text-os-muted">Aún no hay planes. Se generan desde un diagnóstico validado por control de calidad.</p>
+        )}
+      </Card>
+
+      <h2 className="mb-2 text-[13px] font-semibold">Tareas de seguimiento de hallazgos</h2>
 
       <div className="mb-4 flex flex-wrap gap-1.5 text-[12px]">
         <Link href={enlace({ mias: null })} className={chip(!mias)}>Todas</Link>

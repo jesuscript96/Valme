@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity, FileText, Globe, Home, Image as ImageIcon, Inbox, LayoutDashboard, Layers,
-  ListChecks, Rocket, Search, Settings, Sparkles, Users, Wrench,
+  ListChecks, Rocket, Search, Settings, Sparkles, Users, Wrench, Gauge, UserPlus, Bot, ShieldCheck,
+  FileBarChart, SlidersHorizontal,
 } from "lucide-react";
 import { cx } from "./primitives";
 
@@ -12,7 +13,8 @@ const ICONS = {
   home: Home, kit: FileText, offers: Layers, studio: ImageIcon,
   launch: Rocket, landings: Activity, leads: Inbox, settings: Settings, clients: Users,
   tools: Wrench, audit: Search, panel: LayoutDashboard, plan: ListChecks, geo: Sparkles,
-  projects: Globe,
+  projects: Globe, command: Gauge, onboarding: UserPlus, agents: Bot, supervision: ShieldCheck,
+  operations: Activity, reports: FileBarChart, config: SlidersHorizontal,
 } as const;
 
 export type NavItem = {

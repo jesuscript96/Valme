@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { MEMBERS } from "@/os/data/members";
-import { forClient, listVisibleClients, memberHasAccess } from "@/os/repo";
-import * as seed from "@/os/repo/seed.data";
+import { listVisibleClients } from "@/os/repo";
+import { contexto, type Ctx } from "./ambito";
 import {
   ErrorSeo, actualizarTarea, archivarAuditoria, cambiarEstado, crearAuditoria, crearProyecto,
   crearTarea, declararCobertura, decidirHallazgo, editarAlcance, importarPiloto,
@@ -13,9 +12,7 @@ import {
 } from "./herramientas";
 import { COOKIE_CLIENTE, rutaAuditoria } from "./index";
 import { guardar, leer } from "./store";
-import type {
-  Actor, Datos, Decision, EstadoAuditoria, EstadoTarea, Resultado, TipoTarea,
-} from "./tipos";
+import type { Datos, Decision, EstadoAuditoria, EstadoTarea, Resultado, TipoTarea } from "./tipos";
 
 /**
  * ESCRITURAS DEL MÓDULO SEO · GEO · AEO.
@@ -25,20 +22,6 @@ import type {
  * Action es un endpoint público: la autorización está aquí y en la herramienta, no en
  * que el botón se vea o no.
  */
-
-type Ctx = { clientId: string; actor: Actor; pms: string[] };
-
-/** Resuelve el cliente de un registro, comprueba el acceso y prepara quién actúa. */
-async function contexto(clientId: string | undefined): Promise<Ctx> {
-  const client = seed.clients.find((c) => c.id === clientId);
-  if (!client) throw new ErrorSeo("El registro no existe.");
-  const scope = await forClient(client.slug);
-  return {
-    clientId: client.id,
-    actor: { id: scope.member.id, nombre: scope.member.name, pm: scope.role !== "operator" },
-    pms: MEMBERS.filter((m) => m.role !== "operator" && memberHasAccess(m, client.slug)).map((m) => m.id),
-  };
-}
 
 const clienteDe = {
   auditoria: (d: Datos, id: string) => d.auditorias.find((a) => a.id === id)?.clientId,

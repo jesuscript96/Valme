@@ -22,10 +22,11 @@ export type Persona = { id: string; nombre: string };
 
 export const seoModulo = cache(async () => {
   const { member } = await requireMember();
+  // Primero los datos del módulo: reinyectan en Valme los clientes creados desde el onboarding.
+  const d = leer();
   const clientes = await listVisibleClients();
   const elegido = (await cookies()).get(COOKIE_CLIENTE)?.value ?? null;
   const filtro = clientes.find((c) => c.slug === elegido) ?? null;
-  const d = leer();
 
   const accesibles = new Set(clientes.map((c) => c.id));
   const enFiltro = new Set((filtro ? [filtro] : clientes).map((c) => c.id));
@@ -56,6 +57,15 @@ export const seoModulo = cache(async () => {
     hallazgos: d.hallazgos.filter((h) => ids.has(h.auditoriaId)),
     tareas: d.tareas.filter((t) => ids.has(t.auditoriaId)),
     mediciones: d.mediciones.filter((m) => enFiltro.has(m.clientId)),
+    /** Las altas de empresas que aún no son cliente se ven siempre (no tienen cliente que filtrar). */
+    altas: d.altas.filter((a) => (a.clientId ? enFiltro.has(a.clientId) : !filtro)),
+    encargos: d.encargos.filter((e) => enFiltro.has(e.clientId)),
+    informes: d.informes.filter((i) => enFiltro.has(i.clientId)),
+    actividad: d.actividad.filter((x) => (x.clientId ? enFiltro.has(x.clientId) : !filtro)),
+    /** Clientes del filtro (todos los visibles o el elegido), como conjunto de ids. */
+    ambito: enFiltro,
+    /** Datos crudos para las vistas calculadas; filtrar siempre con `ambito`. */
+    datos: d,
     /** El detalle se abre aunque el filtro sea otro cliente: basta con tener acceso. */
     detalle: (auditoriaId: string) => detalle(d, accesibles, auditoriaId),
   };

@@ -44,6 +44,18 @@ export const CoberturaBadge = ({ e }: { e: EstadoCobertura }) => (
   <Badge tone={TONO_COBERTURA[e]}>{COBERTURA_LABEL[e]}</Badge>
 );
 
+/**
+ * Color de un estado por su texto, como en Search OS: bloqueos y errores en rojo, lo
+ * pendiente en ámbar, lo aprobado en verde y el resto neutro.
+ */
+export function tonoDe(texto: string): Tone {
+  if (/bloque|error|vencid|insuficiente|caducado/i.test(texto)) return "accent";
+  if (/riesgo|pendiente|revisión|devuelt|cambios|onboarding/i.test(texto)) return "warn";
+  if (/automático|completad|aprobad|validad|autorizad|activo|cumplido|listo|hecha/i.test(texto)) return "ok";
+  return "neutral";
+}
+export const Estado = ({ t }: { t: string }) => <Badge tone={tonoDe(t)}>{t}</Badge>;
+
 export const fmtDia = (iso: string | null) =>
   iso
     ? new Date(iso.length === 10 ? `${iso}T00:00:00` : iso).toLocaleDateString("es-ES", {

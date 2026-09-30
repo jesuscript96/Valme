@@ -240,6 +240,11 @@ export type MedicionGeo = {
   motivo: string | null;
 };
 
+import type { Actividad, Alta, Encargo, Informe } from "./operacion/tipos";
+
+/** Empresa dada de alta como cliente de Valme desde el onboarding SEO. */
+export type ClienteNuevo = { id: string; slug: string; name: string; websiteUrl: string | null; createdAt: string };
+
 export type Datos = {
   proyectos: Proyecto[];
   auditorias: Auditoria[];
@@ -249,6 +254,11 @@ export type Datos = {
   eventos: Evento[];
   declaraciones: Declaracion[];
   mediciones: MedicionGeo[];
+  altas: Alta[];
+  encargos: Encargo[];
+  informes: Informe[];
+  actividad: Actividad[];
+  clientesNuevos: ClienteNuevo[];
 };
 
 /** Quien actúa. `pm` = puede decidir: admin o estratega. */
