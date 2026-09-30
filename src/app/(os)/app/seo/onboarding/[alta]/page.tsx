@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { seoModulo } from "@/os/seo";
+import { alClienteActivo } from "@/os/seo/equivalente";
 import { activarAltaAccion, excepcionAccion, guardarPasoAccion } from "@/os/seo/operacion/acciones";
 import { pendientes, progreso, puedeActivar, requisitos, rutaAlta } from "@/os/seo/operacion/onboarding";
 import {
@@ -34,6 +35,7 @@ export default async function Asistente({
   const seo = await seoModulo();
   const a = seo.datos.altas.find((x) => x.id === id && (!x.clientId || seo.clientes.some((c) => c.id === x.clientId)));
   if (!a) notFound();
+  alClienteActivo.alta(seo, a.clientId);
 
   const vistaCliente = sp.vista === "cliente";
   const pasos = PASOS_ALTA.filter((p) => !vistaCliente || p.cliente);

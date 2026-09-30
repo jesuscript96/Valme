@@ -22,11 +22,13 @@ export default async function SeoLayout({ children }: { children: React.ReactNod
   return (
     <MenuArea
       titulo="SEO · GEO · AEO"
-      ambito={seo.filtro?.name ?? "Todos los clientes"}
       nav={[
         { href: "/app/seo", label: "Centro de mando", icon: "command" },
         { href: "/app/seo/onboarding", label: "Onboarding", icon: "onboarding", badge: n(borradores) },
-        { href: "/app/seo/clientes", label: "Clientes", icon: "clients" },
+        // El cliente se elige arriba: con uno activo, la entrada lleva a su ficha.
+        seo.filtro
+          ? { href: `/app/seo/clientes/${seo.filtro.id}`, label: "Ficha del cliente", icon: "clients" }
+          : { href: "/app/seo/clientes", label: "Cartera", icon: "clients" },
         { href: "/app/seo/auditorias", label: "Auditorías", icon: "audit", badge: n(porDecidir) },
         { href: "/app/seo/plan", label: "Plan y tareas", icon: "plan", badge: n(abiertas) },
         { href: "/app/seo/agentes", label: "Agentes", icon: "agents" },

@@ -12,7 +12,6 @@ export default async function CrmLayout({
   return (
     <MenuArea
       titulo="CRM · Leads"
-      ambito={scope.client.name}
       nav={[
         { href: `/app/c/${slug}/leads`, label: "Leads", icon: "leads", badge: recientes ? String(recientes) : undefined },
       ]}

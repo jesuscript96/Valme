@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { seoModulo } from "@/os/seo";
+import { alClienteActivo } from "@/os/seo/equivalente";
 import { decidirPlanAccion, nuevaVersionAccion } from "@/os/seo/operacion/acciones";
 import { estadoCliente, ultimoPlan } from "@/os/seo/operacion/diagnostico";
 import { Estado, fmtDia } from "@/os/seo/ui/etiquetas";
@@ -19,6 +20,7 @@ export default async function PlanTrabajo({ params }: { params: Promise<{ encarg
   const seo = await seoModulo();
   const e = seo.datos.encargos.find((x) => x.id === encargo && seo.clientes.some((c) => c.id === x.clientId));
   if (!e) notFound();
+  alClienteActivo.plan(seo, e.clientId);
   const a = seo.datos.altas.find((x) => x.id === e.altaId) ?? null;
   const p = ultimoPlan(e);
   const nombre = seo.cliente(e.clientId)?.name ?? "Cliente";

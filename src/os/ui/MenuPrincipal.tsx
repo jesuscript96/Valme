@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type FocusEvent } from "react";
 import {
   Building2, ClipboardCheck, Contact, Handshake, Home, Inbox, Megaphone, Menu, Palette,
-  PanelLeftClose, PanelLeftOpen, Plug, Search, X, type LucideIcon,
+  PanelLeftClose, Pin, Plug, Search, X, type LucideIcon,
 } from "lucide-react";
 import { elegirClienteActivo } from "@/os/tenancy/actions";
 import { AREAS, ESPACIOS, areaDe, destinoAlCambiar, slugDeRuta, type Area, type Icono } from "./navegacion";
@@ -20,25 +20,14 @@ const ICONOS: Record<Icono, LucideIcon> = {
 
 const ICONO_ESPACIO = { ventas: Handshake, clientes: Building2 } as const;
 
-/** Etiqueta flotante de las entradas cuando el menú está plegado a iconos. */
-function Globo({ texto }: { texto: string }) {
-  return (
-    <span
-      role="presentation"
-      className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-os-text px-2 py-1 text-[12px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
-    >
-      {texto}
-    </span>
-  );
-}
-
 /**
  * MENÚ PRINCIPAL.
  *
  * Arriba el espacio (Ventas o Clientes) y, en Clientes, el cliente activo; debajo las
  * áreas. En Inicio va abierto; en un área con menú propio se pliega a iconos para dejar
- * sitio al menú secundario, y se puede volver a abrir con el botón de abajo. En pantallas
- * estrechas es un cajón que se abre desde la barra de arriba.
+ * sitio al menú secundario. Plegado, se despliega por encima del contenido al pasar el
+ * ratón (o al llegar con el teclado) y se vuelve a plegar al salir; el botón de abajo lo
+ * deja abierto. En pantallas estrechas es un cajón que se abre desde la barra de arriba.
  *
  * El cliente activo sale de la URL cuando la ruta es de un cliente, y si no, del último
  * elegido (la misma cookie que lee SEO). El layout no se vuelve a pintar al navegar, así
@@ -59,7 +48,22 @@ export function MenuPrincipal({
   const [activo, setActivo] = useState(activoInicial);
   const [desplegado, setDesplegado] = useState(false);
   const [cajon, setCajon] = useState(false);
+  const [asomado, setAsomado] = useState(false);
   const [ocupado, empezar] = useTransition();
+
+  // Un pequeño retardo al entrar y al salir, para que cruzar el menú con el ratón camino
+  // del contenido no lo haga parpadear.
+  const reloj = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const asomar = (valor: boolean, ms: number) => {
+    if (reloj.current) clearTimeout(reloj.current);
+    reloj.current = setTimeout(() => setAsomado(valor), ms);
+  };
+  useEffect(() => () => {
+    if (reloj.current) clearTimeout(reloj.current);
+  }, []);
+  const alSalirFoco = (e: FocusEvent<HTMLElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) asomar(false, 0);
+  };
 
   // Ajustes de estado cuando cambian la ruta o lo que manda el servidor.
   const [rutaVista, setRutaVista] = useState(pathname);
@@ -67,6 +71,7 @@ export function MenuPrincipal({
     setRutaVista(pathname);
     setDesplegado(false);
     setCajon(false);
+    setAsomado(false);
     if (slugUrl && slugUrl !== activo) setActivo(slugUrl);
   }
   const [inicialVisto, setInicialVisto] = useState(activoInicial);
@@ -77,7 +82,10 @@ export function MenuPrincipal({
 
   const slug = slugUrl ?? activo;
   const cliente = clientes.find((c) => c.slug === slug) ?? null;
+  /** Ocupa solo el ancho de los iconos. */
   const plegado = area.conMenu && !desplegado;
+  /** Se pinta solo con iconos: plegado y sin el ratón encima. */
+  const compacto = plegado && !asomado;
 
   function elegir(nuevo: string | null) {
     setActivo(nuevo);
@@ -110,7 +118,7 @@ export function MenuPrincipal({
         )}
       >
         <Icono className={cx("size-4 shrink-0", actual && "text-os-accent")} aria-hidden />
-        {compacto ? <Globo texto={a.nombre} /> : <span className="min-w-0 flex-1 truncate">{a.nombre}</span>}
+        {compacto ? null : <span className="min-w-0 flex-1 truncate">{a.nombre}</span>}
       </Link>
     );
   };
@@ -150,7 +158,7 @@ export function MenuPrincipal({
               )}
             >
               <Icono className="size-3.5 shrink-0" aria-hidden />
-              {compacto ? <Globo texto={e.nombre} /> : e.nombre}
+              {compacto ? null : e.nombre}
             </Link>
           );
         })}
@@ -173,18 +181,17 @@ export function MenuPrincipal({
 
       {abajo.length ? <div className="space-y-0.5">{abajo.map((a) => entrada(a, compacto))}</div> : null}
 
-      {area.conMenu ? (
+      {area.conMenu && !compacto ? (
         <button
           type="button"
-          onClick={() => setDesplegado((v) => !v)}
-          aria-label={compacto ? "Abrir el menú" : "Plegar el menú"}
-          className={cx(
-            "group relative hidden items-center rounded-md text-[13px] text-os-muted hover:bg-os-sunken hover:text-os-text md:flex",
-            compacto ? "size-9 justify-center" : "gap-2.5 px-2.5 py-1.5",
-          )}
+          onClick={() => {
+            setDesplegado((v) => !v);
+            setAsomado(false);
+          }}
+          className="hidden items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] text-os-muted hover:bg-os-sunken hover:text-os-text md:flex"
         >
-          {compacto ? <PanelLeftOpen className="size-4" aria-hidden /> : <PanelLeftClose className="size-4" aria-hidden />}
-          {compacto ? <Globo texto="Abrir el menú" /> : "Plegar el menú"}
+          {desplegado ? <PanelLeftClose className="size-4" aria-hidden /> : <Pin className="size-4" aria-hidden />}
+          {desplegado ? "Plegar el menú" : "Dejar abierto"}
         </button>
       ) : null}
 
@@ -237,16 +244,22 @@ export function MenuPrincipal({
         </div>
       ) : null}
 
-      <aside
-        className={cx(
-          // z-30: por encima del menú del área, que también es sticky y va después, para que
-          // los globos y los desplegables del menú plegado no queden debajo.
-          "sticky top-0 z-30 hidden h-dvh shrink-0 flex-col gap-4 border-r border-os-border bg-os-surface py-4 transition-[width] duration-150 md:flex",
-          plegado ? "w-14 px-2.5" : "w-60 px-3",
-        )}
-      >
-        {cuerpo(plegado)}
-      </aside>
+      {/* El hueco reserva solo el ancho plegado; el menú se despliega por encima. */}
+      <div className={cx("sticky top-0 z-30 hidden h-dvh shrink-0 md:block", plegado ? "w-14" : "w-60")}>
+        <aside
+          onMouseEnter={plegado ? () => asomar(true, 120) : undefined}
+          onMouseLeave={plegado ? () => asomar(false, 180) : undefined}
+          onFocus={plegado ? () => asomar(true, 0) : undefined}
+          onBlur={plegado ? alSalirFoco : undefined}
+          className={cx(
+            "absolute inset-y-0 left-0 flex flex-col gap-4 border-r border-os-border bg-os-surface py-4 transition-[width,box-shadow] duration-150",
+            compacto ? "w-14 px-2.5" : "w-60 px-3",
+            plegado && !compacto && "shadow-xl",
+          )}
+        >
+          {cuerpo(compacto)}
+        </aside>
+      </div>
     </>
   );
 }

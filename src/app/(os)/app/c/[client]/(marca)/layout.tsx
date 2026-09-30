@@ -12,7 +12,6 @@ export default async function MarcaLayout({
   return (
     <MenuArea
       titulo="Marca"
-      ambito={scope.client.name}
       nav={[
         {
           href: `/app/c/${slug}/brand-kit`, label: "Brand Kit", icon: "kit",

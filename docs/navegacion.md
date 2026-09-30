@@ -37,10 +37,10 @@ contextos.
 
 - **Menú principal** (`src/os/ui/MenuPrincipal.tsx`): espacio, cliente activo y áreas.
   En Inicio y en las áreas de una sola pantalla va abierto. En un área con menú propio
-  se pliega a iconos (con su nombre al pasar el ratón) y se puede reabrir con el botón
-  de abajo.
+  se pliega a iconos; al pasar el ratón (o llegar con el teclado) se despliega por encima
+  del contenido y se vuelve a plegar al salir. «Dejar abierto» lo fija.
 - **Menú del área** (`MenuArea` en `src/os/ui/Shell.tsx`): lo pinta el layout de cada
-  área, con sus contadores y los motivos de bloqueo.
+  área, con sus contadores y los motivos de bloqueo. No repite el cliente.
 - **Pantallas estrechas**: el menú principal es un cajón que se abre desde una barra
   arriba, y el del área pasa a una fila encima del contenido.
 
@@ -53,7 +53,7 @@ contextos.
 | Clientes | Inicio | `/app`, `/app/clients`, `/app/c/<slug>` | — |
 | Clientes | Marca | `/app/c/<slug>/brand-kit` | Brand Kit |
 | Clientes | Paid | `/app/c/<slug>/offers/…`, `/landings/…` | Ofertas · Landings |
-| Clientes | SEO · GEO · AEO | `/app/seo/…` | El del módulo (13 entradas) |
+| Clientes | SEO · GEO · AEO | `/app/seo/…` | El del módulo; «Cartera» pasa a «Ficha del cliente» con un cliente activo |
 | Clientes | CRM · Leads | `/app/c/<slug>/leads/…` | Leads |
 | Clientes | Integraciones (admin) | `/app/c/<slug>/settings` | — |
 
@@ -68,6 +68,11 @@ espacio Clientes:
   URL. Cambiar de cliente te deja en la misma sección con el otro cliente. Sin cliente
   activo, su entrada lleva a `/app/clients?area=<área>` para elegir uno.
 - **SEO · GEO · AEO** trabaja sobre la cartera y usa la cookie como filtro (`seoModulo()`).
+  Sus pantallas de detalle (ficha, plan, onboarding, auditoría, informe) siguen al cliente
+  activo: si se cambia de cliente estando en una, se va a la misma pantalla del nuevo, o
+  a la lista si no tiene (`src/os/seo/equivalente.ts`).
+- **El cliente solo se elige arriba.** Ningún menú de área ni formulario tiene su propio
+  selector cuando hay un cliente activo.
 - **Inicio**: con un cliente activo es `/app/c/<slug>`; con «Todos», `/app` es el de
   cartera.
 

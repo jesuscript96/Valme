@@ -41,14 +41,15 @@ export function Contenido({ children }: { children: ReactNode }) {
 }
 
 /**
- * Menú secundario de un área (Paid, SEO…), con su título y el ámbito debajo. En pantallas
- * estrechas no hay columna: las entradas pasan a una fila encima del contenido.
+ * Menú secundario de un área (Paid, SEO…), con su título. El cliente NO se repite aquí:
+ * se elige solo arriba, en el menú principal. En pantallas estrechas no hay columna: las
+ * entradas pasan a una fila encima del contenido.
  */
 export function MenuArea({
   titulo, ambito, nav, children,
 }: {
   titulo: string;
-  /** Sobre qué se está trabajando: el cliente, o «Todos los clientes». */
+  /** Una línea bajo el título. Nunca el cliente: ese va en el menú principal. */
   ambito?: string;
   nav: NavItem[];
   children: ReactNode;

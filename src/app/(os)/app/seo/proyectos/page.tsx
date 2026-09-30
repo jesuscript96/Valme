@@ -20,13 +20,18 @@ export default async function Proyectos() {
           seo.actor.pm ? (
             <Desplegable titulo="+ Nuevo proyecto">
               <Formulario accion={crearProyectoAccion} boton="Crear proyecto" className="w-80">
-                <Field label="Cliente">
-                  <Select name="clientId" defaultValue={seo.filtro?.id ?? seo.clientes[0]?.id}>
-                    {seo.clientes.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </Select>
-                </Field>
+                {seo.filtro ? (
+                  // Con un cliente activo, el proyecto es suyo: el cliente se elige arriba.
+                  <input type="hidden" name="clientId" value={seo.filtro.id} />
+                ) : (
+                  <Field label="Cliente">
+                    <Select name="clientId" defaultValue={seo.clientes[0]?.id}>
+                      {seo.clientes.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </Select>
+                  </Field>
+                )}
                 <Field label="Nombre">
                   <Input name="nombre" placeholder="Web principal" required />
                 </Field>

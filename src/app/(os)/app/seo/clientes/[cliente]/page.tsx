@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { rutaAuditoria, seoModulo } from "@/os/seo";
+import { alClienteActivo } from "@/os/seo/equivalente";
 import { accesoAccion } from "@/os/seo/operacion/acciones";
 import { bloqueos, estadoCliente, rutaPlan, ultimoPlan } from "@/os/seo/operacion/diagnostico";
 import { estadoInforme, rutaInforme } from "@/os/seo/operacion/informes";
@@ -34,6 +35,7 @@ export default async function FichaCliente({
   const seo = await seoModulo();
   const c = seo.cliente(clientId);
   if (!c) notFound();
+  alClienteActivo.ficha(seo, c.id, tab);
   const d = seo.datos;
   const a = d.altas.find((x) => x.clientId === c.id) ?? null;
   const e = d.encargos.find((x) => x.clientId === c.id) ?? null;

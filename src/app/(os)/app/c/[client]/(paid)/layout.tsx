@@ -16,7 +16,6 @@ export default async function PaidLayout({
   return (
     <MenuArea
       titulo="Paid"
-      ambito={scope.client.name}
       nav={[
         {
           href: `${base}/offers`, label: "Ofertas", icon: "offers",

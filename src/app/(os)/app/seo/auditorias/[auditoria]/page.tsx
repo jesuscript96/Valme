@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { referencias, rutaAuditoria, seoModulo } from "@/os/seo";
+import { alClienteActivo } from "@/os/seo/equivalente";
 import { coberturaAccion, editarAlcanceAccion } from "@/os/seo/acciones";
 import { seguimientoAbierto, soloLectura } from "@/os/seo/estados";
 import { SERVICIOS } from "@/os/seo/tipos";
@@ -46,6 +47,7 @@ export default async function AuditoriaSeo({
   const seo = await seoModulo();
   const d = seo.detalle(id);
   if (!d) notFound();
+  alClienteActivo.auditoria(seo, d.auditoria.clientId, tab);
 
   const { auditoria: a, proyecto, hallazgos, evidencias, tareas, eventos, cobertura } = d;
   const pestaña: Pestaña = PESTAÑAS.some(([k]) => k === tab) ? (tab as Pestaña) : "resumen";

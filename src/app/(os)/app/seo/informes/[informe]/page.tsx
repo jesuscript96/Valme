@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { seoModulo } from "@/os/seo";
+import { alClienteActivo } from "@/os/seo/equivalente";
 import { aprobarContenidoAccion, autorizarEnvioAccion } from "@/os/seo/operacion/acciones";
 import { contenido, estadoInforme } from "@/os/seo/operacion/informes";
 import { Estado, fmtDia } from "@/os/seo/ui/etiquetas";
@@ -17,6 +18,7 @@ export default async function Informe({ params }: { params: Promise<{ informe: s
   const seo = await seoModulo();
   const inf = seo.datos.informes.find((x) => x.id === informe && seo.clientes.some((c) => c.id === x.clientId));
   if (!inf) notFound();
+  alClienteActivo.informe(seo, inf.clientId);
   const c = contenido(seo.datos, inf);
   const estado = estadoInforme(seo.datos, inf);
 
