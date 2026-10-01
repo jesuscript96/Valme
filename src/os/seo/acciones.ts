@@ -210,6 +210,25 @@ export async function agenteAccion(tareaId: string): Promise<Resultado> {
   return sondeo.ok ? { ok: true } : { ok: false, error: "La prueba no se completó. Revisa la tarea." };
 }
 
+// --- Generadores GEO ----------------------------------------------------------
+
+/** Lee las páginas principales del dominio de un proyecto para prellenar el llms.txt. */
+export async function leerPaginasAccion(
+  proyectoId: string,
+): Promise<{ ok: true; paginas: { titulo: string; url: string; descripcion: string }[] } | { ok: false; error: string }> {
+  const p = leer().proyectos.find((x) => x.id === proyectoId);
+  try {
+    await contexto(p?.clientId);
+  } catch (e) {
+    if (e instanceof ErrorSeo) return { ok: false, error: e.message };
+    throw e;
+  }
+  if (!p) return { ok: false, error: "El proyecto no existe." };
+  const { paginasClave } = await import("@/os/audit/collect/tools/crawl");
+  const paginas = await paginasClave(`https://${p.dominio}/`);
+  return paginas.length ? { ok: true, paginas } : { ok: false, error: "No se han podido leer páginas del sitio." };
+}
+
 // --- Visibilidad en IA (GEO) -----------------------------------------------
 
 /** Mide si los asistentes citan al dominio del proyecto y lo guarda en su histórico. */
