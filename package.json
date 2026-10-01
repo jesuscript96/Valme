@@ -1,45 +1,25 @@
 {
-  "name": "web",
-  "version": "0.1.0",
+  "name": "valme",
   "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "test": "tsx --test \"src/os/**/__tests__/*.test.ts\"",
-    "audit": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/audit.ts",
-    "check": "tsc --noEmit && npm run lint:os && npm test",
-    "lint:os": "eslint src/os scripts \"src/app/(os)\" src/app/api src/proxy.ts",
-    "probar:llm": "tsx --env-file-if-exists=.env.local --conditions=react-server scripts/probar-llm.ts"
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.127.0",
-    "@sanity/image-url": "^2.1.1",
-    "@sparticuz/chromium": "^148.0.0",
-    "axe-core": "^4.13.0",
-    "gsap": "^3.15.0",
-    "lenis": "^1.3.26",
-    "lucide-react": "^1.31.0",
-    "motion": "^13.1.0",
-    "next": "16.3.0",
-    "next-sanity": "^13.3.2",
-    "playwright-core": "^1.63.0",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "three": "^0.185.1",
-    "zod": "^4.6.5"
+  "scripts": {
+    "dev": "npm run dev -w web",
+    "build": "npm run build -w web",
+    "start": "npm run start -w web",
+    "lint": "npm run lint -w web",
+    "test": "npm test --workspaces --if-present",
+    "check": "npm run check --workspaces --if-present",
+    "audit": "tsx --env-file-if-exists=.env.local --env-file-if-exists=apps/web/.env.local --conditions=react-server packages/os/scripts/audit.ts",
+    "probar:llm": "tsx --env-file-if-exists=.env.local --env-file-if-exists=apps/web/.env.local --conditions=react-server packages/os/scripts/probar-llm.ts",
+    "worker": "npm run dev -w @valme/worker"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@types/three": "^0.185.4",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.0",
-    "server-only": "^0.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4"
   }
 }
