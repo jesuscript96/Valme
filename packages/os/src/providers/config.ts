@@ -7,7 +7,7 @@ import "server-only";
  * cada superficie que depende de una comprueba esto y dice explícitamente que falta,
  * en vez de fallar con un 401 opaco o — peor — de fingir un resultado.
  */
-export type ProviderKey = "firecrawl" | "anthropic" | "higgsfield" | "resend" | "meta";
+export type ProviderKey = "firecrawl" | "anthropic" | "higgsfield" | "resend" | "meta" | "supabase";
 
 export const PROVIDER_ENV: Record<ProviderKey, string[]> = {
   firecrawl: ["FIRECRAWL_API_KEY"],
@@ -15,6 +15,7 @@ export const PROVIDER_ENV: Record<ProviderKey, string[]> = {
   higgsfield: ["HF_API_KEY_ID", "HF_API_KEY_SECRET"],
   resend: ["RESEND_API_KEY"],
   meta: ["META_APP_ID", "META_APP_SECRET"],
+  supabase: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
 };
 
 export const PROVIDER_LABEL: Record<ProviderKey, string> = {
@@ -23,6 +24,7 @@ export const PROVIDER_LABEL: Record<ProviderKey, string> = {
   higgsfield: "Higgsfield",
   resend: "Resend",
   meta: "Meta Marketing API",
+  supabase: "Supabase",
 };
 
 export function isConfigured(p: ProviderKey): boolean {

@@ -39,9 +39,24 @@ export type JobStore = {
     id: string,
     result:
       | { status: "succeeded"; costUsd: number; usage?: Usage; externalId?: string; output: unknown }
-      | { status: "failed"; error: string },
+      | { status: "failed"; error: string; costUsd?: number; usage?: Usage },
   ) => Promise<void>;
 };
+
+/**
+ * Un fallo que ya ha gastado. Un agente que se cae en el paso treinta ha pagado
+ * veintinueve llamadas: si el error lo lleva, `runJob` lo apunta igual en la fila.
+ */
+export class JobError extends Error {
+  constructor(
+    message: string,
+    readonly usage?: Usage,
+    readonly costUsd?: number,
+  ) {
+    super(message);
+    this.name = "JobError";
+  }
+}
 
 export async function runJob<T>(
   store: JobStore,
@@ -60,9 +75,14 @@ export async function runJob<T>(
     });
     return r.output;
   } catch (e) {
+    const gastado = e instanceof JobError ? e : null;
     await store.close(id, {
       status: "failed",
       error: e instanceof Error ? e.message : String(e),
+      usage: gastado?.usage,
+      costUsd: gastado
+        ? gastado.costUsd ?? (gastado.usage ? costUsd(gastado.usage, spec.model) : undefined)
+        : undefined,
     });
     throw e;
   }

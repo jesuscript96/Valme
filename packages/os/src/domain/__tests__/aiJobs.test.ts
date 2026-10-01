@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { memoryJobStore, runJob } from "../aiJobs";
+import { JobError, memoryJobStore, runJob } from "../aiJobs";
 
 test("un job correcto se cierra con su coste calculado de los tokens", async () => {
   const store = memoryJobStore();
@@ -47,4 +47,20 @@ test("un coste explícito gana al calculado: Higgsfield no cobra por tokens", as
   const row = [...store.rows.values()][0];
   assert.equal(row.costUsd, 0.094);
   assert.equal(row.externalId, "req_1");
+});
+
+test("un fallo que ya ha gastado deja su coste en la fila", async () => {
+  const store = memoryJobStore();
+  await assert.rejects(
+    runJob(store, { clientId: "c1", kind: "agent.run", provider: "anthropic", input: {} },
+      async () => {
+        throw new JobError("máximo de pasos", {
+          inputTokens: 1_000_000, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0,
+        });
+      }),
+    /máximo de pasos/,
+  );
+  const row = [...store.rows.values()][0];
+  assert.equal(row.status, "failed");
+  assert.equal(row.costUsd, 4);
 });
