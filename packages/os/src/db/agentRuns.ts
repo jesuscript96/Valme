@@ -113,6 +113,20 @@ export function agentRunsRepo(db: SupabaseClient) {
       if (error) throw new Error(`agent_runs.finish: ${error.message}`);
     },
 
+    /**
+     * Un intento falló por algo pasajero (red, base de datos, 5xx del modelo): la fila
+     * vuelve a `queued` con el motivo y el mensaje reaparece en la cola al vencer su
+     * invisibilidad.
+     */
+    async requeue(id: string, error: string): Promise<void> {
+      const { error: e } = await db
+        .from("agent_runs")
+        .update({ status: "queued", error })
+        .eq("id", id)
+        .eq("status", "running");
+      if (e) throw new Error(`agent_runs.requeue: ${e.message}`);
+    },
+
     /** ¿La han cancelado desde fuera mientras corría? Se mira entre paso y paso. */
     async isCancelled(id: string): Promise<boolean> {
       const { data, error } = await db.from("agent_runs").select("status").eq("id", id).single();

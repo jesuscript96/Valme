@@ -39,6 +39,29 @@ export class SinNavegadorError extends Error {
 const enServerless = () =>
   Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
+/**
+ * Abre un navegador. Lo usan el auditor y las herramientas de navegación del worker.
+ *
+ * Con `SANDBOX_URL` (el worker en Coolify) no se lanza nada aquí: se conecta al
+ * Chromium del contenedor sandbox, que es el único que carga páginas de terceros. Así un
+ * sitio hostil nunca corre en el mismo proceso que tiene las claves.
+ */
+export async function abrirNavegador(): Promise<Browser> {
+  const remoto = process.env.SANDBOX_URL;
+  if (remoto) {
+    try {
+      return await chromium.connect(remoto, { timeout: 30_000 });
+    } catch (e) {
+      throw new Error(
+        `No se ha podido conectar con el navegador del sandbox (SANDBOX_URL): ${
+          e instanceof Error ? e.message : String(e)
+        }`,
+      );
+    }
+  }
+  return abrir();
+}
+
 async function abrir(): Promise<Browser> {
   // En una función serverless no hay navegador instalado. `@sparticuz/chromium` empaqueta
   // un Chromium recortado que sí arranca ahí, y se carga con importación dinámica para
@@ -97,7 +120,7 @@ export async function recogerRuntime(
 ): Promise<Runtime> {
   const out: Señal[] = [];
   const fallos: { fuente: string; motivo: string }[] = [];
-  const navegador = await abrir();
+  const navegador = await abrirNavegador();
 
   try {
     const ctx = await navegador.newContext({

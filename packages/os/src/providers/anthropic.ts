@@ -78,7 +78,7 @@ export function readUsage(res: { usage?: unknown }): Usage {
  * Por eso hay dos modos de salida estructurada y se elige solo según a dónde apunta el
  * cliente.
  */
-const esAnthropic = () => !BASE_URL || BASE_URL.includes("api.anthropic.com");
+export const esAnthropic = () => !BASE_URL || BASE_URL.includes("api.anthropic.com");
 
 const SISTEMA_JSON =
   "Devuelves SOLO un objeto JSON válido que cumpla exactamente el esquema indicado. " +

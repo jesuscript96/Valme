@@ -47,3 +47,4 @@ next-env.d.ts
 /studio-valme/node_modules
 /studio-valme/dist
 /studio-valme/.sanity
+!.env.example

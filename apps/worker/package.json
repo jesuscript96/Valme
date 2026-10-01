@@ -1,0 +1,27 @@
+{
+  "name": "@valme/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --conditions=react-server --env-file-if-exists=.env.local src/main.ts",
+    "start": "node --conditions=react-server --import tsx src/main.ts",
+    "run:agent": "tsx --conditions=react-server --env-file-if-exists=.env.local src/cli.ts",
+    "test": "tsx --conditions=react-server --test \"src/**/__tests__/*.test.ts\"",
+    "check": "tsc --noEmit && eslint src && npm test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
+    "@supabase/supabase-js": "^2.117.2",
+    "@valme/os": "*",
+    "playwright-core": "^1.63.0",
+    "tsx": "^4",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "eslint": "^9",
+    "typescript": "^5",
+    "typescript-eslint": "^8"
+  }
+}
