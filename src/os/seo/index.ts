@@ -1,0 +1,101 @@
+import "server-only";
+import { cache } from "react";
+import { cookies } from "next/headers";
+import { requireMember } from "@/os/auth/dal";
+import { MEMBERS } from "@/os/data/members";
+import { listVisibleClients, memberHasAccess } from "@/os/repo";
+import { LAST_CLIENT_COOKIE } from "@/os/tenancy/lastClient";
+import { calcularCobertura } from "./cobertura";
+import { leer } from "./store";
+import type { Actor, Datos, Tarea } from "./tipos";
+
+/**
+ * LECTURAS DEL MÓDULO SEO · GEO · AEO.
+ *
+ * El módulo trabaja sobre todos los clientes que la persona puede ver, filtrados por el
+ * cliente activo del menú principal, que se guarda en una cookie (los layouts no reciben
+ * los parámetros de la URL, y el filtro tiene que valer en todas las pantallas del módulo).
+ */
+
+export const COOKIE_CLIENTE = LAST_CLIENT_COOKIE;
+
+export type Persona = { id: string; nombre: string };
+
+export const seoModulo = cache(async () => {
+  const { member } = await requireMember();
+  // Primero los datos del módulo: reinyectan en Valme los clientes creados desde el onboarding.
+  const d = leer();
+  const clientes = await listVisibleClients();
+  const elegido = (await cookies()).get(COOKIE_CLIENTE)?.value ?? null;
+  const filtro = clientes.find((c) => c.slug === elegido) ?? null;
+
+  const accesibles = new Set(clientes.map((c) => c.id));
+  const enFiltro = new Set((filtro ? [filtro] : clientes).map((c) => c.id));
+  const auditorias = d.auditorias.filter((a) => enFiltro.has(a.clientId));
+  const ids = new Set(auditorias.map((a) => a.id));
+
+  const actor: Actor = { id: member.id, nombre: member.name, pm: member.role !== "operator" };
+
+  /** PM (admin o estratega) con acceso a ese cliente: los posibles responsables de tareas. */
+  const pmsDe = (clientId: string): Persona[] => {
+    const c = clientes.find((x) => x.id === clientId);
+    if (!c) return [];
+    return MEMBERS.filter((m) => m.role !== "operator" && memberHasAccess(m, c.slug)).map((m) => ({
+      id: m.id,
+      nombre: m.name,
+    }));
+  };
+
+  return {
+    member,
+    actor,
+    clientes,
+    filtro,
+    cliente: (clientId: string) => clientes.find((c) => c.id === clientId) ?? null,
+    pmsDe,
+    proyectos: d.proyectos.filter((p) => enFiltro.has(p.clientId)),
+    auditorias,
+    hallazgos: d.hallazgos.filter((h) => ids.has(h.auditoriaId)),
+    tareas: d.tareas.filter((t) => ids.has(t.auditoriaId)),
+    mediciones: d.mediciones.filter((m) => enFiltro.has(m.clientId)),
+    /** Las altas de empresas que aún no son cliente se ven siempre (no tienen cliente que filtrar). */
+    altas: d.altas.filter((a) => (a.clientId ? enFiltro.has(a.clientId) : !filtro)),
+    encargos: d.encargos.filter((e) => enFiltro.has(e.clientId)),
+    informes: d.informes.filter((i) => enFiltro.has(i.clientId)),
+    actividad: d.actividad.filter((x) => (x.clientId ? enFiltro.has(x.clientId) : !filtro)),
+    /** Clientes del filtro (todos los visibles o el elegido), como conjunto de ids. */
+    ambito: enFiltro,
+    /** Datos crudos para las vistas calculadas; filtrar siempre con `ambito`. */
+    datos: d,
+    /** El detalle se abre aunque el filtro sea otro cliente: basta con tener acceso. */
+    detalle: (auditoriaId: string) => detalle(d, accesibles, auditoriaId),
+  };
+});
+
+function detalle(d: Datos, accesibles: Set<string>, auditoriaId: string) {
+  const a = d.auditorias.find((x) => x.id === auditoriaId && accesibles.has(x.clientId));
+  if (!a) return null;
+  const hallazgos = d.hallazgos.filter((h) => h.auditoriaId === a.id);
+  const evidencias = d.evidencias.filter((e) => e.auditoriaId === a.id);
+  const declaraciones = d.declaraciones.filter((x) => x.auditoriaId === a.id);
+  return {
+    auditoria: a,
+    proyecto: d.proyectos.find((p) => p.id === a.proyectoId) ?? null,
+    hallazgos,
+    evidencias,
+    tareas: d.tareas.filter((t) => t.auditoriaId === a.id),
+    eventos: d.eventos.filter((e) => e.auditoriaId === a.id).sort((x, y) => y.en.localeCompare(x.en)),
+    cobertura: calcularCobertura(a, hallazgos, evidencias, declaraciones),
+  };
+}
+
+/** H-01, H-02… por orden de alta; estable aunque cambien las decisiones. */
+export function referencias<T extends { id: string }>(items: T[], prefijo: string) {
+  return new Map(items.map((x, i) => [x.id, `${prefijo}-${String(i + 1).padStart(2, "0")}`]));
+}
+
+export const abierta = (t: Tarea) => t.estado === "pendiente" || t.estado === "en_curso";
+export const vencida = (t: Tarea) =>
+  abierta(t) && Boolean(t.fecha) && (t.fecha as string) < new Date().toISOString().slice(0, 10);
+
+export const rutaAuditoria = (auditoriaId: string) => `/app/seo/auditorias/${auditoriaId}`;

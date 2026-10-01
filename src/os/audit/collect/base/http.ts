@@ -1,4 +1,5 @@
 import { señal, type Señal } from "../../types";
+import { botsBloqueados } from "./robots";
 
 /**
  * Comprobaciones sobre HTTP puro: cadena de redirecciones, ficheros de raíz y 404.
@@ -96,6 +97,10 @@ export async function recogerHttp(dominio: string): Promise<{ señales: Señal[]
           ...seo, id: "seo.robots_bloqueo", que: "robots.txt bloquea el sitio entero",
           valor: bloqueaTodo, estado: "verificado",
         }));
+        out.push(señal({
+          ...seo, id: "seo.robots_bots_ia", que: "Rastreadores de IA bloqueados en robots.txt",
+          valor: botsBloqueados(cuerpo), estado: "verificado",
+        }));
       }
     } catch {
       out.push(señal({
@@ -121,6 +126,10 @@ export async function recogerHttp(dominio: string): Promise<{ señales: Señal[]
   // Cabeceras de seguridad: no es SEO, pero sale gratis en la misma petición.
   try {
     const r = await pedir(urlFinal);
+    out.push(señal({
+      ...seo, id: "seo.x_robots", que: "Cabecera X-Robots-Tag",
+      valor: r.headers.get("x-robots-tag"), url: urlFinal, estado: "verificado",
+    }));
     out.push(señal({
       funcion: 7, fuente: "HTTP", id: "web.hsts", que: "Cabecera HSTS",
       valor: r.headers.has("strict-transport-security"), url: urlFinal, estado: "verificado",

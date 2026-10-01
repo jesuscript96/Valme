@@ -1,102 +1,76 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft } from "lucide-react";
-import { ClientSwitcher, type SwitcherClient } from "./ClientSwitcher";
-import { ContextSwitcher } from "./ContextSwitcher";
+import { MenuPrincipal } from "./MenuPrincipal";
 import { Nav, type NavItem } from "./Nav";
-import { UserMenu } from "./UserMenu";
+import type { ClienteMenu } from "./SelectorCliente";
 import { ROLE_LABEL } from "@/os/data/members";
 import type { Role } from "@/os/auth/session";
 
 /**
- * Marco del área: barra lateral fija con el selector de cliente arriba y el menú de
- * usuario abajo. Lo pintan los layouts de `/app/clients` y `/app/c/[client]`, que son
- * los dos únicos sitios donde se sabe si hay cliente activo o no.
+ * MARCO DEL ÁREA. Lo pinta una sola vez `src/app/(os)/app/layout.tsx`: el menú principal
+ * a la izquierda y, al lado, lo que ponga cada área — su menú secundario (`MenuArea`) o
+ * directamente el contenido (`Contenido`).
  */
 export function Shell({
-  user, clients, current, nav, children, contexto = "cuentas",
+  user, clients, activo, children,
 }: {
   user: { name: string; email: string; role: Role };
-  clients: SwitcherClient[];
-  current: SwitcherClient | null;
-  nav: NavItem[];
+  clients: ClienteMenu[];
+  /** El último cliente elegido (cookie), ya comprobado contra los visibles. */
+  activo: string | null;
   children: ReactNode;
-  /** Qué mitad de la aplicación se está mirando. */
-  contexto?: "dx" | "cuentas";
 }) {
-  const isAdmin = user.role === "admin";
-
   return (
-    <div className="flex min-h-dvh">
-      <aside className="sticky top-0 flex h-dvh w-60 shrink-0 flex-col gap-4 border-r border-os-border bg-os-surface px-3 py-4">
-        <Link href="/app" className="px-1 font-display text-[15px] font-semibold tracking-tight text-os-text">
-          Valme <span className="text-os-accent">OS</span>
-        </Link>
-
-        <ContextSwitcher />
-
-        {contexto === "dx" ? null : current ? (
-          <ClientSwitcher clients={clients} current={current} canCreate={isAdmin} />
-        ) : (
-          <p className="rounded-md border border-dashed border-os-border px-2.5 py-2 text-[11px] text-os-faint">
-            Sin cliente activo
-          </p>
-        )}
-
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <Nav items={nav} />
-        </div>
-
-        {contexto === "cuentas" && current ? (
-          <Link
-            href="/app/clients"
-            className="flex items-center gap-2 px-2.5 py-1.5 text-[13px] text-os-muted hover:text-os-text"
-          >
-            <ArrowLeft className="size-3.5" aria-hidden />
-            Todos los clientes
-          </Link>
-        ) : null}
-
-        <div className="border-t border-os-border pt-2">
-          <UserMenu name={user.name} email={user.email} role={ROLE_LABEL[user.role]} />
-        </div>
-      </aside>
-
-      <main className="min-w-0 flex-1 px-8 py-7">
-        <div className="mx-auto max-w-6xl">{children}</div>
-      </main>
+    <div className="flex min-h-dvh flex-col md:flex-row">
+      <MenuPrincipal
+        user={{ name: user.name, email: user.email, role: ROLE_LABEL[user.role], isAdmin: user.role === "admin" }}
+        clientes={clients}
+        activoInicial={activo}
+      />
+      <div className="flex min-w-0 flex-1">{children}</div>
     </div>
   );
 }
 
-/** Navegación de un cliente. Lo que no se puede hacer aún sale bloqueado y dice por qué. */
-export function clientNav(
-  slug: string,
-  state: { kitApproved: boolean; offerCount: number; leadCount: number; isAdmin: boolean },
-): NavItem[] {
-  const base = `/app/c/${slug}`;
-  const needsKit = state.kitApproved ? undefined : "Aprueba antes el Brand Kit";
+/** La columna de contenido. Las áreas sin menú propio la usan directamente. */
+export function Contenido({ children }: { children: ReactNode }) {
+  return (
+    <main className="min-w-0 flex-1 px-4 py-5 md:px-8 md:py-7">
+      <div className="mx-auto max-w-6xl">{children}</div>
+    </main>
+  );
+}
 
-  const items: NavItem[] = [
-    { href: base, label: "Resumen", icon: "home" },
-    { href: `${base}/brand-kit`, label: "Brand Kit", icon: "kit" },
-    {
-      href: `${base}/offers`, label: "Ofertas", icon: "offers",
-      blockedBecause: needsKit,
-      badge: state.offerCount ? String(state.offerCount) : undefined,
-    },
-    {
-      href: `${base}/landings`, label: "Landings", icon: "landings",
-      blockedBecause: state.offerCount ? undefined : "Crea antes una oferta",
-    },
-    {
-      href: `${base}/leads`, label: "Leads", icon: "leads",
-      badge: state.leadCount ? String(state.leadCount) : undefined,
-    },
-  ];
-
-  if (state.isAdmin) {
-    items.push({ href: `${base}/settings`, label: "Integraciones", icon: "settings" });
-  }
-  return items;
+/**
+ * Menú secundario de un área (Paid, SEO…), con su título. El cliente NO se repite aquí:
+ * se elige solo arriba, en el menú principal. En pantallas estrechas no hay columna: las
+ * entradas pasan a una fila encima del contenido.
+ */
+export function MenuArea({
+  titulo, ambito, nav, children,
+}: {
+  titulo: string;
+  /** Una línea bajo el título. Nunca el cliente: ese va en el menú principal. */
+  ambito?: string;
+  nav: NavItem[];
+  children: ReactNode;
+}) {
+  return (
+    <>
+      <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col gap-3 border-r border-os-border bg-os-bg px-3 py-4 md:flex">
+        <div className="px-2.5 pt-1">
+          <p className="font-display text-[15px] font-semibold tracking-tight text-os-text">{titulo}</p>
+          {ambito ? <p className="mt-0.5 truncate text-[12px] text-os-faint">{ambito}</p> : null}
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Nav items={nav} />
+        </div>
+      </aside>
+      <Contenido>
+        <div className="mb-5 md:hidden">
+          <Nav items={nav} horizontal />
+        </div>
+        {children}
+      </Contenido>
+    </>
+  );
 }

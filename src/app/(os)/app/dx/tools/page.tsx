@@ -10,7 +10,7 @@ export default function ToolsPage() {
     <>
       <PageHeader
         title="Herramientas"
-        description="Tres informes sobre un dominio, sin pedir accesos. Funcionan sueltas o sobre un lead: si las lanzas desde un lead, la auditoría queda enganchada a él."
+        description="Cuatro informes sobre un dominio, sin pedir accesos. Funcionan sueltas o sobre un lead: si las lanzas desde un lead, la auditoría queda enganchada a él."
       />
 
       <div className="grid gap-3">

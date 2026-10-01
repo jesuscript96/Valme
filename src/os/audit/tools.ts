@@ -29,7 +29,7 @@ import type { Funcion } from "./types";
 export type EstadoHerramienta = "listo" | "en_desarrollo";
 
 export type Herramienta = {
-  clave: "paid" | "seo" | "web";
+  clave: "paid" | "seo" | "web" | "geo";
   nombre: string;
   estado: EstadoHerramienta;
   /** Qué áreas del reparto cubre su informe. */
@@ -63,6 +63,17 @@ export const HERRAMIENTAS: Record<Herramienta["clave"], Herramienta> = {
       "Salud técnica, contenido y visibilidad, incluida la de las respuestas generadas " +
       "por IA.",
     colectores: ["crawl"],
+  },
+  geo: {
+    clave: "geo",
+    nombre: "Visibilidad en IA (GEO)",
+    estado: "en_desarrollo",
+    funciones: [3],
+    dueño: "seo",
+    descripcion:
+      "Si un comprador pregunta a un asistente por su categoría, ¿sale la empresa? En qué " +
+      "puesto, y a quién nombra en su lugar. Traído de VALME Search OS.",
+    colectores: ["geo"],
   },
   web: {
     clave: "web",

@@ -2,6 +2,7 @@ import { recogerDns } from "./collect/base/dns";
 import { recogerHttp } from "./collect/base/http";
 import { recogerAnuncios, resolverPagina } from "./collect/tools/adlib";
 import { rastrear } from "./collect/tools/crawl";
+import { visibilidadGeo } from "./collect/tools/geo";
 import { imagenes } from "./collect/web/imagenes";
 import { estilos } from "./collect/web/estilos";
 import { formulario } from "./collect/web/formulario";
@@ -111,6 +112,30 @@ export async function auditar(
         fuente: "Rastreo de varias páginas",
         motivo: e instanceof Error ? e.message : String(e),
       });
+    }
+  }
+
+  if (pedidos.includes("geo")) {
+    if (!process.env.OS_LLM_API_KEY && !process.env.ANTHROPIC_API_KEY) {
+      fuentesNoDisponibles.push({
+        fuente: "Modelo de lenguaje",
+        motivo: "Falta OS_LLM_API_KEY. Sin ella no se puede preguntar a un asistente si cita a la empresa.",
+      });
+    } else {
+      const texto = (id: string) => {
+        const v = señales.find((s) => s.id === id)?.valor;
+        return typeof v === "string" ? v : null;
+      };
+      try {
+        señales.push(...(await visibilidadGeo(http.urlFinal, {
+          title: texto("seo.title"), descripcion: texto("seo.descripcion"),
+        })));
+      } catch (e) {
+        fuentesNoDisponibles.push({
+          fuente: "Modelo de lenguaje",
+          motivo: e instanceof Error ? e.message : String(e),
+        });
+      }
     }
   }
 

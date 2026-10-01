@@ -17,6 +17,8 @@ export const clients: Client[] = [
   { id: "c_nordic", slug: "nordic-clinic", name: "Nordic Clinic", websiteUrl: "https://nordicclinic.es", status: "active", createdAt: d(64) },
   { id: "c_rivas", slug: "taller-rivas", name: "Taller Rivas", websiteUrl: "https://tallerrivas.com", status: "active", createdAt: d(31) },
   { id: "c_boix", slug: "casa-boix", name: "Casa Boix", websiteUrl: "https://casaboix.es", status: "onboarding", createdAt: d(1) },
+  // Valme como cliente de sí misma: su web es la primera auditoría SEO real (piloto de Search OS).
+  { id: "c_valme", slug: "valme", name: "VALME Solutions", websiteUrl: "https://www.valmesolutions.com", status: "active", createdAt: d(3) },
 ];
 
 export const brandKits: BrandKit[] = [
@@ -136,6 +138,25 @@ export const brandKits: BrandKit[] = [
       "business.valueProposition": "suggested", "business.proof": "empty",
       "personas": "suggested", "legal.consentText": "empty",
     },
+    approvedAt: null, approvedBy: null,
+  },
+  {
+    id: "bk_valme", clientId: "c_valme", status: "draft", version: 1,
+    identity: {
+      logoLightPath: null, logoDarkPath: null,
+      colors: { primary: "#14161A", secondary: "#F4F2EE", accent: "#FF3B21", background: "#FFFFFF", textPrimary: "#14161A" },
+      fonts: { heading: "Space Grotesk", body: "Inter" },
+      colorScheme: "light", borderRadius: "4px",
+      photoStyle: null, imageModel: null,
+    },
+    voice: { tone: ["directo", "claro"], address: "tu", wordsToUse: [], wordsToAvoid: [], sampleCopy: [] },
+    business: {
+      valueProposition: { value: "Tu departamento de marketing externo para pymes B2B.", sourceUrl: "https://www.valmesolutions.com/" },
+      services: [], differentiators: [], proof: [], geo: null,
+    },
+    personas: [],
+    legal: { privacyUrl: null, controller: null, consentText: null, capiLegalBasis: "consent" },
+    origins: {},
     approvedAt: null, approvedBy: null,
   },
 ];
