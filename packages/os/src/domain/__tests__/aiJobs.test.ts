@@ -7,14 +7,25 @@ test("un job correcto se cierra con su coste calculado de los tokens", async () 
   const out = await runJob(store, { clientId: "c1", kind: "copy.generate", provider: "anthropic", input: {} },
     async () => ({
       output: "ok",
-      // 1M entrada ($5) + 100k salida ($2,50) + 1M de caché leída ($0,50)
+      // Opus 5.5 por defecto: 1M entrada ($4) + 100k salida ($2) + 1M de caché leída ($0,20)
       usage: { inputTokens: 1_000_000, outputTokens: 100_000, cacheReadTokens: 1_000_000, cacheWriteTokens: 0 },
     }));
 
   assert.equal(out, "ok");
   const row = [...store.rows.values()][0];
   assert.equal(row.status, "succeeded");
-  assert.equal(row.costUsd, 5 + 2.5 + 0.5);
+  assert.equal(row.costUsd, 4 + 2 + 0.2);
+});
+
+test("el coste usa la tarifa del modelo del job", async () => {
+  const store = memoryJobStore();
+  await runJob(store, { clientId: "c1", kind: "copy.generate", provider: "anthropic", model: "claude-opus-5", input: {} },
+    async () => ({
+      output: "ok",
+      // Opus 5: 1M entrada ($5) + 100k salida ($2,50) + 1M de caché leída ($0,50)
+      usage: { inputTokens: 1_000_000, outputTokens: 100_000, cacheReadTokens: 1_000_000, cacheWriteTokens: 0 },
+    }));
+  assert.equal([...store.rows.values()][0].costUsd, 5 + 2.5 + 0.5);
 });
 
 test("un job que falla queda registrado con su error y vuelve a lanzar", async () => {

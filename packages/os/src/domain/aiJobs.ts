@@ -53,7 +53,7 @@ export async function runJob<T>(
     const r = await fn(id);
     await store.close(id, {
       status: "succeeded",
-      costUsd: r.costUsd ?? (r.usage ? costUsd(r.usage) : 0),
+      costUsd: r.costUsd ?? (r.usage ? costUsd(r.usage, spec.model) : 0),
       usage: r.usage,
       externalId: r.externalId,
       output: r.output,

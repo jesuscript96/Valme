@@ -1,14 +1,19 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireEnv } from "./config";
-import { costUsd, type Usage } from "@valme/os/domain/pricing";
+import { addUsage, costUsd as costeDe, DEFAULT_MODEL, type Usage } from "@valme/os/domain/pricing";
 
 /**
  * Cliente de Claude y contabilidad de coste.
  *
- * Modelo por defecto: Claude Opus 5. Pensamiento adaptativo (`budget_tokens` está
- * retirado en esta generación y devuelve 400) y salida estructurada vía
+ * Modelo por defecto: Claude Opus 5.5 (`claude-opus-5-5`). Pensamiento adaptativo — en
+ * esta generación no se puede desactivar y `budget_tokens` devuelve 400 —, el esfuerzo
+ * siempre explícito (por defecto sería `medium`) y salida estructurada vía
  * `output_config.format` — `output_format` está deprecado.
+ *
+ * Contra Anthropic, toda llamada lleva `fallbacks: "default"`: si los clasificadores de
+ * seguridad declinan, la API reintenta con el modelo que corresponda en la misma
+ * llamada en vez de devolver un rechazo.
  */
 
 /**
@@ -22,7 +27,7 @@ import { costUsd, type Usage } from "@valme/os/domain/pricing";
  * podrían no admitirlo y habría que reescribir `structured()` contra el
  * `response_format` de sus endpoints OpenAI. Compruébalo antes de contar con ello.
  */
-export const MODEL = process.env.OS_LLM_MODEL ?? "claude-opus-5";
+export const MODEL = process.env.OS_LLM_MODEL ?? DEFAULT_MODEL;
 
 /**
  * Configuración del proveedor, en el espacio de nombres de la aplicación.
@@ -35,8 +40,12 @@ export const MODEL = process.env.OS_LLM_MODEL ?? "claude-opus-5";
 export const BASE_URL = process.env.OS_LLM_BASE_URL ?? undefined;
 const API_KEY = () => process.env.OS_LLM_API_KEY ?? process.env.ANTHROPIC_API_KEY;
 
-export { costUsd };
+/** Coste de un uso con la tarifa del modelo configurado. */
+export const costUsd = (u: Usage) => costeDe(u, MODEL);
 export type { Usage };
+
+/** Cabecera beta del modo `fallbacks: "default"`. */
+export const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
 let cached: Anthropic | null = null;
 export function anthropic(): Anthropic {
@@ -146,6 +155,12 @@ export async function structured<T>(opts: {
         effort: opts.effort ?? "high",
         format: { type: "json_schema", schema: opts.schema },
       };
+      body.betas = [FALLBACK_BETA];
+      body.fallbacks = "default";
+      const res = await anthropic().beta.messages.create(
+        body as unknown as Parameters<Anthropic["beta"]["messages"]["create"]>[0],
+      );
+      return res as unknown as Anthropic.Message;
     }
     const res = await anthropic().messages.create(
       body as unknown as Parameters<Anthropic["messages"]["create"]>[0],
@@ -170,13 +185,7 @@ export async function structured<T>(opts: {
         e instanceof Error ? e.message : String(e)
       }\nDevuelve únicamente el objeto JSON.`,
     );
-    const u2 = readUsage(message);
-    uso = {
-      inputTokens: uso.inputTokens + u2.inputTokens,
-      outputTokens: uso.outputTokens + u2.outputTokens,
-      cacheReadTokens: uso.cacheReadTokens + u2.cacheReadTokens,
-      cacheWriteTokens: uso.cacheWriteTokens + u2.cacheWriteTokens,
-    };
+    uso = addUsage(uso, readUsage(message));
     return { value: extraerJson(texto(message)) as T, usage: uso };
   }
 }
