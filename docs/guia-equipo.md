@@ -64,7 +64,7 @@ Hay tres informes y cada uno tiene un dueño:
 | **Auditoría de SEO** | `rules/03-seo.ts` · `collect/tools/crawl.ts` |
 | **Auditoría Web** | `rules/07-web.ts` · `rules/08-datos.ts` |
 
-Todo dentro de `src/os/audit/`. GitHub te pide a ti la revisión de tus ficheros y a nadie
+Todo dentro de `packages/os/src/audit/`. GitHub te pide a ti la revisión de tus ficheros y a nadie
 más, así que los cambios no chocan.
 
 Mientras desarrollas, corre solo la tuya:
@@ -177,7 +177,7 @@ npm run check
 Si sale en verde, adelante. Si sale en rojo, léelo: suele decir exactamente qué falta.
 
 ```bash
-git add src/os/audit/rules/02-paid.ts
+git add packages/os/src/audit/rules/02-paid.ts
 git commit -m "Paid: detecta anuncios sin rotar en más de 180 días"
 git push -u origin paid/rotacion-creativa
 ```
@@ -191,7 +191,7 @@ dominios lo has probado. El CTO lo revisa y lo integra.
 
 Está para esto y conviene usarla. Lo que funciona:
 
-> «Abre `src/os/audit/rules/02-paid.ts`. Quiero una regla que detecte cuando todos los
+> «Abre `packages/os/src/audit/rules/02-paid.ts`. Quiero una regla que detecte cuando todos los
 > anuncios llevan a la home en vez de a una landing. Mira qué señales hay disponibles,
 > escribe la regla y pruébala contra tallerrivas.com y dos competidores suyos.»
 

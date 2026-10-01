@@ -35,11 +35,11 @@ contextos.
 └────────────────────┘                 └──┴──────────────────┘
 ```
 
-- **Menú principal** (`src/os/ui/MenuPrincipal.tsx`): espacio, cliente activo y áreas.
+- **Menú principal** (`packages/os/src/ui/MenuPrincipal.tsx`): espacio, cliente activo y áreas.
   En Inicio y en las áreas de una sola pantalla va abierto. En un área con menú propio
   se pliega a iconos; al pasar el ratón (o llegar con el teclado) se despliega por encima
   del contenido y se vuelve a plegar al salir. «Dejar abierto» lo fija.
-- **Menú del área** (`MenuArea` en `src/os/ui/Shell.tsx`): lo pinta el layout de cada
+- **Menú del área** (`MenuArea` en `packages/os/src/ui/Shell.tsx`): lo pinta el layout de cada
   área, con sus contadores y los motivos de bloqueo. No repite el cliente.
 - **Pantallas estrechas**: el menú principal es un cajón que se abre desde una barra
   arriba, y el del área pasa a una fila encima del contenido.
@@ -59,7 +59,7 @@ contextos.
 
 ## 3. El cliente activo
 
-Una sola cookie (`valme_os_last_client`, en `src/os/tenancy/lastClient.ts`) para todo el
+Una sola cookie (`valme_os_last_client`, en `packages/os/src/tenancy/lastClient.ts`) para todo el
 espacio Clientes:
 
 - La escribe el proxy al entrar en `/app/c/<slug>/…` y la acción `elegirClienteActivo()`
@@ -70,7 +70,7 @@ espacio Clientes:
 - **SEO · GEO · AEO** trabaja sobre la cartera y usa la cookie como filtro (`seoModulo()`).
   Sus pantallas de detalle (ficha, plan, onboarding, auditoría, informe) siguen al cliente
   activo: si se cambia de cliente estando en una, se va a la misma pantalla del nuevo, o
-  a la lista si no tiene (`src/os/seo/equivalente.ts`).
+  a la lista si no tiene (`packages/os/src/seo/equivalente.ts`).
 - **El cliente solo se elige arriba.** Ningún menú de área ni formulario tiene su propio
   selector cuando hay un cliente activo.
 - **Inicio**: con un cliente activo es `/app/c/<slug>`; con «Todos», `/app` es el de
@@ -81,14 +81,14 @@ La cookie nunca concede acceso: cada página y cada acción pasa por el DAL (`fo
 
 ## 4. Dónde tocar
 
-- **Añadir un área**: una entrada en `AREAS` (`src/os/ui/navegacion.ts`), su icono en
+- **Añadir un área**: una entrada en `AREAS` (`packages/os/src/ui/navegacion.ts`), su icono en
   `MenuPrincipal.tsx` y su carpeta. Si es de cliente, un grupo de rutas
-  `src/app/(os)/app/c/[client]/(<área>)/` con un `layout.tsx` que pinte `MenuArea`.
+  `apps/web/src/app/(os)/app/c/[client]/(<área>)/` con un `layout.tsx` que pinte `MenuArea`.
 - **Añadir una entrada al menú de un área**: en el `nav` del layout de esa área.
 - **Las URLs no dependen del menú**: los grupos de rutas `(inicio)`, `(general)`,
   `(marca)`, `(paid)` y `(crm)` no aparecen en la URL.
 - Los tests del mapa (qué área es cada ruta y adónde lleva cambiar de cliente) están en
-  `src/os/ui/__tests__/navegacion.test.ts`.
+  `packages/os/src/ui/__tests__/navegacion.test.ts`.
 
 ## 5. Pendiente de decidir
 

@@ -36,9 +36,9 @@ Cada área tiene el suyo y solo tocas el tuyo.
 
 | Herramienta | Tu fichero |
 | --- | --- |
-| **Auditoría de Paid** | `src/os/audit/rules/02-paid.ts` |
-| **Auditoría de SEO** | `src/os/audit/rules/03-seo.ts` |
-| **Auditoría Web** | `src/os/audit/rules/07-web.ts` y `08-datos.ts` |
+| **Auditoría de Paid** | `packages/os/src/audit/rules/02-paid.ts` |
+| **Auditoría de SEO** | `packages/os/src/audit/rules/03-seo.ts` |
+| **Auditoría Web** | `packages/os/src/audit/rules/07-web.ts` y `08-datos.ts` |
 
 Dentro hay reglas ya escritas. Una regla tiene cuatro campos, en castellano:
 
@@ -91,7 +91,7 @@ pincha y te dice qué falla. Cuando esté revisado, se integra.
 
 ## Cuando tu herramienta esté terminada
 
-Una línea. En `src/os/audit/tools.ts`, cambia el estado de la tuya:
+Una línea. En `packages/os/src/audit/tools.ts`, cambia el estado de la tuya:
 
 ```ts
 estado: "en_desarrollo"   →   estado: "listo"

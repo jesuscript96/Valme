@@ -1,0 +1,10 @@
+**/node_modules
+**/.next
+**/.env*
+.git
+.github
+.claude
+docs
+studio-valme
+apps/web/public
+**/*.tsbuildinfo
